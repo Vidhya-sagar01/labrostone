@@ -7,15 +7,13 @@ const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Backend API Base URL
+  // ✅ Backend URL constant
   const API_BASE = "https://labrostone-backend.onrender.com";
 
   useEffect(() => {
     const fetchSliders = async () => {
       try {
-        // Live Backend se data fetch karna
         const response = await axios.get(`${API_BASE}/api/admin/sliders`);
-        
         if (response.data.success && Array.isArray(response.data.sliders)) {
           setSlides(response.data.sliders);
         }
@@ -40,34 +38,45 @@ const HeroSlider = () => {
 
   useEffect(() => {
     if (slides.length === 0) return;
-    const interval = setInterval(nextSlide, 4000);
+    const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
   }, [currentSlide, slides.length]);
 
-  if (loading) return <div className="h-[350px] md:h-[500px] flex items-center justify-center bg-gray-100 font-bold">Loading Lebrostone Banners...</div>;
+  if (loading) return <div className="h-[350px] md:h-[500px] flex items-center justify-center bg-gray-100 font-bold">Loading...</div>;
   if (slides.length === 0) return null;
 
   const slide = slides[currentSlide];
 
+  // ✅ Image Path Helper: Yeh function ensure karega ki image hamesha backend se load ho
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "";
+    // Agar path already full URL hai (https://...), toh wahi use karein
+    if (imagePath.startsWith('http')) return imagePath;
+    // Agar sirf relative path hai (/uploads/...), toh backend URL jodein
+    return `${API_BASE}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+  };
+
   return (
     <div className="relative w-full group">
       <div className="relative w-full overflow-hidden">
-        {/* --- DYNAMIC IMAGE --- */}
         <img 
           key={slide._id} 
-          // Database se aane wala full URL use karna
-          src={slide.image} 
-          alt={slide.title || "Lebrostone Banner"} 
+          src={getImageUrl(slide.image)} 
+          alt={slide.title || "Banner"} 
           className="w-full h-[350px] md:h-[500px] object-cover object-top block animate-wait-zoom"
-          onError={(e) => { e.target.src = 'https://via.placeholder.com/1200x500?text=Banner+Image+Not+Found'; }}
+          onError={(e) => {
+            console.log("Image load failed, trying fallback...");
+            // Fallback: Agar upar wala fail ho jaye toh direct uploads path try karein
+            const fileName = slide.image.split('/').pop();
+            e.target.src = `${API_BASE}/uploads/sliders/${fileName}`;
+          }}
         />
 
-        {/* Content Overlay */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="container mx-auto px-6 flex flex-col items-start justify-center h-full">
             <div className="md:w-1/2 text-left space-y-4 md:space-y-6 pl-0 md:pl-12 pt-8 md:pt-0 pointer-events-auto">
               {slide.title && (
-                <h2 className="text-2xl md:text-5xl font-bold whitespace-pre-line text-white drop-shadow-2xl bg-black/30 p-4 rounded-lg backdrop-blur-sm">
+                <h2 className="text-2xl md:text-5xl font-bold text-white drop-shadow-2xl bg-black/30 p-4 rounded-lg">
                   {slide.title}
                 </h2>
               )}
@@ -76,20 +85,18 @@ const HeroSlider = () => {
         </div>
       </div>
 
-      {/* Navigation Arrows */}
-      <button onClick={prevSlide} className="absolute left-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/20 hover:bg-white/50 transition-all z-20 backdrop-blur-md opacity-0 group-hover:opacity-100">
-        <ChevronLeft size={28} className="text-white" />
+      <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/30 hover:bg-white z-20 transition opacity-0 group-hover:opacity-100">
+        <ChevronLeft size={24} className="text-gray-800" />
       </button>
-      <button onClick={nextSlide} className="absolute right-6 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/20 hover:bg-white/50 transition-all z-20 backdrop-blur-md opacity-0 group-hover:opacity-100">
-        <ChevronRight size={28} className="text-white" />
+      <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/30 hover:bg-white z-20 transition opacity-0 group-hover:opacity-100">
+        <ChevronRight size={24} className="text-gray-800" />
       </button>
 
-      {/* Features Bar */}
-      <div className="bg-[#Fdfbf7] py-6 border-t border-gray-100 shadow-sm">
-        <div className="container mx-auto flex flex-wrap justify-center gap-6 md:gap-16 text-gray-700 text-xs md:text-sm font-bold px-4">
-          <div className="flex items-center gap-3"><Truck size={20} className="text-emerald-600" /> FREE SHIPPING</div>
-          <div className="flex items-center gap-3"><ShieldCheck size={20} className="text-emerald-600" /> SECURE CHECKOUT</div>
-          <div className="flex items-center gap-3"><Stethoscope size={20} className="text-emerald-600" /> DOCTOR CONSULTATION</div>
+      <div className="bg-[#Fdfbf7] py-4 border-t border-gray-200">
+        <div className="container mx-auto flex flex-wrap justify-center gap-6 md:gap-12 text-gray-700 text-xs md:text-sm font-bold px-4">
+          <div className="flex items-center gap-2"><Truck size={18} className="text-red-600" /> FREE SHIPPING</div>
+          <div className="flex items-center gap-2"><ShieldCheck size={18} className="text-red-600" /> SECURE CHECKOUT</div>
+          <div className="flex items-center gap-2"><Stethoscope size={18} className="text-red-600" /> FREE DOCTOR CONSULTATION</div>
         </div>
       </div>
 
