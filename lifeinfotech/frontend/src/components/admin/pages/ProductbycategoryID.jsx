@@ -227,34 +227,126 @@ const ProductbycategoryID = () => {
                     </tbody>
                 </table>
             </div>
+               {showModal && (
+                    <div className="fixed inset-0 bg-black/95 flex justify-center items-center z-50 p-4">
+                        <div className="bg-slate-900 border border-slate-800 rounded-[3rem] w-full max-w-6xl max-h-[95vh] overflow-y-auto p-10 shadow-2xl relative scrollbar-hide">
+                            
+                            <div className="sticky -top-10 bg-slate-900 z-50 flex justify-between items-center mb-8 border-b border-slate-800 pb-6 pt-4">
+                                <h2 className="text-3xl font-black text-blue-500 uppercase italic tracking-tighter">{isEditMode ? 'Modify Entry' : 'New Product Entry'}</h2>
+                                <button onClick={closeModal} className="text-4xl text-slate-500 hover:text-white transition-all">&times;</button>
+                            </div>
 
-            {/* Modal code remains the same but with getImageUrl in previews */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/95 flex justify-center items-center z-50 p-4 overflow-y-auto">
-                    <div className="bg-slate-800 border border-slate-700 rounded-[3.5rem] w-full max-w-7xl p-10 my-20">
-                        <div className="flex justify-between items-center mb-10">
-                            <h2 className="text-3xl font-black text-blue-500 uppercase italic">{isEditMode ? 'Modify Product' : 'Add New Product'}</h2>
-                            <button onClick={closeModal} className="text-slate-400 hover:text-white"><X size={40} /></button>
-                        </div>
-                        {/* Form implementation continues... Same as previous but ensures getImageUrl for existing images */}
-                        <form onSubmit={handleSubmit} className="space-y-10">
-                             {/* Media Section Fix */}
-                             <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase text-slate-500 ml-2">Product Images</label>
-                                <input type="file" multiple onChange={handleInputChange} className="block w-full text-sm text-slate-500 file:bg-blue-600 file:text-white file:rounded-full cursor-pointer" />
-                                <div className="flex gap-2 overflow-x-auto py-2">
-                                    {imagePreviews.map((src, i) => (
-                                        <img key={i} src={typeof src === 'string' ? getImageUrl(src) : URL.createObjectURL(src)} className="w-16 h-16 rounded-xl object-cover border border-slate-700" alt="preview" />
+                            <form onSubmit={handleSubmit} className="space-y-12">
+                                {/* IDENTITY & PRICING */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                    <div className="bg-slate-800/30 p-8 rounded-[2.5rem] border border-slate-800 space-y-4 shadow-inner">
+                                        <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2"><ImageIcon size={14}/> Identity</label>
+                                        <input name="name" value={formData.name} onChange={handleInputChange} placeholder="Name" className="w-full bg-slate-800 p-4 rounded-2xl outline-none" required />
+                                        <input name="tagline" value={formData.tagline} onChange={handleInputChange} placeholder="Short Tagline" className="w-full bg-slate-800 p-4 rounded-2xl outline-none border border-slate-700" />
+                                        <input name="net_content" value={formData.net_content} onChange={handleInputChange} placeholder="Net Content (e.g. 15g)" className="w-full bg-slate-800 p-4 rounded-2xl outline-none border border-slate-700" />
+                                    </div>
+
+                                    <div className="bg-slate-800/30 p-8 rounded-[2.5rem] border border-slate-800 shadow-inner">
+                                        <label className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2 mb-4"><PieChart size={14}/> Margin Analysis</label>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <input name="mrp" type="number" value={formData.mrp} onChange={handleInputChange} placeholder="MRP" className="bg-slate-800 p-3 rounded-xl outline-none text-center font-black" required />
+                                            <input name="cost_price" type="number" value={formData.cost_price} onChange={handleInputChange} placeholder="Cost" className="bg-slate-800 p-3 rounded-xl outline-none text-center text-red-400 font-black" required />
+                                            <input name="selling_price" type="number" value={formData.selling_price} onChange={handleInputChange} placeholder="Sale" className="bg-slate-800 p-3 rounded-xl outline-none text-center text-emerald-400 font-black" required />
+                                        </div>
+                                        <div className="flex justify-between mt-4 p-4 bg-slate-950/30 rounded-2xl border border-slate-700">
+                                            <span className="text-[10px] font-bold text-orange-500 uppercase italic">Discount: {formData.discount_percentage}%</span>
+                                            <span className="text-[10px] font-bold text-emerald-500 uppercase italic">Profit: ₹{formData.profit_amount}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* VARIANTS TABLE */}
+                                <div className="bg-slate-800/30 p-8 rounded-[3rem] border border-slate-800 shadow-inner">
+                                    <div className="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+                                        <label className="text-xs font-black text-blue-400 uppercase flex items-center gap-2"><Package size={16}/> Sizing Variants</label>
+                                        <button type="button" onClick={() => addRow('pricing_variants', { size: '', mrp: '', sp: '', discount: 0 })} className="text-blue-500 font-bold text-[10px] uppercase hover:scale-110 transition-transform">+ Add size</button>
+                                    </div>
+                                    {formData.pricing_variants.map((v, i) => (
+                                        <div key={i} className="flex gap-3 bg-slate-950/30 p-5 rounded-3xl border border-slate-700 items-center mb-4 transition-all">
+                                            <input placeholder="Size" value={v.size} onChange={(e) => handleArrayChange('pricing_variants', i, 'size', e.target.value)} className="w-1/4 bg-slate-800 p-3 rounded-xl text-xs" />
+                                            <input placeholder="MRP" type="number" value={v.mrp} onChange={(e) => handleArrayChange('pricing_variants', i, 'mrp', e.target.value)} className="w-1/4 bg-slate-800 p-3 rounded-xl text-xs" />
+                                            <input placeholder="Sale" type="number" value={v.sp} onChange={(e) => handleArrayChange('pricing_variants', i, 'sp', e.target.value)} className="w-1/4 bg-slate-800 p-3 rounded-xl text-xs text-emerald-400 font-black" />
+                                            {i > 0 && <XCircle size={24} className="text-red-500 cursor-pointer hover:scale-125 transition-all" onClick={() => removeRow('pricing_variants', i)} />}
+                                        </div>
                                     ))}
                                 </div>
-                            </div>
-                            <button type="submit" className="w-full bg-blue-600 p-8 rounded-[2.5rem] font-black uppercase tracking-[0.3em] hover:bg-emerald-500 transition-all">Submit</button>
-                        </form>
+
+                                {/* KEY FEATURES & FAQ SECTION */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* Features */}
+                                    <div className="bg-slate-800/30 p-8 rounded-[2.5rem] border border-slate-800 shadow-inner">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <label className="text-[10px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2"><Star size={14}/> Key Features</label>
+                                            <PlusCircle className="text-emerald-500 cursor-pointer" onClick={() => addRow('key_features', '')} />
+                                        </div>
+                                        {formData.key_features.map((f, i) => (
+                                            <div key={i} className="flex gap-2 mb-3">
+                                                <input value={f} onChange={(e) => handleArrayChange('key_features', i, null, e.target.value)} placeholder="Benefit Point" className="flex-1 bg-slate-800 p-3 rounded-xl text-xs border border-slate-700" />
+                                                {i > 0 && <X onClick={() => removeRow('key_features', i)} className="text-red-500 cursor-pointer" />}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* FAQs */}
+                                    <div className="bg-slate-800/30 p-8 rounded-[2.5rem] border border-slate-800 shadow-inner">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <label className="text-[10px] font-black text-orange-400 uppercase tracking-widest flex items-center gap-2"><Info size={14}/> FAQs Section</label>
+                                            <PlusCircle className="text-orange-500 cursor-pointer" onClick={() => addRow('faqs', {question:'', answer:''})} />
+                                        </div>
+                                        {formData.faqs.map((q, i) => (
+                                            <div key={i} className="bg-slate-950/20 p-4 rounded-2xl relative border border-slate-700 mb-4 transition-all hover:border-slate-500">
+                                                <input placeholder="Question" value={q.question} onChange={(e) => handleArrayChange('faqs', i, 'question', e.target.value)} className="w-full bg-slate-800 p-3 rounded-xl mb-2 text-xs font-bold" />
+                                                <textarea placeholder="Answer" value={q.answer} onChange={(e) => handleArrayChange('faqs', i, 'answer', e.target.value)} className="w-full bg-slate-800 p-3 rounded-xl text-[10px] h-20" />
+                                                {i > 0 && <XCircle size={18} className="absolute -top-2 -right-2 text-red-500 cursor-pointer bg-slate-900 rounded-full" onClick={() => removeRow('faqs', i)} />}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* NARRATIVES: LONG DESC & HOW TO USE */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="bg-slate-800/30 p-8 rounded-[2.5rem] border border-slate-800 space-y-4">
+                                        <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2"><BookOpen size={14}/> Application (How To Use)</label>
+                                        <textarea name="how_to_use" value={formData.how_to_use} onChange={handleInputChange} placeholder="Instructions..." className="w-full bg-slate-800 p-5 rounded-3xl outline-none border border-slate-700 h-44 text-sm leading-relaxed" />
+                                    </div>
+                                    <div className="bg-slate-800/30 p-8 rounded-[2.5rem] border border-slate-800 space-y-4">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><AlignLeft size={14}/> Long Narrative</label>
+                                        <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Detailed Description..." className="w-full bg-slate-800 p-5 rounded-3xl outline-none border border-slate-700 h-44 text-sm leading-relaxed" />
+                                    </div>
+                                </div>
+
+                                {/* MULTIPLE IMAGE GALLERY */}
+                                <div className="bg-slate-800/30 p-10 rounded-[3rem] border-2 border-dashed border-slate-700 text-center shadow-inner">
+                                    <label className="text-xs font-black text-blue-400 uppercase mb-4 block flex items-center justify-center gap-2 font-black uppercase tracking-widest"><ImageIcon size={24}/> Product Visuals</label>
+                                    <input type="file" multiple onChange={handleImageChange} className="hidden" id="file-up" />
+                                    <label htmlFor="file-up" className="bg-slate-800 px-10 py-3 rounded-2xl cursor-pointer hover:bg-slate-700 border border-slate-600 font-bold transition-all inline-block">Upload Gallery</label>
+                                    
+                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mt-8">
+                                        {imagePreviews.map((src, i) => (
+                                            <div key={i} className="relative aspect-square group">
+                                                <img src={src} className="w-full h-full rounded-2xl object-cover border-2 border-slate-700 shadow-2xl transition-all group-hover:scale-105" alt=""/>
+                                                <button type="button" onClick={() => {
+                                                    setFormData(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }));
+                                                    setImagePreviews(prev => prev.filter((_, idx) => idx !== i));
+                                                }} className="absolute -top-2 -right-2 bg-red-600 rounded-full p-1 shadow-xl"><X size={14}/></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <button type="submit" className="sticky bottom-0 w-full bg-blue-600 hover:bg-blue-500 p-8 rounded-[3.5rem] font-black uppercase tracking-[0.5em] shadow-2xl transition-all active:scale-95 text-lg flex items-center justify-center gap-4 border-t-4 border-blue-400">
+                                    <Save size={24}/> Authorize & Sync Data
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
-    );
+                )}
+
 };
 
 export default ProductbycategoryID;
