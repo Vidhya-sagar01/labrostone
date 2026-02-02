@@ -11,16 +11,23 @@ const Faq = () => {
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Base URL for your admin FAQ routes
-  // const API_BASE = "http://localhost:5000/api/admin";
- // Localhost ko hata kar Render ka URL daal dein
-const API_BASE = "https://labrostone-backend.onrender.com";
+  // LIVE BACKEND URL
+  const API_BASE = "https://labrostone-backend.onrender.com/api";
+
+  // ✅ HELPER: Auth Header Setup
+  const getAuthHeader = () => {
+    const token = localStorage.getItem('adminToken');
+    return { headers: { 'Authorization': token ? `Bearer ${token}` : '' } };
+  };
+
   // 1. Fetch Categories on load
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const { data } = await axios.get(`${API_BASE}/categories`);
-        setCategories(data.categories || []);
+        // Backend structure check
+        const catData = data.categories || data.data || data || [];
+        setCategories(catData);
       } catch (err) {
         console.error("Error fetching categories:", err);
       }
@@ -31,15 +38,16 @@ const API_BASE = "https://labrostone-backend.onrender.com";
   // 2. Fetch Products when Category changes
   useEffect(() => {
     if (!selectedCategory) {
-        setProducts([]);
-        return;
+      setProducts([]);
+      return;
     }
     const fetchProducts = async () => {
       try {
-        const { data } = await axios.get(`${API_BASE}/products?category=${selectedCategory}`);
-        setProducts(data.products || []);
-        setSelectedProduct(""); // Reset selected product
-        setFaqs([]); // Reset FAQs
+        // Query param ke saath products fetch karein
+        const { data } = await axios.get(`${API_BASE}/products/by-category/${selectedCategory}`);
+        setProducts(data.data || data.products || []);
+        setSelectedProduct(""); 
+        setFaqs([]); 
       } catch (err) {
         console.error("Error fetching products:", err);
       }
@@ -50,13 +58,14 @@ const API_BASE = "https://labrostone-backend.onrender.com";
   // 3. Fetch FAQs when Product changes
   useEffect(() => {
     if (!selectedProduct) {
-        setFaqs([]);
-        return;
+      setFaqs([]);
+      return;
     }
     const fetchFaqs = async () => {
       try {
+        // Product ID se FAQS fetch karein
         const { data } = await axios.get(`${API_BASE}/faqs?productId=${selectedProduct}`);
-        setFaqs(data.faqs || []);
+        setFaqs(data.faqs || data.data || []);
       } catch (err) {
         console.error("Error fetching FAQs:", err);
       }
@@ -64,7 +73,7 @@ const API_BASE = "https://labrostone-backend.onrender.com";
     fetchFaqs();
   }, [selectedProduct]);
 
-  // 4. Add New FAQ
+  // 4. Add New FAQ (Protected)
   const handleAddFaq = async (e) => {
     e.preventDefault();
     if (!question || !answer || !selectedProduct) return alert("All fields are required");
@@ -75,23 +84,28 @@ const API_BASE = "https://labrostone-backend.onrender.com";
         question,
         answer,
         productId: selectedProduct,
-      });
-      setFaqs([data.faq, ...faqs]);
-      setQuestion("");
-      setAnswer("");
+      }, getAuthHeader()); // ✅ Auth header added
+
+      if (data.success) {
+        setFaqs([data.faq, ...faqs]);
+        setQuestion("");
+        setAnswer("");
+        alert("FAQ Added Successfully! ✅");
+      }
     } catch (err) {
       console.error(err);
-      alert("Failed to add FAQ");
+      alert(err.response?.status === 401 ? "Session Expired! Please Login Again." : "Failed to add FAQ");
     }
     setLoading(false);
   };
-//delete
+
+  // 5. Delete FAQ (Protected)
   const handleDeleteFaq = async (id) => {
     if (window.confirm("Are you sure you want to delete this FAQ?")) {
       try {
-        await axios.delete(`${API_BASE}/faqs/${id}`);
-        // List ko filter karke turant update karein
+        await axios.delete(`${API_BASE}/faqs/${id}`, getAuthHeader()); // ✅ Auth header added
         setFaqs(faqs.filter((item) => item._id !== id));
+        alert("Deleted! 🗑️");
       } catch (err) {
         console.error("Delete Error:", err);
         alert("Failed to delete FAQ");
@@ -99,10 +113,8 @@ const API_BASE = "https://labrostone-backend.onrender.com";
     }
   };
 
-
   return (
     <div className="p-6 bg-slate-900 min-h-screen text-white font-sans">
-      {/* Header section matches your Slider Control style */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-black text-blue-500 uppercase italic tracking-widest">
           FAQ Control Panel
@@ -110,7 +122,6 @@ const API_BASE = "https://labrostone-backend.onrender.com";
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Form and Selection */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl">
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
@@ -120,7 +131,7 @@ const API_BASE = "https://labrostone-backend.onrender.com";
               <div>
                 <label className="text-[10px] font-bold text-slate-500 uppercase mb-2 block">Category</label>
                 <select
-                  className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                  className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
@@ -135,7 +146,7 @@ const API_BASE = "https://labrostone-backend.onrender.com";
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 uppercase mb-2 block">Product</label>
                   <select
-                    className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                    className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm"
                     value={selectedProduct}
                     onChange={(e) => setSelectedProduct(e.target.value)}
                   >
@@ -149,7 +160,6 @@ const API_BASE = "https://labrostone-backend.onrender.com";
             </div>
           </div>
 
-          {/* Create FAQ Form */}
           {selectedProduct && (
             <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl">
               <h2 className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">
@@ -183,7 +193,6 @@ const API_BASE = "https://labrostone-backend.onrender.com";
           )}
         </div>
 
-        {/* Right Column: FAQ List Table */}
         <div className="lg:col-span-2">
           <div className="bg-slate-800 rounded-3xl border border-slate-700 overflow-hidden shadow-xl">
             <table className="w-full text-left">
@@ -217,7 +226,6 @@ const API_BASE = "https://labrostone-backend.onrender.com";
                           A: {faq.answer}
                         </div>
                       </td>
-
                       <td className="p-6 text-right pr-10 align-top">
                         <button
                           onClick={() => handleDeleteFaq(faq._id)}
