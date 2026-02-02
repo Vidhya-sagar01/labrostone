@@ -11,7 +11,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const sliderRoutes = require('./routes/adminSlider');
 const seasonRoute = require('./routes/seasonRoute');
 const anantamRoutes = require('./routes/anantamRoutes');
-const faqRoutes = require('./routes/faqRoutes'); 
+const faqRoutes = require('./routes/adminFAQ');
 const app = express();
 
 app.use(express.json());
@@ -47,7 +47,7 @@ mongoose.connect(process.env.MONGO_URI)
 ======================= */
 app.use('/api/admin', adminRoutes);          
 app.use('/api/admin/sliders', sliderRoutes); 
-app.use('/api/admin/faqs', faqRoutes);       // ✅ Unique FAQ Path
+app.use('/api/admin/faqs', faqRoutes);      
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/seasons', seasonRoute);
