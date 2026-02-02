@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { ChevronLeft, ChevronRight, Leaf, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Leaf } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ShopByCategory = () => {
@@ -9,23 +9,33 @@ const ShopByCategory = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // const API_BASE = "http://localhost:5000";
+  // ✅ LIVE BACKEND URL
   const API_BASE = "https://labrostone-backend.onrender.com";
   const itemsToShow = 5; 
+
+  // ✅ HELPER: Localhost URL ko Live URL mein badalne ke liye
+  const getImageUrl = (url) => {
+    if (!url) return "https://placehold.co/400x500?text=No+Image";
+    
+    // Agar url array hai toh pehla element lo
+    const path = Array.isArray(url) ? url[0] : url;
+
+    if (typeof path === 'string' && path.includes('localhost:5000')) {
+      return path.replace('http://localhost:5000', API_BASE);
+    }
+    return path;
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        // Aapke backend route GET / par request
         const res = await axios.get(`${API_BASE}/api/categories`);
         
-        // Aapka backend data ko direct 'data' property mein bhej raha hai
-        if (res.data && res.data.data) {
-          setCategories(res.data.data);
-        } else if (Array.isArray(res.data)) {
-          setCategories(res.data);
-        }
+        // Backend response check: Categories ko state mein set karein
+        const catData = res.data.data || res.data.categories || res.data || [];
+        setCategories(Array.isArray(catData) ? catData : []);
+        
         setLoading(false);
       } catch (err) {
         console.error("Frontend Category Error:", err);
@@ -75,9 +85,9 @@ const ShopByCategory = () => {
                 >
                   <div className="relative w-full aspect-[4/5] rounded-[2rem] overflow-hidden group/card bg-slate-100 shadow-sm hover:shadow-xl transition-all">
                     
-                    {/* Backend Field 'image_url' use kiya */}
+                    {/* ✅ FIX: getImageUrl function ka use karein */}
                     <img 
-                      src={cat.image_url || "https://placehold.co/400x500?text=Lebrostone"} 
+                      src={getImageUrl(cat.image_url || cat.image)} 
                       alt={cat.name} 
                       className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-110"
                       onError={(e) => { 
