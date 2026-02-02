@@ -27,7 +27,15 @@ const Category = () => {
 
     const [formData, setFormData] = useState(initialFormState);
 
-    // --- HELPER: Auth Header Setup ---
+    // ✅ HELPER: Purane Localhost URL ko Live URL mein badalne ke liye
+    const getImageUrl = (url) => {
+        if (!url) return "https://via.placeholder.com/150";
+        if (url.includes('localhost:5000')) {
+            return url.replace('http://localhost:5000', API_BASE);
+        }
+        return url;
+    };
+
     const getAuthHeader = (isMultipart = false) => {
         const token = localStorage.getItem('adminToken');
         return {
@@ -42,14 +50,12 @@ const Category = () => {
         fetchCategories(currentPage); 
     }, [currentPage, searchTerm]);
 
-    // 1. FETCH CATEGORIES
     const fetchCategories = async (page = 1) => {
         setLoading(true);
         try {
-            // Absolute URL ensure karta hai ki request backend par hi jaye
-            const response = await axios.get(`/api/categories?page=${page}&search=${searchTerm}`, getAuthHeader());
+            // ✅ Fix: Absolute Path use karein
+            const response = await axios.get(`${API_BASE}/api/categories?page=${page}&search=${searchTerm}`, getAuthHeader());
             
-            // Backend agar direct array bhej raha hai toh handle karein
             const data = response.data.data || response.data || [];
             setCategories(data);
 
@@ -66,6 +72,7 @@ const Category = () => {
         }
     };
 
+    // ... (calculateDiscount aur handleInputChange same rahenge)
     const calculateDiscount = (min, max) => {
         if (min && max && Number(max) > Number(min)) {
             const discount = Math.round(((max - min) / max) * 100);
@@ -89,7 +96,6 @@ const Category = () => {
         }
     };
 
-    // 2. SUBMIT / UPDATE
     const handleSubmit = async (e) => {
         e.preventDefault();
         const data = new FormData();
@@ -100,9 +106,9 @@ const Category = () => {
         try {
             const config = getAuthHeader(true);
             if (isEditMode) {
-                await axios.put(`/api/categories/${selectedId}`, data, config);
+                await axios.put(`${API_BASE}/api/categories/${selectedId}`, data, config);
             } else {
-                await axios.post('/api/categories', data, config);
+                await axios.post(`${API_BASE}/api/categories`, data, config);
             }
             closeModal();
             fetchCategories(currentPage);
@@ -120,10 +126,9 @@ const Category = () => {
         setImagePreview(null);
     };
 
-    // 3. DELETE
     const confirmDelete = async () => {
         try {
-            await axios.delete(`/api/categories/${selectedId}`, getAuthHeader());
+            await axios.delete(`${API_BASE}/api/categories/${selectedId}`, getAuthHeader());
             setShowDeleteModal(false);
             fetchCategories(currentPage);
             alert("Deleted! 🗑️");
@@ -135,7 +140,7 @@ const Category = () => {
 
     return (
         <div className="p-4 md:p-6 bg-slate-900 min-h-screen text-white">
-            {/* Header Section */}
+            {/* Header section as per your code */}
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h1 className="text-2xl font-black text-blue-500 tracking-widest uppercase italic">Category Control</h1>
                 <div className="flex w-full md:w-auto gap-4">
@@ -149,7 +154,6 @@ const Category = () => {
                 </div>
             </div>
 
-            {/* Table Area */}
             <div className="bg-slate-800 rounded-3xl border border-slate-700 overflow-hidden shadow-2xl mb-6">
                 <table className="w-full text-left">
                     <thead className="bg-slate-700/50 text-[10px] uppercase text-slate-400 font-black tracking-widest">
@@ -166,7 +170,8 @@ const Category = () => {
                         ) : categories.length > 0 ? categories.map((cat) => (
                             <tr key={cat._id} className="hover:bg-slate-700/30 transition-all">
                                 <td className="p-4 flex items-center gap-4">
-                                    <img src={cat.image_url} className="w-16 h-16 rounded-2xl object-cover border-2 border-slate-600" alt="" />
+                                    {/* ✅ Fix: getImageUrl function use karein */}
+                                    <img src={getImageUrl(cat.image_url)} className="w-16 h-16 rounded-2xl object-cover border-2 border-slate-600" alt="" />
                                     <div>
                                         <div className="font-bold text-lg uppercase tracking-tighter">{cat.name}</div>
                                         <div className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full inline-block font-black mt-1">
@@ -174,6 +179,7 @@ const Category = () => {
                                         </div>
                                     </div>
                                 </td>
+                                {/* Rest of your table cells... */}
                                 <td className="p-4 text-xs font-medium">
                                     <div className="text-emerald-400 font-bold mb-1 underline decoration-emerald-500/30">₹{cat.min_price} - ₹{cat.max_price}</div>
                                     <div className="text-blue-400 text-[9px] italic">💳 {cat.card_offers || 'Standard Offers'}</div>
@@ -183,7 +189,7 @@ const Category = () => {
                                     <button onClick={() => navigate(`/admin/products/add/${cat._id}`)} className="bg-blue-600/10 text-blue-400 border border-blue-500/30 text-[10px] font-black px-4 py-2 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-md">+ PRODUCTS</button>
                                 </td>
                                 <td className="p-4 text-right pr-10 space-x-6">
-                                    <button onClick={() => { setFormData(cat); setImagePreview(cat.image_url); setSelectedId(cat._id); setIsEditMode(true); setShowModal(true); }} className="text-blue-400 font-black text-[10px] uppercase hover:underline">Edit</button>
+                                    <button onClick={() => { setFormData(cat); setImagePreview(getImageUrl(cat.image_url)); setSelectedId(cat._id); setIsEditMode(true); setShowModal(true); }} className="text-blue-400 font-black text-[10px] uppercase hover:underline">Edit</button>
                                     <button onClick={() => { setSelectedId(cat._id); setShowDeleteModal(true); }} className="text-red-500 font-black text-[10px] uppercase hover:underline">Delete</button>
                                 </td>
                             </tr>
