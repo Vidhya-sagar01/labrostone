@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Star, ChevronLeft, ChevronRight, ShoppingCart, Loader2 } from 'lucide-react';
+import { Star, ShoppingCart, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const TopPicks = () => {
@@ -13,27 +13,43 @@ const TopPicks = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // const API_BASE = "http://localhost:5000";
+  // ✅ LIVE BACKEND URL
   const API_BASE = "https://labrostone-backend.onrender.com";
+
+  // ✅ HELPER: Localhost URL ko Live URL mein badalne ke liye
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "https://via.placeholder.com/300";
+    
+    // Agar imagePath array hai, toh uska pehla element lein
+    const path = Array.isArray(imagePath) ? imagePath[0] : imagePath;
+
+    if (typeof path === 'string' && path.includes('localhost:5000')) {
+      return path.replace('http://localhost:5000', API_BASE);
+    }
+    return path;
+  };
+
+  // ✅ HELPER: Second image handle karne ke liye (Hover effect)
+  const getHoverImage = (imageArray) => {
+    if (Array.isArray(imageArray) && imageArray.length > 1) {
+        return getImageUrl(imageArray[1]);
+    }
+    return getImageUrl(imageArray); // Fallback to first image
+  };
 
   useEffect(() => {
     const fetchAllData = async () => {
       try {
         setLoading(true);
         const res = await axios.get(`${API_BASE}/api/products`);
-        const allData = res.data.data;
+        const allData = res.data.data || [];
 
         // --- DYNAMIC FILTERING LOGIC ---
         const filtered = {
-          // 1. Bestsellers: Jinka is_bestseller true hai
           bestsellers: allData.filter(p => p.is_bestseller).slice(0, 4),
-          
-          // 2. New Arrival: Jo sabse latest add hue hain
           newArrival: [...allData].sort((a, b) => 
             new Date(b.createdAt) - new Date(a.createdAt)
           ).slice(0, 4),
-          
-          // 3. Combos: Jinka is_combo true hai
           combos: allData.filter(p => p.is_combo).slice(0, 4)
         };
 
@@ -100,26 +116,27 @@ const TopPicks = () => {
                 >
                   
                   {/* --- IMAGE CONTAINER --- */}
-                  <div className="relative w-full mb-4 overflow-hidden aspect-square bg-slate-50">
-                    {/* Dynamic Discount Badge */}
+                  <div className="relative w-full mb-4 overflow-hidden aspect-square bg-slate-50 rounded-2xl">
                     {discount > 0 && (
                       <div className="absolute top-0 left-0 bg-black text-white text-[10px] font-bold px-2 py-1 uppercase z-10">
                         {discount}% OFF
                       </div>
                     )}
 
-                    {/* 1. Main Image (Dynamic) */}
+                    {/* 1. Main Image Fix */}
                     <img 
-                      src={product.images?.[0] || "https://via.placeholder.com/300"} 
+                      src={getImageUrl(product.images)} 
                       alt={product.name} 
                       className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 opacity-100 group-hover:opacity-0 p-4"
+                      onError={(e) => { e.target.src = "https://via.placeholder.com/300"; }}
                     />
 
-                    {/* 2. Hover Image (Dynamic - uses second image if available) */}
+                    {/* 2. Hover Image Fix */}
                     <img 
-                      src={product.images?.[1] || product.images?.[0]} 
+                      src={getHoverImage(product.images)} 
                       alt={product.name} 
                       className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 opacity-0 group-hover:opacity-100 p-4"
+                      onError={(e) => { e.target.src = "https://via.placeholder.com/300"; }}
                     />
 
                     <div className="absolute bottom-4 right-4 bg-white p-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
@@ -132,20 +149,20 @@ const TopPicks = () => {
                     {product.name}
                   </h3>
 
-                  <div className="flex items-center gap-2 mb-2 text-sm">
+                  <div className="flex items-center justify-center gap-2 mb-2 text-sm">
                     <span className="text-gray-400 line-through text-xs">₹ {mrp}</span>
                     <span className="font-bold text-gray-900">₹ {sellingPrice}</span>
                   </div>
 
                   {/* Ratings */}
-                  <div className="flex items-center gap-1 mb-4">
+                  <div className="flex items-center justify-center gap-1 mb-4">
                     <div className="flex text-yellow-500">
                       {[...Array(5)].map((_, i) => (
                         <Star 
                           key={i} 
                           size={12} 
-                          fill={i < Math.round(product.rating || 0) ? "currentColor" : "none"} 
-                          className={i < Math.round(product.rating || 0) ? "text-yellow-500" : "text-gray-300"}
+                          fill={i < Math.round(product.rating || 4.5) ? "currentColor" : "none"} 
+                          className={i < Math.round(product.rating || 4.5) ? "text-yellow-500" : "text-gray-300"}
                         />
                       ))}
                     </div>
@@ -153,7 +170,7 @@ const TopPicks = () => {
                   </div>
 
                   {/* Button */}
-                  <button className="w-full border border-black py-3 text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
+                  <button className="w-full border border-black py-3 text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors rounded-lg">
                     {product.variants?.length > 1 ? "CHOOSE OPTION" : "ADD TO CART"}
                   </button>
 
