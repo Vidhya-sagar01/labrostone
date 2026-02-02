@@ -42,17 +42,15 @@ const HeroSlider = () => {
     return () => clearInterval(interval);
   }, [currentSlide, slides.length]);
 
-  if (loading) return <div className="h-[350px] md:h-[500px] flex items-center justify-center bg-gray-100 font-bold">Loading...</div>;
+  if (loading) return <div className="h-[350px] md:h-[500px] flex items-center justify-center bg-gray-100 font-bold text-gray-800">Loading Banners...</div>;
   if (slides.length === 0) return null;
 
   const slide = slides[currentSlide];
 
-  // ✅ Image Path Helper: Yeh function ensure karega ki image hamesha backend se load ho
+  // ✅ Image Path Helper: Yeh hamesha Backend URL ko priority dega
   const getImageUrl = (imagePath) => {
     if (!imagePath) return "";
-    // Agar path already full URL hai (https://...), toh wahi use karein
     if (imagePath.startsWith('http')) return imagePath;
-    // Agar sirf relative path hai (/uploads/...), toh backend URL jodein
     return `${API_BASE}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
   };
 
@@ -65,8 +63,7 @@ const HeroSlider = () => {
           alt={slide.title || "Banner"} 
           className="w-full h-[350px] md:h-[500px] object-cover object-top block animate-wait-zoom"
           onError={(e) => {
-            console.log("Image load failed, trying fallback...");
-            // Fallback: Agar upar wala fail ho jaye toh direct uploads path try karein
+            // Fallback: Agar upar wala path fail ho jaye toh filename extract karke direct link try karein
             const fileName = slide.image.split('/').pop();
             e.target.src = `${API_BASE}/uploads/sliders/${fileName}`;
           }}
