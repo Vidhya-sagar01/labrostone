@@ -203,8 +203,68 @@ const Category = () => {
                 </div>
             </div>
 
-            {/* MODAL & DELETE MODAL (Keep as is in your current code) */}
-            {/* ... Modal code from previous version ... */}
+            {/* --- MODAL (ADD/EDIT) --- */}
+            {showModal && (
+                <div className="fixed inset-0 bg-black/95 backdrop-blur-md flex justify-center items-center z-50 p-4 overflow-y-auto">
+                    <div className="bg-slate-800 border border-slate-700 rounded-[2rem] w-full max-w-3xl shadow-2xl my-auto">
+                        <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+                            <h2 className="text-xl font-black text-blue-500 uppercase italic tracking-widest">{isEditMode ? 'Modify Record' : 'New  Entry'}</h2>
+                            <button onClick={closeModal} className="text-4xl font-thin hover:text-red-500 transition-colors">&times;</button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Category Title</label>
+                                <input name="name" value={formData.name} onChange={handleInputChange} required className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all font-bold" placeholder="e.g. Healthcare" />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Computed Discount</label>
+                                <input name="discount_text" value={formData.discount_text} className="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl text-emerald-500 font-black uppercase tracking-widest" readOnly />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Base Price (₹)</label>
+                                <input name="min_price" type="number" value={formData.min_price} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all font-bold" required />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Ceiling Price (₹)</label>
+                                <input name="max_price" type="number" value={formData.max_price} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all font-bold" required />
+                            </div>
+                            <div className="md:col-span-2 space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Visual Asset (Image)</label>
+                                <div className="flex gap-4 items-center p-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-inner">
+                                    <input type="file" name="image_url" onChange={handleInputChange} className="text-[10px] text-slate-500 file:bg-blue-600 file:border-none file:text-white file:rounded-lg file:px-4 file:py-1 file:mr-4 file:cursor-pointer hover:file:bg-blue-500" />
+                                    {imagePreview && <img src={imagePreview} className="w-20 h-20 rounded-2xl object-cover border-4 border-slate-800 shadow-lg" />}
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Banking Logic</label>
+                                <textarea name="card_offers" value={formData.card_offers} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl h-28 resize-none text-[11px] text-blue-400 italic font-bold" placeholder="Bank offers..."></textarea>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Event Logic</label>
+                                <textarea name="festival_offers" value={formData.festival_offers} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl h-28 resize-none text-[11px] text-yellow-500 italic font-bold" placeholder="Seasonal discounts..."></textarea>
+                            </div>
+                            <button type="submit" className="md:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-700 p-5 rounded-3xl font-black text-lg shadow-xl hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest shadow-blue-500/20">
+                                {isEditMode ? 'Commit Database Update' : 'Initialize Category'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* --- DELETE CONFIRMATION --- */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-[100] backdrop-blur-sm">
+                    <div className="bg-slate-800 p-10 rounded-[3rem] border border-slate-700 text-center max-w-sm shadow-2xl">
+                        <div className="text-6xl mb-4 shadow-sm animate-bounce">⚠️</div>
+                        <h2 className="text-2xl font-black mb-2 uppercase tracking-tighter italic text-red-500">Confirm Deletion</h2>
+                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-8">This action will permanently purge the record from the database.</p>
+                        <div className="flex gap-4">
+                            <button onClick={() => setShowDeleteModal(false)} className="flex-1 bg-slate-700 p-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-600 transition-all">Abort</button>
+                            <button onClick={confirmDelete} className="flex-1 bg-red-600 p-4 rounded-2xl font-black text-white uppercase text-[10px] tracking-widest hover:bg-red-500 shadow-lg shadow-red-500/20 transition-all">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
