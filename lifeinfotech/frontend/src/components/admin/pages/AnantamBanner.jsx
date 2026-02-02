@@ -9,7 +9,20 @@ const AnantamBanner = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   
-  // 1. Anti-Blink: LocalStorage se purana path uthao agar server down ho
+  // LIVE BACKEND URL
+  const API_BASE = "https://labrostone-backend.onrender.com";
+
+  // ✅ HELPER: Localhost URL ko Live URL mein badalne ke liye
+  const getImageUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/1200x400";
+    // Agar array hai toh pehla element lo
+    const path = Array.isArray(url) ? url[0] : url;
+    if (path.includes('localhost:5000')) {
+      return path.replace('http://localhost:5000', API_BASE);
+    }
+    return path;
+  };
+
   const [bannerUrl, setBannerUrl] = useState(localStorage.getItem('admin_cached_banner') || "");
   
   const [filters, setFilters] = useState({
@@ -19,16 +32,11 @@ const AnantamBanner = () => {
     is_combo: false
   });
 
-  // const API_BASE = "http://localhost:5000";
-  // Localhost ko hata kar Render ka URL daal dein
-const API_BASE = "https://labrostone-backend.onrender.com";
-
   const getAuthHeader = () => {
     const token = localStorage.getItem('adminToken');
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
-  // 2. Initial Data Load
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -41,9 +49,9 @@ const API_BASE = "https://labrostone-backend.onrender.com";
         if (Array.isArray(catData)) setCategories(catData);
         
         if (bannerRes.data.success) {
-          const freshBanner = `${bannerRes.data.url}?t=${Date.now()}`;
-          setBannerUrl(freshBanner);
-          // Browser ki memory mein save kar lo (Blinking rokne ke liye)
+          // ✅ Fix Banner URL from server
+          const freshBanner = getImageUrl(bannerRes.data.url);
+          setBannerUrl(`${freshBanner}?t=${Date.now()}`);
           localStorage.setItem('admin_cached_banner', freshBanner);
         }
       } catch (err) {
@@ -54,7 +62,6 @@ const API_BASE = "https://labrostone-backend.onrender.com";
     applyFilters(); 
   }, []);
 
-  // 3. Optimized Apply Filters
   const applyFilters = async () => {
     setLoading(true);
     try {
@@ -80,7 +87,6 @@ const API_BASE = "https://labrostone-backend.onrender.com";
     setLoading(false);
   };
 
-  // 4. Banner Upload (Updates Memory Instantly)
   const handleBannerUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -97,7 +103,8 @@ const API_BASE = "https://labrostone-backend.onrender.com";
         }
       });
       if (res.data.success) {
-        const uploadedUrl = res.data.url;
+        // ✅ Fix Uploaded Banner URL
+        const uploadedUrl = getImageUrl(res.data.url);
         setBannerUrl(uploadedUrl);
         localStorage.setItem('admin_cached_banner', uploadedUrl);
         alert("Banner Updated! ✅");
@@ -108,7 +115,6 @@ const API_BASE = "https://labrostone-backend.onrender.com";
     setLoading(false);
   };
 
-  // 5. Toggle Anantam
   const handleToggleAnantam = async (productId, currentStatus) => {
     try {
       const res = await axios.put(
@@ -137,16 +143,14 @@ const API_BASE = "https://labrostone-backend.onrender.com";
         {/* --- DYNAMIC BANNER SECTION --- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 bg-slate-200 rounded-[2.5rem] shadow-sm h-[250px] overflow-hidden border border-slate-100 relative">
-            {/* Jab tak URL na ho, loader dikhega */}
             {!bannerUrl && <div className="absolute inset-0 animate-pulse bg-slate-300" />}
             
             <img 
               key={bannerUrl} 
-              src={bannerUrl || "/banar/banner1.jpg"} 
+              src={bannerUrl} 
               alt="Anantam Banner" 
               className="w-full h-full object-cover rounded-[2rem] transition-opacity duration-500" 
-              style={{ opacity: bannerUrl ? 1 : 0 }}
-              onError={(e) => { e.target.src = "/banar/banner1.jpg"; }}
+              onError={(e) => { e.target.src = "https://via.placeholder.com/1200x400?text=Banner+Not+Found"; }}
             />
           </div>
 
@@ -229,9 +233,10 @@ const API_BASE = "https://labrostone-backend.onrender.com";
                     <td className="p-8">
                       <div className="flex items-center gap-4">
                         <img 
-                          src={p.images?.[0] || "https://via.placeholder.com/150"} 
+                          src={getImageUrl(p.images)} 
                           className="w-14 h-14 rounded-2xl object-cover shadow-sm bg-slate-100" 
                           alt={p.name} 
+                          onError={(e) => { e.target.src = "https://via.placeholder.com/150"; }}
                         />
                         <div>
                           <div className="text-sm font-black text-slate-800 uppercase tracking-tighter">
