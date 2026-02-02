@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+// LIVE BACKEND URL
+const API_BASE = "https://labrostone-backend.onrender.com";
+axios.defaults.baseURL = API_BASE;
+
 const Category = () => {
     const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
@@ -23,41 +27,41 @@ const Category = () => {
 
     const [formData, setFormData] = useState(initialFormState);
 
-    // Axios Base URL (Backend Port 5000)
-    // axios.defaults.baseURL = 'https://labrostone-backend.onrender.com';
-    // Localhost ko hata kar Render ka URL daal dein
-const API_BASE = "https://labrostone-backend.onrender.com";
-
     // --- HELPER: Auth Header Setup ---
     const getAuthHeader = (isMultipart = false) => {
-    const token = localStorage.getItem('adminToken');
-    return {
-        headers: {
-            // "Bearer " lagane se standard auth follow hota hai
-            'Authorization': token ? `Bearer ${token}` : '', 
-            ...(isMultipart ? { 'Content-Type': 'multipart/form-data' } : {})
-        }
+        const token = localStorage.getItem('adminToken');
+        return {
+            headers: {
+                'Authorization': token ? `Bearer ${token}` : '', 
+                ...(isMultipart ? { 'Content-Type': 'multipart/form-data' } : {})
+            }
+        };
     };
-};
-    useEffect(() => { fetchCategories(currentPage); }, [currentPage, searchTerm]);
 
-    // 1. FETCH CATEGORIES (Protected)
+    useEffect(() => { 
+        fetchCategories(currentPage); 
+    }, [currentPage, searchTerm]);
+
+    // 1. FETCH CATEGORIES
     const fetchCategories = async (page = 1) => {
         setLoading(true);
         try {
+            // Absolute URL ensure karta hai ki request backend par hi jaye
             const response = await axios.get(`/api/categories?page=${page}&search=${searchTerm}`, getAuthHeader());
-            setCategories(response.data.data || []);
+            
+            // Backend agar direct array bhej raha hai toh handle karein
+            const data = response.data.data || response.data || [];
+            setCategories(data);
+
             setPagination({
                 current_page: response.data.current_page || 1,
                 last_page: response.data.last_page || 1,
-                total: response.data.total || 0
+                total: response.data.total || data.length
             });
             setLoading(false);
         } catch (error) {
             console.error("Fetch Error:", error);
-            if (error.response?.status === 401) {
-                navigate('/admin/login');
-            }
+            if (error.response?.status === 401) navigate('/admin/login');
             setLoading(false);
         }
     };
@@ -85,7 +89,7 @@ const API_BASE = "https://labrostone-backend.onrender.com";
         }
     };
 
-    // 2. SUBMIT / UPDATE (Protected)
+    // 2. SUBMIT / UPDATE
     const handleSubmit = async (e) => {
         e.preventDefault();
         const data = new FormData();
@@ -104,12 +108,8 @@ const API_BASE = "https://labrostone-backend.onrender.com";
             fetchCategories(currentPage);
             alert("Success! Category Managed ✅");
         } catch (error) { 
-            if (error.response?.status === 401) {
-                alert("Session Expired! Please Login Again.");
-                navigate('/admin/login');
-            } else {
-                alert("Error saving category! ❌"); 
-            }
+            alert(error.response?.status === 401 ? "Session Expired!" : "Error saving category! ❌");
+            if (error.response?.status === 401) navigate('/admin/login');
         }
     };
 
@@ -120,7 +120,7 @@ const API_BASE = "https://labrostone-backend.onrender.com";
         setImagePreview(null);
     };
 
-    // 3. DELETE (Protected)
+    // 3. DELETE
     const confirmDelete = async () => {
         try {
             await axios.delete(`/api/categories/${selectedId}`, getAuthHeader());
@@ -128,11 +128,8 @@ const API_BASE = "https://labrostone-backend.onrender.com";
             fetchCategories(currentPage);
             alert("Deleted! 🗑️");
         } catch (error) { 
-            if (error.response?.status === 401) {
-                navigate('/admin/login');
-            } else {
-                alert("Delete failed! ❌"); 
-            }
+            if (error.response?.status === 401) navigate('/admin/login');
+            else alert("Delete failed! ❌");
         }
     };
 
@@ -197,77 +194,17 @@ const API_BASE = "https://labrostone-backend.onrender.com";
                 </table>
             </div>
 
-            {/* Pagination */}
+            {/* Pagination & Stats */}
             <div className="flex justify-between items-center bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">Inventory Stats: {categories.length} loaded</span>
                 <div className="flex gap-2">
                     <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className="px-4 py-2 bg-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-30">Prev</button>
-                    <button disabled={currentPage === pagination.last_page} onClick={() => setCurrentPage(prev => prev + 1)} className="px-4 py-2 bg-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-30">Next</button>
+                    <button disabled={currentPage >= pagination.last_page} onClick={() => setCurrentPage(prev => prev + 1)} className="px-4 py-2 bg-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-30">Next</button>
                 </div>
             </div>
 
-            {/* --- MODAL (ADD/EDIT) --- */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/95 backdrop-blur-md flex justify-center items-center z-50 p-4 overflow-y-auto">
-                    <div className="bg-slate-800 border border-slate-700 rounded-[2rem] w-full max-w-3xl shadow-2xl my-auto">
-                        <div className="p-6 border-b border-slate-700 flex justify-between items-center">
-                            <h2 className="text-xl font-black text-blue-500 uppercase italic tracking-widest">{isEditMode ? 'Modify Record' : 'New  Entry'}</h2>
-                            <button onClick={closeModal} className="text-4xl font-thin hover:text-red-500 transition-colors">&times;</button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Category Title</label>
-                                <input name="name" value={formData.name} onChange={handleInputChange} required className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all font-bold" placeholder="e.g. Healthcare" />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Computed Discount</label>
-                                <input name="discount_text" value={formData.discount_text} className="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl text-emerald-500 font-black uppercase tracking-widest" readOnly />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Base Price (₹)</label>
-                                <input name="min_price" type="number" value={formData.min_price} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all font-bold" required />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Ceiling Price (₹)</label>
-                                <input name="max_price" type="number" value={formData.max_price} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all font-bold" required />
-                            </div>
-                            <div className="md:col-span-2 space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Visual Asset (Image)</label>
-                                <div className="flex gap-4 items-center p-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-inner">
-                                    <input type="file" name="image_url" onChange={handleInputChange} className="text-[10px] text-slate-500 file:bg-blue-600 file:border-none file:text-white file:rounded-lg file:px-4 file:py-1 file:mr-4 file:cursor-pointer hover:file:bg-blue-500" />
-                                    {imagePreview && <img src={imagePreview} className="w-20 h-20 rounded-2xl object-cover border-4 border-slate-800 shadow-lg" />}
-                                </div>
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Banking Logic</label>
-                                <textarea name="card_offers" value={formData.card_offers} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl h-28 resize-none text-[11px] text-blue-400 italic font-bold" placeholder="Bank offers..."></textarea>
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Event Logic</label>
-                                <textarea name="festival_offers" value={formData.festival_offers} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl h-28 resize-none text-[11px] text-yellow-500 italic font-bold" placeholder="Seasonal discounts..."></textarea>
-                            </div>
-                            <button type="submit" className="md:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-700 p-5 rounded-3xl font-black text-lg shadow-xl hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest shadow-blue-500/20">
-                                {isEditMode ? 'Commit Database Update' : 'Initialize Category'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* --- DELETE CONFIRMATION --- */}
-            {showDeleteModal && (
-                <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-[100] backdrop-blur-sm">
-                    <div className="bg-slate-800 p-10 rounded-[3rem] border border-slate-700 text-center max-w-sm shadow-2xl">
-                        <div className="text-6xl mb-4 shadow-sm animate-bounce">⚠️</div>
-                        <h2 className="text-2xl font-black mb-2 uppercase tracking-tighter italic text-red-500">Confirm Deletion</h2>
-                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-8">This action will permanently purge the record from the database.</p>
-                        <div className="flex gap-4">
-                            <button onClick={() => setShowDeleteModal(false)} className="flex-1 bg-slate-700 p-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-600 transition-all">Abort</button>
-                            <button onClick={confirmDelete} className="flex-1 bg-red-600 p-4 rounded-2xl font-black text-white uppercase text-[10px] tracking-widest hover:bg-red-500 shadow-lg shadow-red-500/20 transition-all">Confirm</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* MODAL & DELETE MODAL (Keep as is in your current code) */}
+            {/* ... Modal code from previous version ... */}
         </div>
     );
 };
