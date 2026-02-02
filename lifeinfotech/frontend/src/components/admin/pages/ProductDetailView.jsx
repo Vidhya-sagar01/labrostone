@@ -12,8 +12,9 @@ const ProductDetailView = () => {
     const [mainImage, setMainImage] = useState("");
     const [loading, setLoading] = useState(true);
 
-    const API_BASE = "http://localhost:5000";
-
+    // const API_BASE = "http://localhost:5000";
+    const API_BASE = "https://labrostone-backend.onrender.com";
+    
     useEffect(() => {
         const fetchProduct = async () => {
             try {

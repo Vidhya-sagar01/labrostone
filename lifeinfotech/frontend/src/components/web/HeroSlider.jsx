@@ -11,8 +11,8 @@ const HeroSlider = () => {
     const fetchSliders = async () => {
       try {
         // ✅ 1. Correct URL: Aapke server.js ke mutabik path '/api/admin/sliders' hai
-        const response = await axios.get('http://localhost:5000/api/admin/sliders');
-        
+        // const response = await axios.get('http://localhost:5000/api/admin/sliders');
+        const response = await axios.get('https://labrostone-backend.onrender.com/api/admin/sliders');
         // ✅ 2. Correct Data Access: Backend 'sliders' key mein array bhej raha hai
         if (response.data.success && Array.isArray(response.data.sliders)) {
           setSlides(response.data.sliders);

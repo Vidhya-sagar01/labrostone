@@ -19,7 +19,9 @@ const AnantamBanner = () => {
     is_combo: false
   });
 
-  const API_BASE = "http://localhost:5000";
+  // const API_BASE = "http://localhost:5000";
+  // Localhost ko hata kar Render ka URL daal dein
+const API_BASE = "https://labrostone-backend.onrender.com";
 
   const getAuthHeader = () => {
     const token = localStorage.getItem('adminToken');

@@ -10,7 +10,8 @@ const Login = () => {
         e.preventDefault();
         try {
             // Backend API call
-            const res = await axios.post('http://localhost:5000/api/admin/login', { email, password });
+            // const res = await axios.post('http://localhost:5000/api/admin/login', { email, password });
+            const res = await axios.post('https://labrostone-backend.onrender.com/api/admin/login', { email, password });
            console.log("Token received:", res.data.token); 
            console.log("Success status:", res.data.success);
            console.log("Response from Backend:", res.data); 

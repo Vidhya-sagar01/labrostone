@@ -24,7 +24,9 @@ const Category = () => {
     const [formData, setFormData] = useState(initialFormState);
 
     // Axios Base URL (Backend Port 5000)
-    axios.defaults.baseURL = 'http://localhost:5000';
+    // axios.defaults.baseURL = 'https://labrostone-backend.onrender.com';
+    // Localhost ko hata kar Render ka URL daal dein
+const API_BASE = "https://labrostone-backend.onrender.com";
 
     // --- HELPER: Auth Header Setup ---
     const getAuthHeader = (isMultipart = false) => {

@@ -12,8 +12,9 @@ const Faq = () => {
   const [loading, setLoading] = useState(false);
 
   // Base URL for your admin FAQ routes
-  const API_BASE = "http://localhost:5000/api/admin";
-
+  // const API_BASE = "http://localhost:5000/api/admin";
+ // Localhost ko hata kar Render ka URL daal dein
+const API_BASE = "https://labrostone-backend.onrender.com";
   // 1. Fetch Categories on load
   useEffect(() => {
     const fetchCategories = async () => {

@@ -14,7 +14,8 @@ const ProductList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  const API_BASE = "http://localhost:5000";
+  // const API_BASE = "http://localhost:5000";
+  const API_BASE = "https://labrostone-backend.onrender.com";
 
   useEffect(() => {
     fetchInitialData();

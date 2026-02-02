@@ -9,7 +9,8 @@ const ShopByCategory = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const API_BASE = "http://localhost:5000";
+  // const API_BASE = "http://localhost:5000";
+  const API_BASE = "https://labrostone-backend.onrender.com";
   const itemsToShow = 5; 
 
   useEffect(() => {

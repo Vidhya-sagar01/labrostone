@@ -17,7 +17,8 @@ const Season = () => {
   const [sellingPrice, setSellingPrice] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = "http://localhost:5000";
+  // const API_BASE = "http://localhost:5000";
+  const API_BASE = "https://labrostone-backend.onrender.com";
 
   // 2. Categories Fetch Karein (Step-by-Step Fix)
   useEffect(() => {

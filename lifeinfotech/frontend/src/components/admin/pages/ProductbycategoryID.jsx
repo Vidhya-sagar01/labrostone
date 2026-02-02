@@ -37,7 +37,8 @@ const ProductbycategoryID = () => {
     };
 
     const [formData, setFormData] = useState(initialFormState);
-    const API_BASE = "http://localhost:5000";
+    // const API_BASE = "http://localhost:5000";
+    const API_BASE = "https://labrostone-backend.onrender.com";
 
     useEffect(() => { 
         fetchProducts(); 
