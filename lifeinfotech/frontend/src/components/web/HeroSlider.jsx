@@ -10,10 +10,10 @@ const HeroSlider = () => {
   useEffect(() => {
     const fetchSliders = async () => {
       try {
-        // ✅ 1. Correct URL: Aapke server.js ke mutabik path '/api/admin/sliders' hai
-        // const response = await axios.get('http://localhost:5000/api/admin/sliders');
+        // ✅ 1. Live Backend URL
         const response = await axios.get('https://labrostone-backend.onrender.com/api/admin/sliders');
-        // ✅ 2. Correct Data Access: Backend 'sliders' key mein array bhej raha hai
+        
+        // ✅ 2. Correct Data Access
         if (response.data.success && Array.isArray(response.data.sliders)) {
           setSlides(response.data.sliders);
         }
@@ -50,10 +50,12 @@ const HeroSlider = () => {
   return (
     <div className="relative w-full group">
       <div className="relative w-full overflow-hidden">
-        {/* --- DYNAMIC IMAGE --- */}
+        {/* --- DYNAMIC IMAGE (With Localhost Fix) --- */}
         <img 
           key={slide._id} 
-          src={slide.image} 
+          src={slide.image.includes('localhost') 
+            ? slide.image.replace('http://localhost:5000', 'https://labrostone-backend.onrender.com') 
+            : slide.image} 
           alt={slide.title || "Lebrostone Banner"} 
           className="w-full h-[350px] md:h-[500px] object-cover object-top block animate-wait-zoom"
         />
