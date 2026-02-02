@@ -12,7 +12,6 @@ const sliderRoutes = require('./routes/adminSlider');
 const seasonRoute = require('./routes/seasonRoute');
 const anantamRoutes = require('./routes/anantamRoutes');
 const faqRoutes = require('./routes/faqRoutes'); 
-
 const app = express();
 
 app.use(express.json());
