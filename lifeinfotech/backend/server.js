@@ -4,9 +4,6 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
-/* =======================
-    ROUTES IMPORT
-======================= */
 const categoryRoutes = require('./routes/categoryRoutes');
 const productRoutes = require('./routes/productRoutes');
 const adminRoutes = require('./routes/adminRoutes');
@@ -18,35 +15,39 @@ const anantamRoutes = require('./routes/anantamRoutes');
 const app = express();
 
 /* =======================
-    MIDDLEWARE
+    MIDDLEWARE & CORS
 ======================= */
 app.use(express.json());
 
-// CORS Configuration
+// Sabhi Origins ko handle karne ke liye simple aur robust configuration
 const allowedOrigins = [
-    process.env.FRONTEND_URL, 
-    'http://localhost:5173',  
+    'https://labrostone-frontend.onrender.com', // Aapka Live Frontend URL
+    'http://localhost:5173',
     'http://localhost:3000'
 ];
 
 app.use(cors({
     origin: function (origin, callback) {
+        // Bina origin wali requests (jaise Postman ya mobile apps) ko allow karein
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
+            console.log("CORS Blocked for Origin:", origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ SERVE UPLOADED IMAGES
+// Static Files Path Fix (Ensure it matches your folder structure)
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 /* =======================
     MONGODB CONNECTION
 ======================= */
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/lebrostone';
+const MONGO_URI = process.env.MONGO_URI;
 
 mongoose
     .connect(MONGO_URI)
@@ -54,30 +55,20 @@ mongoose
     .catch((err) => console.error('MongoDB error ❌', err));
 
 /* =======================
-    ROUTES USE (Order Corrected)
+    ROUTES USE
 ======================= */
-
-// 1. Specific routes ko hamesha upar rakhein
 app.use('/api/admin/sliders', sliderRoutes); 
 app.use('/api/anantam', anantamRoutes);
-
-// 2. General routes ko niche rakhein
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin', adminFAQ);
-
-// 3. Baaki routes
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/seasons', seasonRoute);
 
-// Health Check
 app.get('/', (req, res) => {
-    res.send('Server is running perfectly...');
+    res.send('Lebrostone Backend is running perfectly...');
 });
 
-/* =======================
-    SERVER START
-======================= */
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT} 🚀`);
