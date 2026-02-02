@@ -11,8 +11,9 @@ const Faq = () => {
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ LIVE BACKEND URL (Prefix check karein: /api ya /api/admin)
-  const API_BASE = "https://labrostone-backend.onrender.com/api";
+  // ✅ LIVE BACKEND URLS (Sahi raste: /api aur /api/admin/faqs)
+  const API_MAIN = "https://labrostone-backend.onrender.com/api";
+  const FAQ_API = `${API_MAIN}/admin/faqs`; 
 
   // ✅ HELPER: Auth Header Setup
   const getAuthHeader = () => {
@@ -20,11 +21,11 @@ const Faq = () => {
     return { headers: { 'Authorization': token ? `Bearer ${token}` : '' } };
   };
 
-  // 1. Fetch Categories
+  // 1. Fetch Categories (General Path)
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const { data } = await axios.get(`${API_BASE}/categories`);
+        const { data } = await axios.get(`${API_MAIN}/categories`);
         const catData = data.categories || data.data || data || [];
         setCategories(catData);
       } catch (err) {
@@ -34,7 +35,7 @@ const Faq = () => {
     fetchCategories();
   }, []);
 
-  // 2. Fetch Products by Category
+  // 2. Fetch Products by Category (General Path)
   useEffect(() => {
     if (!selectedCategory) {
       setProducts([]);
@@ -42,8 +43,7 @@ const Faq = () => {
     }
     const fetchProducts = async () => {
       try {
-        // Aapke backend route ke hisaab se path sahi kiya
-        const { data } = await axios.get(`${API_BASE}/products/by-category/${selectedCategory}`);
+        const { data } = await axios.get(`${API_MAIN}/products/by-category/${selectedCategory}`);
         setProducts(data.data || data.products || []);
         setSelectedProduct(""); 
         setFaqs([]); 
@@ -54,7 +54,7 @@ const Faq = () => {
     fetchProducts();
   }, [selectedCategory]);
 
-  // 3. Fetch FAQs for Product
+  // 3. Fetch FAQs for Product (FAQ Path)
   useEffect(() => {
     if (!selectedProduct) {
       setFaqs([]);
@@ -62,7 +62,8 @@ const Faq = () => {
     }
     const fetchFaqs = async () => {
       try {
-        const { data } = await axios.get(`${API_BASE}/faqs?productId=${selectedProduct}`);
+        // Query string ke saath product fetch
+        const { data } = await axios.get(`${FAQ_API}?productId=${selectedProduct}`, getAuthHeader());
         setFaqs(data.faqs || data.data || []);
       } catch (err) {
         console.error("Error fetching FAQs:", err);
@@ -71,15 +72,14 @@ const Faq = () => {
     fetchFaqs();
   }, [selectedProduct]);
 
-  // 4. Add FAQ (POST Request Fix)
+  // 4. Add FAQ (Unique path: /api/admin/faqs)
   const handleAddFaq = async (e) => {
     e.preventDefault();
     if (!question || !answer || !selectedProduct) return alert("All fields are required");
 
     setLoading(true);
     try {
-      // ⚠️ Agar abhi bhi 404 aaye, toh niche wale path ko `/admin/faqs` karke dekhein
-      const { data } = await axios.post(`${API_BASE}/faqs`, {
+      const { data } = await axios.post(FAQ_API, {
         question,
         answer,
         productId: selectedProduct,
@@ -93,20 +93,16 @@ const Faq = () => {
       }
     } catch (err) {
       console.error("Add FAQ Error:", err);
-      if (err.response?.status === 404) {
-        alert("Backend Route Not Found! Please check if the route is /api/faqs or /api/admin/faqs");
-      } else {
-        alert("Failed to add FAQ");
-      }
+      alert(err.response?.status === 404 ? "Backend Path Error (404)" : "Failed to add FAQ");
     }
     setLoading(false);
   };
 
-  // 5. Delete FAQ
+  // 5. Delete FAQ (Unique path: /api/admin/faqs/:id)
   const handleDeleteFaq = async (id) => {
     if (window.confirm("Are you sure you want to delete this FAQ?")) {
       try {
-        await axios.delete(`${API_BASE}/faqs/${id}`, getAuthHeader());
+        await axios.delete(`${FAQ_API}/${id}`, getAuthHeader());
         setFaqs(faqs.filter((item) => item._id !== id));
         alert("Deleted! 🗑️");
       } catch (err) {
@@ -125,13 +121,12 @@ const Faq = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Selection column */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 shadow-xl">
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Selection Filter</h2>
             <div className="space-y-4">
               <label className="text-[10px] font-bold text-slate-500 uppercase block">Category</label>
-              <select className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+              <select className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                 <option value="">-- Select Category --</option>
                 {categories.map((cat) => (
                   <option key={cat._id} value={cat._id}>{cat.name}</option>
@@ -141,7 +136,7 @@ const Faq = () => {
               {selectedCategory && (
                 <>
                   <label className="text-[10px] font-bold text-slate-500 uppercase block mt-4">Product</label>
-                  <select className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none" value={selectedProduct} onChange={(e) => setSelectedProduct(e.target.value)}>
+                  <select className="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm" value={selectedProduct} onChange={(e) => setSelectedProduct(e.target.value)}>
                     <option value="">-- Select Product --</option>
                     {products.map((prod) => (
                       <option key={prod._id} value={prod._id}>{prod.name}</option>
@@ -166,11 +161,10 @@ const Faq = () => {
           )}
         </div>
 
-        {/* List column */}
         <div className="lg:col-span-2">
           <div className="bg-slate-800 rounded-3xl border border-slate-700 overflow-hidden shadow-xl">
             <table className="w-full text-left">
-              <thead className="bg-slate-700/50 text-[10px] uppercase text-slate-400 font-black tracking-widest">
+              <thead className="bg-slate-700/50 text-[10px] uppercase text-slate-400 font-black">
                 <tr>
                   <th className="p-5">Product FAQ List</th>
                   <th className="p-5 text-right pr-10">Action</th>
@@ -189,7 +183,7 @@ const Faq = () => {
                         <div className="text-slate-400 text-sm leading-relaxed ml-4">A: {faq.answer}</div>
                       </td>
                       <td className="p-6 text-right pr-10 align-top">
-                        <button onClick={() => handleDeleteFaq(faq._id)} className="text-red-500 border border-red-500/30 px-3 py-1 rounded-lg text-[10px] font-black uppercase hover:bg-red-500/10">Delete</button>
+                        <button onClick={() => handleDeleteFaq(faq._id)} className="text-red-500 border border-red-500/30 px-3 py-1 rounded-lg text-[10px] font-black uppercase hover:bg-red-500/10 transition-all">Delete</button>
                       </td>
                     </tr>
                   ))
