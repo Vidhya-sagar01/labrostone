@@ -11,6 +11,7 @@ const sliderRoutes = require('./routes/adminSlider');
 const adminFAQ = require('./routes/adminFAQ');
 const seasonRoute = require('./routes/seasonRoute');
 const anantamRoutes = require('./routes/anantamRoutes');
+const faqRoutes = require('./routes/faqRoutes');
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/api/admin', adminFAQ);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/seasons', seasonRoute);
+app.use('/api/admin', faqRoutes);
 
 app.get('/', (req, res) => {
     res.send('Lebrostone Backend is running perfectly...');
