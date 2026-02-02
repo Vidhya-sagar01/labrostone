@@ -15,7 +15,8 @@ exports.protect = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // ✅ KEY UPDATE: 'super_secret_admin_key' ka use karein
+    const decoded = jwt.verify(token, 'super_secret_admin_key'); 
     req.admin = decoded;
     next();
   } catch (error) {
