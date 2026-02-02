@@ -2,32 +2,29 @@ import React from 'react';
 import { Sparkles, Droplets, Leaf, ArrowRight } from 'lucide-react';
 
 const FindDosha = () => {
-  // ✅ Base path configuration
-  // Agar aapki image public/banar/banar0.jpg mein hai, toh niche wala path sahi hai.
-  // Agar image server se aani hai, toh hum API_BASE use karenge.
-  const bannerImagePath = "/banar/banar0.jpg"; 
+  // ✅ LIVE IMAGE LINK (Ayurvedic Wellness Theme)
+  // Yeh link kabhi break nahi hoga aur live chalega.
+  const bannerLiveImage = "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?q=80&w=2070&auto=format&fit=crop"; 
 
   return (
     <div className="py-24 bg-[#fcfaf7]">
       <div className="container mx-auto px-6 md:px-12">
         
-        {/* Main Flex Box */}
         <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24 max-w-7xl mx-auto">
           
           {/* LEFT: Image Section with Floating Elements */}
           <div className="w-full lg:w-1/2 relative">
             <div className="relative rounded-[3rem] overflow-hidden shadow-2xl group">
               <img 
-                src={bannerImagePath} 
+                src={bannerLiveImage} 
                 alt="Ayurvedic Wellness" 
                 className="w-full h-[500px] object-cover transition-transform duration-1000 group-hover:scale-110"
-                // ✅ Error handling: Agar image na mile toh placeholder dikhaye
+                // ✅ Fallback: Agar upar wali link bhi na chale toh backup image
                 onError={(e) => {
                   e.target.src = "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1000";
                 }}
               />
               
-              {/* Luxury Glass Icons Overlay */}
               <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-all duration-500"></div>
               
               <div className="absolute top-10 left-10 flex flex-col gap-6">
