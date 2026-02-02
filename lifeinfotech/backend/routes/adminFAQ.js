@@ -4,7 +4,7 @@ const Faq = require('../models/Faq');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 
-// 1. Sabhi Categories fetch karein [cite: 1, 42, 79, 119, 158, 197, 242, 288, 333, 378, 423, 468]
+// 1. Categories fetch (URL: /api/admin/faqs/categories)
 router.get('/categories', async (req, res) => {
   try {
     const categories = await Category.find();
@@ -14,7 +14,7 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-// 2. Selected Category ke Products fetch karein
+// 2. Selected Category ke Products fetch (URL: /api/admin/faqs/products)
 router.get('/products', async (req, res) => {
   try {
     const { category } = req.query;
@@ -25,8 +25,8 @@ router.get('/products', async (req, res) => {
   }
 });
 
-// 3. Selected Product ke FAQs fetch karein [cite: 27, 66, 106, 145, 184, 229, 275, 320, 365, 410, 455, 500]
-router.get('/faqs', async (req, res) => {
+// 3. Selected Product ke FAQs fetch (URL: /api/admin/faqs)
+router.get('/', async (req, res) => {
   try {
     const { productId } = req.query;
     const faqs = await Faq.find({ productId }).sort({ createdAt: -1 });
@@ -36,32 +36,27 @@ router.get('/faqs', async (req, res) => {
   }
 });
 
-// 4. Naya FAQ add karein
-router.post('/faqs', async (req, res) => {
+// 4. Naya FAQ add karein (URL: /api/admin/faqs)
+router.post('/', async (req, res) => {
   try {
     const { question, answer, productId } = req.body;
     const newFaq = new Faq({ question, answer, productId });
     await newFaq.save();
-    res.status(201).json({ faq: newFaq });
+    res.status(201).json({ success: true, faq: newFaq });
   } catch (err) {
     res.status(400).json({ message: "Error saving FAQ" });
   }
 });
 
-
-router.delete('/faqs/:id', async (req, res) => {
+// 5. FAQ Delete karein (URL: /api/admin/faqs/:id)
+router.delete('/:id', async (req, res) => {
   try {
-    const faqId = req.params.id;
-    const deletedFaq = await Faq.findByIdAndDelete(faqId);
-
-    if (!deletedFaq) {
-      return res.status(404).json({ message: "FAQ not found in database" });
-    }
-
+    const deletedFaq = await Faq.findByIdAndDelete(req.params.id);
+    if (!deletedFaq) return res.status(404).json({ message: "FAQ not found" });
     res.status(200).json({ message: "FAQ deleted successfully" });
   } catch (err) {
-    console.error("Server Delete Error:", err);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 module.exports = router;
