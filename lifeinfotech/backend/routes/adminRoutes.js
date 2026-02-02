@@ -1,26 +1,20 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken'); // 1. Isse top par add karein
-const Admin = require('../models/Admin');
+const bcrypt = require('bcryptjs'); // ✅ Only declare once at the top
+const jwt = require('jsonwebtoken'); 
+const Admin = require('../models/Admin'); // ✅ Only declare once at the top
 
 const router = express.Router();
 
-
-// --- TEMPORARY REGISTER ROUTE START ---
-const bcrypt = require('bcryptjs');
-const Admin = require('../models/Admin'); // Ensure karein ki model path 'models/Admin.js' hi hai
-
+/* ================= TEMPORARY REGISTER ROUTE ================= */
+// URL: https://labrostone-backend.onrender.com/api/admin/temp-register
 router.post('/temp-register', async (req, res) => {
     try {
-        // Aapne jo credentials mange the: admin@gmail.com / Admin123
         const email = "admin@gmail.com";
         const password = "Admin123";
         const name = "Admin User";
 
-        // Password ko encrypt karna
         const hashedPassword = await bcrypt.hash(password, 10);
         
-        // Database mein create karna
         const newAdmin = await Admin.create({
             email,
             password: hashedPassword,
@@ -33,11 +27,9 @@ router.post('/temp-register', async (req, res) => {
             admin: { email: newAdmin.email, name: newAdmin.name } 
         });
     } catch (err) {
-        // Agar email pehle se exist karta hai
         res.status(400).json({ success: false, message: "Error: " + err.message });
     }
 });
-// --- TEMPORARY REGISTER ROUTE END ---
 
 /* ================= LOGIN ADMIN ================= */
 router.post('/login', async (req, res) => {
@@ -54,19 +46,17 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
-    // 2. TOKEN GENERATE KAREIN
-    // Yahan 'secret_key_lebrostone' ki jagah apni secret key rakhein
+    // TOKEN GENERATE KAREIN
     const token = jwt.sign(
       { id: admin._id }, 
       'super_secret_admin_key', 
       { expiresIn: '24h' }
     );
 
-    // 3. TOKEN KO RESPONSE MEIN BHEJEIN
     res.json({
       success: true,
       message: 'Login successful',
-      token: token,      // <-- Ab frontend ko ye 'token' milega
+      token: token,
       adminId: admin._id
     });
 
