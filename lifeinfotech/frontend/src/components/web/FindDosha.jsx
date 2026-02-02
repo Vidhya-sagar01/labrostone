@@ -2,6 +2,11 @@ import React from 'react';
 import { Sparkles, Droplets, Leaf, ArrowRight } from 'lucide-react';
 
 const FindDosha = () => {
+  // ✅ Base path configuration
+  // Agar aapki image public/banar/banar0.jpg mein hai, toh niche wala path sahi hai.
+  // Agar image server se aani hai, toh hum API_BASE use karenge.
+  const bannerImagePath = "/banar/banar0.jpg"; 
+
   return (
     <div className="py-24 bg-[#fcfaf7]">
       <div className="container mx-auto px-6 md:px-12">
@@ -13,9 +18,13 @@ const FindDosha = () => {
           <div className="w-full lg:w-1/2 relative">
             <div className="relative rounded-[3rem] overflow-hidden shadow-2xl group">
               <img 
-                src="/banar/banar0.jpg" 
+                src={bannerImagePath} 
                 alt="Ayurvedic Wellness" 
                 className="w-full h-[500px] object-cover transition-transform duration-1000 group-hover:scale-110"
+                // ✅ Error handling: Agar image na mile toh placeholder dikhaye
+                onError={(e) => {
+                  e.target.src = "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1000";
+                }}
               />
               
               {/* Luxury Glass Icons Overlay */}
