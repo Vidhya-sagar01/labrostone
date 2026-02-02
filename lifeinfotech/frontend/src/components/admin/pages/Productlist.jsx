@@ -14,8 +14,19 @@ const ProductList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  // const API_BASE = "http://localhost:5000";
+  // ✅ LIVE BACKEND URL
   const API_BASE = "https://labrostone-backend.onrender.com";
+
+  // ✅ HELPER: Image URL Fix (Localhost to Live)
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return "https://via.placeholder.com/150";
+    // Agar array hai toh pehla element lo
+    const path = Array.isArray(imagePath) ? imagePath[0] : imagePath;
+    if (path.includes('localhost:5000')) {
+      return path.replace('http://localhost:5000', API_BASE);
+    }
+    return path;
+  };
 
   useEffect(() => {
     fetchInitialData();
@@ -29,7 +40,6 @@ const ProductList = () => {
         axios.get(`${API_BASE}/api/categories`)
       ]);
 
-      // Backend response structure handle karna
       const allProds = prodRes.data.data || prodRes.data.products || [];
       const allCats = catRes.data.categories || catRes.data.data || catRes.data || [];
 
@@ -54,18 +64,11 @@ const ProductList = () => {
     }
   };
 
-  // --- FINAL FILTER LOGIC (SUPER STICKY) ---
   const filteredProducts = products.filter(p => {
-    // 1. Search by Name
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // 2. Search by Category
     if (!selectedCategory || selectedCategory === '') return matchesSearch;
-
     const prodCatId = p.category_id?._id || p.category_id;
-    // Donon IDs ko string mein convert karke trim karke compare karein
     const matchesCategory = String(prodCatId).trim() === String(selectedCategory).trim();
-    
     return matchesSearch && matchesCategory;
   });
 
@@ -138,7 +141,13 @@ const ProductList = () => {
               <tr key={prod._id} className="hover:bg-slate-700/20 transition-all group">
                 <td className="p-8 flex items-center gap-6">
                   <div className="relative">
-                    <img src={prod.images?.[0] || 'https://via.placeholder.com/150'} className="w-16 h-16 rounded-[1.2rem] object-cover border-2 border-slate-700 group-hover:border-blue-500 shadow-lg" alt="" />
+                    {/* ✅ FIX: getImageUrl function ka use karein */}
+                    <img 
+                        src={getImageUrl(prod.images)} 
+                        className="w-16 h-16 rounded-[1.2rem] object-cover border-2 border-slate-700 group-hover:border-blue-500 shadow-lg" 
+                        alt={prod.name} 
+                        onError={(e) => { e.target.src = "https://via.placeholder.com/150"; }}
+                    />
                     {prod.is_bestseller && (
                       <div className="absolute -top-2 -right-2 bg-yellow-500 p-1.5 rounded-full shadow-lg border-2 border-slate-800">
                         <Star size={10} fill="black" />
@@ -167,12 +176,11 @@ const ProductList = () => {
                 <td className="p-8 text-right pr-12">
                   <div className="flex justify-end gap-4">
                    <button 
-    onClick={() => navigate(`/admin/product/view/${prod._id}`)} 
-    className="p-4 bg-slate-900 rounded-2xl text-blue-400 hover:bg-blue-600 hover:text-white transition-all border border-slate-700"
->
-    <Eye size={18} />
-</button>
-                    
+                    onClick={() => navigate(`/admin/product/view/${prod._id}`)} 
+                    className="p-4 bg-slate-900 rounded-2xl text-blue-400 hover:bg-blue-600 hover:text-white transition-all border border-slate-700"
+                    >
+                    <Eye size={18} />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -185,21 +193,21 @@ const ProductList = () => {
       <div className="mt-10 flex flex-col md:flex-row justify-between items-center px-10 gap-6">
         <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">Showing {currentItems.length} of {filteredProducts.length} Results Found</p>
         <div className="flex gap-4 items-center bg-slate-800 p-2 rounded-3xl border border-slate-700 shadow-inner">
-           <button 
-             disabled={currentPage === 1} 
-             onClick={() => setCurrentPage(p => p - 1)} 
-             className="p-3 bg-slate-900 rounded-2xl disabled:opacity-20 text-blue-500 hover:bg-slate-700 transition-all"
-           >
-             <ChevronLeft size={20}/>
-           </button>
-           <span className="text-xs font-black px-4 italic text-slate-400 uppercase tracking-widest">Page {currentPage} of {totalPages}</span>
-           <button 
-             disabled={currentPage === totalPages} 
-             onClick={() => setCurrentPage(p => p + 1)} 
-             className="p-3 bg-slate-900 rounded-2xl disabled:opacity-20 text-blue-500 hover:bg-slate-700 transition-all"
-           >
-             <ChevronRight size={20}/>
-           </button>
+            <button 
+              disabled={currentPage === 1} 
+              onClick={() => setCurrentPage(p => p - 1)} 
+              className="p-3 bg-slate-900 rounded-2xl disabled:opacity-20 text-blue-500 hover:bg-slate-700 transition-all"
+            >
+              <ChevronLeft size={20}/>
+            </button>
+            <span className="text-xs font-black px-4 italic text-slate-400 uppercase tracking-widest">Page {currentPage} of {totalPages}</span>
+            <button 
+              disabled={currentPage === totalPages} 
+              onClick={() => setCurrentPage(p => p + 1)} 
+              className="p-3 bg-slate-900 rounded-2xl disabled:opacity-20 text-blue-500 hover:bg-slate-700 transition-all"
+            >
+              <ChevronRight size={20}/>
+            </button>
         </div>
       </div>
     </div>
