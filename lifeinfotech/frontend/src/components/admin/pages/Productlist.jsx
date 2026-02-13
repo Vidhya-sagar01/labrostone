@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Filter, Star, Eye, Edit, Trash2, ChevronLeft, ChevronRight, RefreshCcw } from 'lucide-react';
+import { Search, Filter, Star, Eye, Edit, Trash2, ChevronLeft, ChevronRight, RefreshCcw,Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ProductList = () => {
@@ -8,25 +8,14 @@ const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+  const [deletingId, setDeletingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  
   const itemsPerPage = 8;
 
-  // ✅ LIVE BACKEND URL
-  const API_BASE = "https://labrostone-backend.onrender.com";
-
-  // ✅ HELPER: Image URL Fix (Localhost to Live)
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "https://via.placeholder.com/150";
-    // Agar array hai toh pehla element lo
-    const path = Array.isArray(imagePath) ? imagePath[0] : imagePath;
-    if (path.includes('localhost:5000')) {
-      return path.replace('http://localhost:5000', API_BASE);
-    }
-    return path;
-  };
+  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
 
   useEffect(() => {
     fetchInitialData();
@@ -52,15 +41,98 @@ const ProductList = () => {
     }
   };
 
-  const toggleBestseller = async (id, currentStatus) => {
+ 
+
+  const handleDelete = async (productId) => {
+    if (window.confirm("⚠️ Are you sure? This product will be permanently removed from the database!")) {
+      try {
+        setDeletingId(productId);
+        const adminToken = localStorage.getItem('adminToken');
+        
+        await axios.delete(`${API_BASE}/api/products/${productId}`, {
+          headers: { Authorization: `Bearer ${adminToken}` }
+        });
+
+        // Remove from local state
+        setProducts(prev => prev.filter(p => p._id !== productId));
+        alert("Product deleted successfully.");
+      } catch (error) {
+        console.error("Delete Error", error);
+        alert("Failed to delete product. Check admin permissions.");
+      } finally {
+        setDeletingId(null);
+      }
+    }
+  };
+
+  // ✅ HELPER 1: IMAGE LOGIC
+  const getDisplayImage = (prod) => {
+    // 1. Agar apni image hai toh wahi dikhao
+    if (prod.images && prod.images.length > 0) {
+        return prod.images[0];
+    }
+
+    // 2. Agar Combo hai aur image nahi hai -> Included Product ki image lo
+    if (prod.is_combo && prod.included_products?.length > 0) {
+        // ID nikalo
+        const firstItemId = typeof prod.included_products[0] === 'object' 
+            ? prod.included_products[0]._id 
+            : prod.included_products[0];
+        
+        // Main list me product dhoondo
+        const foundItem = products.find(p => p._id === firstItemId);
+        
+        if (foundItem && foundItem.images?.length > 0) {
+            return foundItem.images[0];
+        }
+    }
+
+    return 'https://via.placeholder.com/150';
+  };
+
+  const getTagStyle = (tag) => {
+    switch (tag) {
+      case 'Best Seller': return 'text-yellow-500 border-yellow-500/30 bg-yellow-500/10';
+      case 'New Arrival': return 'text-blue-400 border-blue-400/30 bg-blue-400/10';
+      default: return 'text-slate-400 border-slate-700 bg-slate-800/50';
+    }
+  };
+
+  // ✅ HELPER 2: PRICE CALCULATION LOGIC
+  const getDisplayPrice = (prod) => {
+    // 1. Pehle Direct Selling Price check karo
+    let price = Number(prod.selling_price) || Number(prod.variants?.[0]?.selling_price) || 0;
+
+    // 2. Agar Price 0 hai aur ye Combo hai -> Included Products ka Sum nikalo
+    if (price === 0 && prod.is_combo && prod.included_products?.length > 0) {
+        let sum = 0;
+        prod.included_products.forEach(id => {
+            const itemId = typeof id === 'object' ? id._id : id;
+            const foundItem = products.find(p => p._id === itemId);
+            
+            if (foundItem) {
+                sum += Number(foundItem.selling_price) || Number(foundItem.variants?.[0]?.selling_price) || 0;
+            }
+        });
+        
+        if (sum > 0) price = sum;
+    }
+
+    return price;
+  };
+
+  const toggleBestseller = async (productId, currentStatus) => {
+    // ... (Old logic same, removing raw fetch for axios if needed, or keeping as is)
+    // Assuming your toggle logic works, just triggering refresh here
     try {
-      const token = localStorage.getItem('adminToken');
-      await axios.put(`${API_BASE}/api/products/${id}/bestseller`, {}, 
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
-      setProducts(prev => prev.map(p => p._id === id ? { ...p, is_bestseller: !currentStatus } : p));
+        const adminToken = localStorage.getItem('adminToken'); // Ensure token key matches
+        await axios.put(`${API_BASE}/api/products/${productId}/bestseller`, {}, {
+            headers: { Authorization: `Bearer ${adminToken}` }
+        });
+        // Update local state directly for speed
+        setProducts(prev => prev.map(p => p._id === productId ? { ...p, is_bestseller: !p.is_bestseller } : p));
     } catch (error) {
-      alert("Status update failed!");
+        console.error("Toggle Error", error);
     }
   };
 
@@ -128,7 +200,7 @@ const ProductList = () => {
             <tr>
               <th className="p-8">Visual & Product Name</th>
               <th className="p-8 text-center">Bestseller Status</th>
-              <th className="p-8">Pricing (PDF Format)</th>
+              <th className="p-8">Pricing (Final SP)</th>
               <th className="p-8 text-right pr-12">Action Control</th>
             </tr>
           </thead>
@@ -141,12 +213,11 @@ const ProductList = () => {
               <tr key={prod._id} className="hover:bg-slate-700/20 transition-all group">
                 <td className="p-8 flex items-center gap-6">
                   <div className="relative">
-                    {/* ✅ FIX: getImageUrl function ka use karein */}
+                    {/* ✅ USING NEW IMAGE FUNCTION */}
                     <img 
-                        src={getImageUrl(prod.images)} 
+                        src={getDisplayImage(prod)} 
                         className="w-16 h-16 rounded-[1.2rem] object-cover border-2 border-slate-700 group-hover:border-blue-500 shadow-lg" 
-                        alt={prod.name} 
-                        onError={(e) => { e.target.src = "https://via.placeholder.com/150"; }}
+                        alt="" 
                     />
                     {prod.is_bestseller && (
                       <div className="absolute -top-2 -right-2 bg-yellow-500 p-1.5 rounded-full shadow-lg border-2 border-slate-800">
@@ -159,6 +230,7 @@ const ProductList = () => {
                     <div className="text-[10px] text-blue-500 font-bold uppercase mt-1 tracking-tighter">
                         Category: {prod.category_id?.name || 'Unmapped'}
                     </div>
+                    {prod.is_combo && <span className="text-[9px] bg-purple-500 text-white px-2 py-0.5 rounded font-bold mt-1 inline-block">COMBO PACK</span>}
                   </div>
                 </td>
                 <td className="p-8 text-center">
@@ -170,16 +242,25 @@ const ProductList = () => {
                   </button>
                 </td>
                 <td className="p-8">
-                  <div className="text-2xl font-black text-emerald-400 italic leading-none">₹{prod.variants?.[0]?.selling_price || '0'}</div>
+                  {/* ✅ USING NEW PRICE FUNCTION */}
+                  <div className="text-2xl font-black text-emerald-400 italic leading-none">₹{getDisplayPrice(prod)}</div>
                   <div className="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-widest">{prod.variants?.[0]?.size || 'Std'} Pack Size</div>
                 </td>
                 <td className="p-8 text-right pr-12">
                   <div className="flex justify-end gap-4">
-                   <button 
-                    onClick={() => navigate(`/admin/product/view/${prod._id}`)} 
-                    className="p-4 bg-slate-900 rounded-2xl text-blue-400 hover:bg-blue-600 hover:text-white transition-all border border-slate-700"
+                    <button 
+                        onClick={() => navigate(`/admin/product/view/${prod._id}`)} 
+                        className="p-4 bg-slate-900 rounded-2xl text-blue-400 hover:bg-blue-600 hover:text-white transition-all border border-slate-700"
                     >
-                    <Eye size={18} />
+                        <Eye size={18} />
+                    </button>
+                    <button 
+                        disabled={deletingId === prod._id}
+                        onClick={() => handleDelete(prod._id)} 
+                        className="p-3 bg-slate-900 rounded-xl text-red-500 hover:bg-red-600 hover:text-white transition-all border border-slate-700 disabled:opacity-50"
+                        title="Delete"
+                    >
+                        {deletingId === prod._id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
                     </button>
                   </div>
                 </td>
@@ -193,21 +274,21 @@ const ProductList = () => {
       <div className="mt-10 flex flex-col md:flex-row justify-between items-center px-10 gap-6">
         <p className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">Showing {currentItems.length} of {filteredProducts.length} Results Found</p>
         <div className="flex gap-4 items-center bg-slate-800 p-2 rounded-3xl border border-slate-700 shadow-inner">
-            <button 
-              disabled={currentPage === 1} 
-              onClick={() => setCurrentPage(p => p - 1)} 
-              className="p-3 bg-slate-900 rounded-2xl disabled:opacity-20 text-blue-500 hover:bg-slate-700 transition-all"
-            >
-              <ChevronLeft size={20}/>
-            </button>
-            <span className="text-xs font-black px-4 italic text-slate-400 uppercase tracking-widest">Page {currentPage} of {totalPages}</span>
-            <button 
-              disabled={currentPage === totalPages} 
-              onClick={() => setCurrentPage(p => p + 1)} 
-              className="p-3 bg-slate-900 rounded-2xl disabled:opacity-20 text-blue-500 hover:bg-slate-700 transition-all"
-            >
-              <ChevronRight size={20}/>
-            </button>
+           <button 
+             disabled={currentPage === 1} 
+             onClick={() => setCurrentPage(p => p - 1)} 
+             className="p-3 bg-slate-900 rounded-2xl disabled:opacity-20 text-blue-500 hover:bg-slate-700 transition-all"
+           >
+             <ChevronLeft size={20}/>
+           </button>
+           <span className="text-xs font-black px-4 italic text-slate-400 uppercase tracking-widest">Page {currentPage} of {totalPages}</span>
+           <button 
+             disabled={currentPage === totalPages} 
+             onClick={() => setCurrentPage(p => p + 1)} 
+             className="p-3 bg-slate-900 rounded-2xl disabled:opacity-20 text-blue-500 hover:bg-slate-700 transition-all"
+           >
+             <ChevronRight size={20}/>
+           </button>
         </div>
       </div>
     </div>

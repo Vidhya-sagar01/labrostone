@@ -1,97 +1,307 @@
-import React from 'react';
-import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from 'lucide-react';
+import React from "react";
+import { HiOutlineMail } from "react-icons/hi";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaPinterestP,
+  FaLinkedinIn,
+} from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#F9F6F0] text-black pt-16 pb-8 border-t border-gray-200">
-      <div className="container mx-auto px-4 md:px-12">
-        
-        {/* --- NEWSLETTER SECTION --- */}
-        <div className="text-center mb-16 space-y-4">
-          <h2 className="text-2xl md:text-3xl font-bold uppercase tracking-wider">Join the Lebroid Healthcare Newsletter</h2>
-          <p className="text-gray-600">Get skincare tips, offers & new launch updates!</p>
-          <div className="flex flex-col md:flex-row justify-center items-center gap-4 mt-6 max-w-2xl mx-auto">
-            <div className="relative w-full">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input 
-                type="email" 
-                placeholder="youremail123@gmail.com" 
-                className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:border-[#A88B56]"
-              />
+    <footer className="bg-[#FFFF] pt-16 pb-8 font-sans">
+      {/* Newsletter Section */}
+      <div className="max-w-7xl mx-auto px-4 text-center mb-16">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          Join the Lebrostone Newsletter
+        </h2>
+        <p className="text-gray-600 mb-8">
+          Get skincare tips, offers & new launch updates!
+        </p>
+
+        <div className="max-w-xl mx-auto flex items-center bg-white rounded-full shadow-sm p-1 pr-1 pl-6 border border-gray-100">
+          <HiOutlineMail className="text-gray-400 text-xl mr-3" />
+          <input
+            type="email"
+            placeholder="youremail123@gmail.com"
+            className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm py-3"
+          />
+          <button className="bg-[#C5A987] text-white px-8 py-3 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#b09675] transition-colors">
+            Subscribe
+          </button>
+        </div>
+      </div>
+
+      {/* Links Section */}
+      <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 mb-16">
+        {/* Shop */}
+        <div>
+          <h3 className="font-bold text-gray-800 mb-6 uppercase text-sm tracking-widest">
+            Shop
+          </h3>
+          <ul className="space-y-3 text-[13px] text-gray-600">
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Skin
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Bath & Body
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Hair
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Men
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Spa
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Anantam
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Kits & Gifting
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Combos
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Exclusive Deals
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* About */}
+        <div>
+          <h3 className="font-bold text-gray-800 mb-6 uppercase text-sm tracking-widest">
+            About
+          </h3>
+          <ul className="space-y-3 text-[13px] text-gray-600">
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Our Story
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                About Lebrostone
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Media & Press
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Blogs
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* Customer Care */}
+        <div>
+          <h3 className="font-bold text-gray-800 mb-6 uppercase text-sm tracking-widest">
+            Customer Care
+          </h3>
+          <ul className="space-y-3 text-[13px] text-gray-600">
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Contact Us
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Shipping Policy
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Cancellation Policy
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Return & Refund Policy
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Privacy Policy
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Terms & Conditions
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Disclaimer
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                FAQs
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* Available At */}
+        <div>
+          <h3 className="font-bold text-gray-800 mb-6 uppercase text-sm tracking-widest">
+            Available At
+          </h3>
+          <ul className="space-y-3 text-[13px] text-gray-600">
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Amazon
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Nykaa
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Flipkart
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Tira
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Myntra
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Purplle
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-[#C5A987]">
+                Firstcry
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        {/* Address */}
+        <div>
+          <h3 className="font-bold text-gray-800 mb-6 uppercase text-sm tracking-widest">
+            Address
+          </h3>
+          <div className="text-[13px] text-gray-600 space-y-4 leading-relaxed">
+            <p>
+              31, Link Road, Opp. Defence Colony,
+              <br />
+              Block A, Lajpat Nagar III,
+              <br />
+              New Delhi – 110024, India
+            </p>
+            <p>
+              Email:{" "}
+              <a
+                href="mailto:info@lebrostone.in"
+                className="hover:text-[#C5A987]"
+              >
+                info@lebrostone.in
+              </a>
+            </p>
+            <p>Toll-Free : 1800-1028384</p>
+            <div className="flex gap-4 pt-4">
+              <a
+                href="#"
+                className="text-gray-800 hover:text-[#C5A987] transition-colors"
+              >
+                <FaFacebookF />
+              </a>
+              <a
+                href="#"
+                className="text-gray-800 hover:text-[#C5A987] transition-colors"
+              >
+                <FaXTwitter />
+              </a>
+              <a
+                href="#"
+                className="text-gray-800 hover:text-[#C5A987] transition-colors"
+              >
+                <FaInstagram />
+              </a>
+              <a
+                href="#"
+                className="text-gray-800 hover:text-[#C5A987] transition-colors"
+              >
+                <FaPinterestP />
+              </a>
+              <a
+                href="#"
+                className="text-gray-800 hover:text-[#C5A987] transition-colors"
+              >
+                <FaLinkedinIn />
+              </a>
             </div>
-            <button className="bg-[#B79B7D] text-white px-10 py-3 rounded-full font-bold uppercase tracking-widest hover:bg-[#8B5A3C] transition-colors w-full md:w-auto">
-              Subscribe
-            </button>
           </div>
         </div>
+      </div>
 
-        {/* --- MAIN FOOTER LINKS --- */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12 border-t border-gray-200 pt-12">
-          {/* About */}
-          <div className="space-y-4">
-            <h4 className="font-bold uppercase tracking-wider">About</h4>
-            <ul className="text-sm text-gray-600 space-y-2">
-              <li className="hover:text-black cursor-pointer">Our Story</li>
-              <li className="hover:text-black cursor-pointer">About Lebroid Healthcare</li>
-              <li className="hover:text-black cursor-pointer">Media & Press</li>
-              <li className="hover:text-black cursor-pointer">Blogs</li>
-            </ul>
-          </div>
-
-          {/* Customer Care */}
-          <div className="space-y-4">
-            <h4 className="font-bold uppercase tracking-wider">Customer Care</h4>
-            <ul className="text-sm text-gray-600 space-y-2">
-              <li className="hover:text-black cursor-pointer">Contact Us</li>
-              <li className="hover:text-black cursor-pointer">Shipping Policy</li>
-              <li className="hover:text-black cursor-pointer">Cancellation Policy</li>
-              <li className="hover:text-black cursor-pointer">Return & Refund Policy</li>
-              <li className="hover:text-black cursor-pointer">Privacy Policy</li>
-              <li className="hover:text-black cursor-pointer">Terms & Conditions</li>
-            </ul>
-          </div>
-
-          {/* Available At */}
-          <div className="space-y-4">
-            <h4 className="font-bold uppercase tracking-wider">Available At</h4>
-            <ul className="text-sm text-gray-600 space-y-2">
-              <li className="hover:text-black cursor-pointer">Amazon</li>
-              <li className="hover:text-black cursor-pointer">Nykaa</li>
-              <li className="hover:text-black cursor-pointer">Flipkart</li>
-              <li className="hover:text-black cursor-pointer">Myntra</li>
-              <li className="hover:text-black cursor-pointer">Purplle</li>
-            </ul>
-          </div>
-
-          {/* Address & Social */}
-          <div className="space-y-4">
-            <h4 className="font-bold uppercase tracking-wider">Address</h4>
-            <div className="text-sm text-gray-600 space-y-4">
-              <p>31, Link Road, Opp. Defence Colony, New Delhi - 110024, India</p>
-              <p>Email: info@Lebroid Healthcare.com</p>
-              <p>Toll-Free: 1800-1028384</p>
-              <div className="flex gap-4 pt-2">
-                <Facebook size={18} className="cursor-pointer hover:text-[#B79B7D]" />
-                <Instagram size={18} className="cursor-pointer hover:text-[#B79B7D]" />
-                <Twitter size={18} className="cursor-pointer hover:text-[#B79B7D]" />
-                <Youtube size={18} className="cursor-pointer hover:text-[#B79B7D]" />
-              </div>
-            </div>
-          </div>
+      {/* Footer Bottom */}
+      <div className="max-w-7xl mx-auto px-4 border-t border-gray-200/50 pt-8 flex flex-col items-center">
+        <div className="flex flex-wrap justify-center gap-4 mb-4 ">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
+            alt="PayPal"
+            className="h-6"
+          />
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
+            alt="Visa"
+            className="h-6"
+          />
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+            alt="Mastercard"
+            className="h-6"
+          />
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/3840px-Google_Pay_Logo.svg.png"
+            alt="GPay"
+            className="h-6"
+          />
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1280px-UPI-Logo-vector.svg.png"
+            alt="UPI"
+            className="h-6"
+          />
         </div>
-
-        {/* --- PAYMENT ICONS & COPYRIGHT --- */}
-        <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex gap-4 items-center grayscale opacity-70">
-            <img src="/payment/visa.png" alt="Visa" className="h-6" />
-            <img src="/payment/mastercard.png" alt="Mastercard" className="h-6" />
-            <img src="/payment/upi.png" alt="UPI" className="h-6" />
-            <img src="/payment/gpay.png" alt="GPay" className="h-6" />
-          </div>
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest">
-            © 2026 Lebroid Healthcare
-          </p>
-        </div>
+        <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+          © 2026 Lebrostone. All Rights Reserved.
+        </p>
       </div>
     </footer>
   );

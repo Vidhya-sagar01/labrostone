@@ -1,86 +1,136 @@
-import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, User, Menu } from 'lucide-react';
+import React, { useState, useEffect } from "react"; // 1. Added useEffect
+import { CiUser, CiSearch, CiShoppingBasket } from "react-icons/ci";
+import { IoMdClose } from "react-icons/io";
+import { HiMenuAlt3 } from "react-icons/hi";
+import {
+  IoChevronDown,
+  IoChevronBack,
+  IoChevronForward,
+} from "react-icons/io5";
+import { useNavigate } from "react-router-dom";
+import instance from "../api/AxiosConfig";
 
 const Navbar = () => {
-  const [isSticky, setIsSticky] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true); // 2. State for banner visibility
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
+  const [cartCount, setCartCount] = useState(0);
 
-  // Scroll detect karne ka logic
+  // 3. Scroll logic: Hide banner if window.scrollY > 0
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 100) {
-        setIsSticky(true);
+      if (window.scrollY > 0) {
+        setIsVisible(false);
       } else {
-        setIsSticky(false);
+        setIsVisible(true);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  return (
-    <>
-      {/* Top Notification Bar */}
-      <div className="bg-[#d4cbb8] text-xs text-center py-1 font-medium tracking-wide">
-        FREE DOCTOR CONSULTATION: CALL 011 424 51255 / 1800 102 8384
-      </div>
+  React.useEffect(() => {
+    const userId = user?.id || user?._id;
+    if (userId) {
+      instance
+        .post(`/cart/get`, { userId })
+        .then((response) => {
+          setCartCount(response.data.cart.items.length);
+        })
+        .catch((err) => {
+          console.error("Error fetching cart count:", err);
+        });
+    }
+  }, [user?.id, user?._id]);
 
-      {/* Main Navbar */}
-      <nav
-        className={`w-full z-50 transition-all duration-300 bg-[#Fdfbf7] ${
-          isSticky ? 'fixed top-0 shadow-md py-2' : 'relative py-4'
+  const navItems = [
+    { name: "HOME", hasDropdown: false, path: "/" },
+    { name: "MEN'S HEALTH", hasDropdown: false, path: "/products" },
+    { name: "DAILY WELLNESS", hasDropdown: false },
+    { name: "WEIGHT MANAGEMENT", hasDropdown: false },
+    { name: "HAIR CARE", hasDropdown: false },
+    { name: "SKIN CARE", hasDropdown: false },
+    { name: "WOMEN'S HEALTH", hasDropdown: false },
+  ];
+
+  return (
+    <nav className="fixed top-0 left-0 w-full z-50 bg-[#FAF6EA] shadow-md font-sans">
+      {/* Top Banner - Conditioned by isVisible */}
+      <div 
+        className={`bg-[#00a758] text-white flex justify-center items-center relative text-[10px] md:text-xs font-thin tracking-widest transition-all duration-300 overflow-hidden ${
+          isVisible ? "h-10 opacity-100 py-2" : "h-0 opacity-0 py-0"
         }`}
       >
-        <div className="container mx-auto px-6">
-          {/* Top Row: Logos and Icons */}
-          <div className="flex justify-between items-center mb-4">
-            {/* Left Logo */}
-          <div className="hidden md:block w-24">
-  <img 
-    src="/admin/Lebrostone logo (3).png" 
-    alt="Lebrostone Logo" 
-    className="w-full h-auto mb-1 ml-3" 
-  />
- <span className="text-xs font-bold text-red-600 border border-red-600 p-1 inline-block whitespace-nowrap">
-  Lebroid Healthcare
-</span>
-</div>
+        <button className="absolute left-4 md:left-20 text-white/80 hover:text-white">
+          <IoChevronBack size={16} />
+        </button>
+        <span>
+          GET 10% OFF YOUR FIRST ORDER – USE CODE{" "}
+          <span className="font-bold">LEBROSTONE10!</span>
+        </span>
+        <button className="absolute right-4 md:right-20 text-white/80 hover:text-white">
+          <IoChevronForward size={16} />
+        </button>
+      </div>
 
-            {/* Center Logo  */}
-            <div className="text-center">
-              <h1 className="text-4xl font-serif text-[#a88b56] tracking-widest uppercase">
-                Lebroid Healthcare
-              </h1>
-            </div>
+      {/* Main Header Area */}
+      <div className="max-w-360 mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+        {/* ... rest of your code remains the same ... */}
+        <div className="flex items-center justify-between">
+          <a href="/" className="hidden md:flex flex-col text-[10px] items-start font-bold text-gray-800 leading-tight">
+            <p className="text-center w-full text-sm uppercase font-medium">from the house of</p>
+            <span className="h-12 w-auto ">
+              <img className="h-full w-full object-contain " src="/leftlogo.png" alt="leftlogo" />
+            </span>
+          </a>
 
-            {/* Right Icons */}
-            <div className="flex items-center gap-6 text-gray-700">
-              <User size={20} className="cursor-pointer hover:text-[#a88b56]" />
-              <Search size={20} className="cursor-pointer hover:text-[#a88b56]" />
-              <ShoppingBag size={20} className="cursor-pointer hover:text-[#a88b56]" />
-              {/* Certification Stamp Placeholder */}
-              <div className="hidden md:block w-10 h-10 border rounded-full border-gray-400 flex items-center justify-center text-[8px] text-center leading-tight">
-                EST <br/> 1917
-              </div>
-            </div>
+          <button className="md:hidden text-2xl text-gray-800" onClick={() => setMobileMenuOpen(true)}>
+            <HiMenuAlt3 />
+          </button>
+
+          <div className="flex-1 flex justify-center mb-4">
+            <a href="/" className="h-12 w-auto">
+              <img className="h-full w-auto object-contain" src="/logo.png" alt="" />
+            </a>
           </div>
 
-          {/* Bottom Row: Navigation Links */}
-          <div className={`hidden md:flex justify-center gap-8 text-sm font-medium text-gray-600 tracking-wide ${isSticky ? 'mt-0' : 'mt-4 border-t border-gray-200 pt-4'}`}>
-            {['SHOP ALL', 'SKIN', 'BATH & BODY', 'HAIR', 'MEN', 'SPA', 'ANANTAM', 'WEDDING EDITS', 'COMBOS'].map((item) => (
-              <a key={item} href="#" className="hover:text-[#a88b56] transition-colors">
-                {item}
-              </a>
-            ))}
-          </div>
-          
-          {/* Mobile Menu Icon (Only shows on small screens) */}
-          <div className="md:hidden flex justify-center mt-2">
-            <Menu className="text-gray-600" />
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="flex items-center gap-3 md:gap-4 text-gray-800">
+              <button onClick={() => navigate("/profile")} className="hover:text-[#C5A987] transition-colors">
+                <CiUser size={24} strokeWidth={0.5} />
+              </button>
+              <button onClick={() => setSearchOpen(!searchOpen)} className="hover:text-[#C5A987] transition-colors">
+                <CiSearch size={24} strokeWidth={0.5} />
+              </button>
+              <button onClick={() => navigate("/cart")} className="relative hover:text-[#C5A987] transition-colors">
+                <CiShoppingBasket size={24} strokeWidth={0.5} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      </nav>
-    </>
+      </div>
+
+      {/* Navigation Links */}
+      <div className="hidden md:block border-b border-gray-100/50 pb-4">
+        <div className="flex justify-center items-center gap-8 text-[11px] lg:text-xs font-medium tracking-widest text-gray-700">
+          {navItems.map((item, index) => (
+            <div key={index} className="group cursor-pointer relative" onClick={() => item.path && navigate(item.path)}>
+              <span className="hover:text-[#C5A987] transition-colors duration-300">{item.name}</span>
+              <span className="absolute -bottom-1 left-0 w-0 h-px bg-[#C5A987] transition-all duration-300 group-hover:w-full"></span>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* ... Search and Mobile Menu code ... */}
+    </nav>
   );
 };
 

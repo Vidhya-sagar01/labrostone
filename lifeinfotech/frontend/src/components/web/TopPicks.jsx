@@ -1,170 +1,212 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Star, ChevronLeft, ChevronRight, ShoppingCart, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef } from "react";
+import { FaStar, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Autoplay } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/navigation";
 
 const TopPicks = () => {
-  const [activeTab, setActiveTab] = useState('bestsellers');
-  const [products, setProducts] = useState({
-    bestsellers: [],
-    newArrival: [],
-    combos: []
-  });
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("BESTSELLERS");
+  const swiperRef = useRef(null);
 
-  // const API_BASE = "http://localhost:5000";
-  const API_BASE = "https://labrostone-backend.onrender.com";
+  const categories = ["BESTSELLERS", "NEW ARRIVAL", "COMBO"];
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(`${API_BASE}/api/products`);
-        const allData = res.data.data;
+  const allProducts = [
+    {
+      id: 1,
+      title: "Lebrostone Shilajit",
+      price: 229,
+      originalPrice: 349,
+      reviews: 88,
+      image:
+        "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1000&auto=format&fit=crop",
+      badge: "NEW LAUNCH",
+      category: "BESTSELLERS",
+    },
+    {
+      id: 2,
+      title: "Jamun Powder",
+      price: 299,
+      originalPrice: 399,
+      reviews: 93,
+      image:
+        "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?q=80&w=1000&auto=format&fit=crop",
+      badge: "NEW",
+      category: "BESTSELLERS",
+    },
+    {
+      id: 3,
+      title: "Ashwagandha Powder",
+      price: 259,
+      originalPrice: 359,
+      reviews: 64,
+      image:
+        "https://images.unsplash.com/photo-1590086782792-42dd2350140d?q=80&w=1000&auto=format&fit=crop",
+      badge: "NEW",
+      category: "NEW ARRIVAL",
+    },
+    {
+      id: 4,
+      title: "Neem Capsules",
+      price: 199,
+      originalPrice: 299,
+      reviews: 41,
+      image:
+        "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?q=80&w=1000&auto=format&fit=crop",
+      badge: "NEW",
+      category: "NEW ARRIVAL",
+    },
+    {
+      id: 5,
+      title: "Immunity Combo",
+      price: 499,
+      originalPrice: 699,
+      reviews: 112,
+      image:
+        "https://images.unsplash.com/photo-1584467735871-bfb1a1c2b7c9?q=80&w=1000&auto=format&fit=crop",
+      badge: "COMBO",
+      category: "COMBO",
+    },
+    {
+      id: 6,
+      title: "Skin Care Combo",
+      price: 549,
+      originalPrice: 799,
+      reviews: 87,
+      image:
+        "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?q=80&w=1000&auto=format&fit=crop",
+      badge: "COMBO",
+      category: "COMBO",
+    },
+  ];
 
-        // --- DYNAMIC FILTERING LOGIC ---
-        const filtered = {
-          // 1. Bestsellers: Jinka is_bestseller true hai
-          bestsellers: allData.filter(p => p.is_bestseller).slice(0, 4),
-          
-          // 2. New Arrival: Jo sabse latest add hue hain
-          newArrival: [...allData].sort((a, b) => 
-            new Date(b.createdAt) - new Date(a.createdAt)
-          ).slice(0, 4),
-          
-          // 3. Combos: Jinka is_combo true hai
-          combos: allData.filter(p => p.is_combo).slice(0, 4)
-        };
-
-        setProducts(filtered);
-        setLoading(false);
-      } catch (err) {
-        console.error("Error loading top picks:", err);
-        setLoading(false);
-      }
-    };
-    fetchAllData();
-  }, []);
-
-  if (loading) return (
-    <div className="flex justify-center py-20">
-      <Loader2 className="animate-spin text-slate-400" size={40} />
-    </div>
+  const filteredProducts = allProducts.filter(
+    (p) => p.category === activeTab
   );
 
   return (
-    <div className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        
-        <h2 className="text-3xl font-bold text-center mb-8 text-black tracking-wide uppercase">
+    <section className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4">
+
+        {/* TITLE */}
+        <h2 className="text-2xl font-bold text-center mb-12 uppercase tracking-widest">
           Top Picks This Season
         </h2>
 
-        {/* TABS BUTTONS */}
-        <div className="flex justify-center mb-10">
-          <div className="inline-flex bg-[#D4CBB8] p-1 rounded-full">
-            {[
-              { id: 'bestsellers', label: 'Bestsellers' },
-              { id: 'newArrival', label: 'New Arrival' },
-              { id: 'combos', label: 'Combos' }
-            ].map((tab) => (
+        {/* TABS */}
+        <div className="flex justify-center mb-16">
+          <div className="flex bg-[#D2B48C] rounded-full p-1.5 shadow-sm">
+            {categories.map((category) => (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-8 py-2 rounded-full text-sm font-semibold transition-all duration-300 uppercase tracking-wider ${
-                  activeTab === tab.id
-                    ? 'bg-white text-black shadow-md' 
-                    : 'text-gray-700 hover:text-black'
+                key={category}
+                onClick={() => setActiveTab(category)}
+                className={`px-6 py-2 rounded-full text-xs font-semibold tracking-wider transition ${
+                  activeTab === category
+                    ? "bg-white text-black shadow"
+                    : "text-black hover:bg-white/30"
                 }`}
               >
-                {tab.label}
+                {category}
               </button>
             ))}
           </div>
         </div>
 
-        {/* PRODUCTS GRID */}
-        <div className="relative px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {products[activeTab].map((product) => {
-              const sellingPrice = product.variants?.[0]?.selling_price || 0;
-              const mrp = product.variants?.[0]?.mrp || 0;
-              const discount = mrp > 0 ? Math.round(((mrp - sellingPrice) / mrp) * 100) : 0;
+        {/* SLIDER */}
+        <div className="relative">
 
-              return (
-                <div 
-                  key={product._id} 
-                  className="group flex flex-col items-center text-center cursor-pointer"
-                  onClick={() => navigate(`/product/${product._id}`)}
-                >
-                  
-                  {/* --- IMAGE CONTAINER --- */}
-                  <div className="relative w-full mb-4 overflow-hidden aspect-square bg-slate-50">
-                    {/* Dynamic Discount Badge */}
-                    {discount > 0 && (
-                      <div className="absolute top-0 left-0 bg-black text-white text-[10px] font-bold px-2 py-1 uppercase z-10">
-                        {discount}% OFF
+          {/* NAV BUTTONS */}
+          <button
+            onClick={() => swiperRef.current?.slidePrev()}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white w-10 h-10 rounded-full shadow flex items-center justify-center"
+          >
+            <FaChevronLeft />
+          </button>
+
+          <button
+            onClick={() => swiperRef.current?.slideNext()}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white w-10 h-10 rounded-full shadow flex items-center justify-center"
+          >
+            <FaChevronRight />
+          </button>
+
+          <Swiper
+            modules={[Navigation, Autoplay]}
+            spaceBetween={24}
+            slidesPerView={1}
+            loop
+            autoplay={{ delay: 2500 }}
+            breakpoints={{
+              768: { slidesPerView: 2 },
+              1024: { slidesPerView: 3 },
+            }}
+            onSwiper={(swiper) => (swiperRef.current = swiper)}
+          >
+            {filteredProducts.map((product) => (
+              <SwiperSlide key={product.id} 
+              className="py-20"
+              >
+
+                {/* CARD */}
+                <div className="bg-white rounded-2xl shadow-lg p-10  relative h-[260px]">
+
+                  {/* FLOATING IMAGE */}
+                  <div className="absolute -top-10 left-6 w-28 h-28 bg-white rounded-xl shadow overflow-hidden">
+                    <img
+                      src={product.image}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* CONTENT */}
+                  <div className="pl-32 flex flex-col h-full justify-between">
+
+                    <span className="bg-pink-500 text-white text-xs px-3 py-1 rounded-full w-fit">
+                      {product.badge}
+                    </span>
+
+                    <h3 className="font-bold text-lg line-clamp-2">
+                      {product.title}
+                    </h3>
+
+                    {/* RATING */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex text-yellow-400">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar key={i} size={14} />
+                        ))}
                       </div>
-                    )}
-
-                    {/* 1. Main Image (Dynamic) */}
-                    <img 
-                      src={product.images?.[0] || "https://via.placeholder.com/300"} 
-                      alt={product.name} 
-                      className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 opacity-100 group-hover:opacity-0 p-4"
-                    />
-
-                    {/* 2. Hover Image (Dynamic - uses second image if available) */}
-                    <img 
-                      src={product.images?.[1] || product.images?.[0]} 
-                      alt={product.name} 
-                      className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 opacity-0 group-hover:opacity-100 p-4"
-                    />
-
-                    <div className="absolute bottom-4 right-4 bg-white p-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                      <ShoppingCart size={18} />
+                      <span className="text-sm text-gray-500">
+                        ({product.reviews})
+                      </span>
                     </div>
-                  </div>
 
-                  {/* Product Info */}
-                  <h3 className="text-sm font-medium text-gray-800 mb-2 min-h-[40px] line-clamp-2 px-2 uppercase">
-                    {product.name}
-                  </h3>
-
-                  <div className="flex items-center gap-2 mb-2 text-sm">
-                    <span className="text-gray-400 line-through text-xs">₹ {mrp}</span>
-                    <span className="font-bold text-gray-900">₹ {sellingPrice}</span>
-                  </div>
-
-                  {/* Ratings */}
-                  <div className="flex items-center gap-1 mb-4">
-                    <div className="flex text-yellow-500">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i} 
-                          size={12} 
-                          fill={i < Math.round(product.rating || 0) ? "currentColor" : "none"} 
-                          className={i < Math.round(product.rating || 0) ? "text-yellow-500" : "text-gray-300"}
-                        />
-                      ))}
+                    {/* PRICE */}
+                    <div className="flex items-center gap-3">
+                      <span className="line-through text-gray-400">
+                        ₹{product.originalPrice}
+                      </span>
+                      <span className="text-2xl font-bold">
+                        ₹{product.price}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-500 ml-1">({product.reviews_count || 0})</span>
+
+                    {/* BUTTON */}
+                    <button className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-full font-semibold">
+                      ADD TO CART
+                    </button>
+
                   </div>
-
-                  {/* Button */}
-                  <button className="w-full border border-black py-3 text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
-                    {product.variants?.length > 1 ? "CHOOSE OPTION" : "ADD TO CART"}
-                  </button>
-
                 </div>
-              );
-            })}
-          </div>
-        </div>
 
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -1,276 +1,301 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { ImageIcon, Send, Search, Edit, Trash2, Download } from 'lucide-react';
+import { CSVLink } from "react-csv";
 
-// LIVE BACKEND URL
-const API_BASE = "https://labrostone-backend.onrender.com";
+// --- API BASE CONFIGURATION ---
+const API_BASE = window.location.hostname === "localhost" 
+    ? "http://localhost:5000" 
+    : "https://lebrostonebackend.lifeinfotechinstitute.com";
+
+// Axios ka base URL globally set kar rahe hain
 axios.defaults.baseURL = API_BASE;
 
 const Category = () => {
-    const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
-    const [currentPage, setCurrentPage] = useState(1);
-
-    const [showModal, setShowModal] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [imagePreview, setImagePreview] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
 
     const initialFormState = {
-        name: '', image_url: null, min_price: '', max_price: '',
-        discount_text: '', card_offers: '', festival_offers: ''
+        name: "",
+        image_url: null,
+        priority: 0,
+        show_in_nav: false,
     };
 
     const [formData, setFormData] = useState(initialFormState);
 
-    // ✅ HELPER: Purane Localhost URL ko Live URL mein badalne ke liye
-    const getImageUrl = (url) => {
-        if (!url) return "https://via.placeholder.com/150";
-        if (url.includes('localhost:5000')) {
-            return url.replace('http://localhost:5000', API_BASE);
-        }
-        return url;
-    };
+    const csvHeaders = [
+        { label: "ID", key: "_id" },
+        { label: "Name", key: "name" },
+        { label: "Priority", key: "priority" },
+        { label: "Navbar Status", key: "show_in_nav" }
+    ];
 
+    // Auth Header Helper
     const getAuthHeader = (isMultipart = false) => {
-        const token = localStorage.getItem('adminToken');
+        const token = localStorage.getItem("adminToken");
         return {
             headers: {
-                'Authorization': token ? `Bearer ${token}` : '', 
-                ...(isMultipart ? { 'Content-Type': 'multipart/form-data' } : {})
-            }
+                Authorization: token ? `Bearer ${token}` : "",
+                "Content-Type": isMultipart ? "multipart/form-data" : "application/json",
+            },
         };
     };
 
-    useEffect(() => { 
-        fetchCategories(currentPage); 
-    }, [currentPage, searchTerm]);
+    useEffect(() => {
+        fetchCategories();
+    }, [searchTerm]);
 
-    const fetchCategories = async (page = 1) => {
+    const fetchCategories = async () => {
         setLoading(true);
         try {
-            // ✅ Fix: Absolute Path use karein
-            const response = await axios.get(`${API_BASE}/api/categories?page=${page}&search=${searchTerm}`, getAuthHeader());
+            // Note: Humne axios.defaults set kiya hai isliye pura URL dene ki zarurat nahi
+            const response = await axios.get(`/api/categories?search=${searchTerm}`, getAuthHeader());
+            const resData = response.data.data || response.data || [];
             
-            const data = response.data.data || response.data || [];
-            setCategories(data);
-
-            setPagination({
-                current_page: response.data.current_page || 1,
-                last_page: response.data.last_page || 1,
-                total: response.data.total || data.length
-            });
-            setLoading(false);
+            const sortedData = Array.isArray(resData) 
+                ? resData.sort((a, b) => a.priority - b.priority) 
+                : [];
+                
+            setCategories(sortedData);
         } catch (error) {
             console.error("Fetch Error:", error);
-            if (error.response?.status === 401) navigate('/admin/login');
+        } finally {
             setLoading(false);
         }
-    };
-
-    // ... (calculateDiscount aur handleInputChange same rahenge)
-    const calculateDiscount = (min, max) => {
-        if (min && max && Number(max) > Number(min)) {
-            const discount = Math.round(((max - min) / max) * 100);
-            return `Flat ${discount}% OFF`;
-        }
-        return '';
     };
 
     const handleInputChange = (e) => {
         const { name, value, type, files } = e.target;
-        if (type === 'file') {
+        if (type === "file") {
             const file = files[0];
-            setFormData({ ...formData, [name]: file });
-            setImagePreview(URL.createObjectURL(file));
-        } else {
-            const updatedData = { ...formData, [name]: value };
-            if (name === 'min_price' || name === 'max_price') {
-                updatedData.discount_text = calculateDiscount(updatedData.min_price, updatedData.max_price);
+            if (file) {
+                setFormData(prev => ({ ...prev, [name]: file }));
+                setImagePreview(URL.createObjectURL(file));
             }
-            setFormData(updatedData);
+        } else {
+            setFormData(prev => ({ 
+                ...prev, 
+                [name]: name === "priority" ? parseInt(value) : value 
+            }));
         }
+    };
+
+    const handleReset = () => {
+        setFormData(initialFormState);
+        setImagePreview(null);
+        setIsEditMode(false);
+        setSelectedId(null);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.name) return alert("Name is required");
+
         const data = new FormData();
-        Object.keys(formData).forEach(key => {
-            if (formData[key] !== null) data.append(key, formData[key]);
-        });
+        data.append("name", formData.name.trim());
+        data.append("priority", formData.priority);
+        // Boolean ko string mein convert karke bhej rahe hain (Multer friendly)
+        data.append("show_in_nav", String(formData.show_in_nav));
+        
+        if (formData.image_url instanceof File) {
+            data.append("image_url", formData.image_url);
+        }
 
         try {
-            const config = getAuthHeader(true);
             if (isEditMode) {
-                await axios.put(`${API_BASE}/api/categories/${selectedId}`, data, config);
+                await axios.put(`/api/categories/${selectedId}`, data, getAuthHeader(true));
+                alert("Updated Successfully! ✅");
             } else {
-                await axios.post(`${API_BASE}/api/categories`, data, config);
+                await axios.post(`/api/categories`, data, getAuthHeader(true));
+                alert("Created Successfully! ✅");
             }
-            closeModal();
-            fetchCategories(currentPage);
-            alert("Success! Category Managed ✅");
-        } catch (error) { 
-            alert(error.response?.status === 401 ? "Session Expired!" : "Error saving category! ❌");
-            if (error.response?.status === 401) navigate('/admin/login');
+            handleReset();
+            fetchCategories();
+        } catch (error) {
+            console.error("Submit Error:", error);
+            alert(error.response?.data?.message || "Operation failed ❌");
         }
     };
 
-    const closeModal = () => {
-        setShowModal(false);
-        setIsEditMode(false);
-        setFormData(initialFormState);
-        setImagePreview(null);
-    };
-
-    const confirmDelete = async () => {
-        try {
-            await axios.delete(`${API_BASE}/api/categories/${selectedId}`, getAuthHeader());
-            setShowDeleteModal(false);
-            fetchCategories(currentPage);
-            alert("Deleted! 🗑️");
-        } catch (error) { 
-            if (error.response?.status === 401) navigate('/admin/login');
-            else alert("Delete failed! ❌");
+    const handleDelete = async (id) => {
+        if(window.confirm("Delete this category?")) {
+            try {
+                await axios.delete(`/api/categories/${id}`, getAuthHeader());
+                fetchCategories();
+            } catch (error) {
+                alert("Delete failed!");
+            }
         }
     };
 
     return (
-        <div className="p-4 md:p-6 bg-slate-900 min-h-screen text-white">
-            {/* Header section as per your code */}
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h1 className="text-2xl font-black text-blue-500 tracking-widest uppercase italic">Category Control</h1>
-                <div className="flex w-full md:w-auto gap-4">
-                    <input 
-                        type="text" 
-                        placeholder="Search inventory..." 
-                        className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-xl outline-none focus:border-blue-500 flex-1 md:w-64"
-                        onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                    />
-                    <button onClick={() => setShowModal(true)} className="bg-blue-600 px-6 py-2 rounded-xl font-bold hover:bg-blue-700 shadow-lg">+ Add New</button>
+        <div className="p-4 md:p-6 bg-[#f8fafc] min-h-screen">
+            {/* Form Section */}
+            <div className="mb-8">
+                <h1 className="text-xl font-bold mb-6 flex items-center gap-2">
+                    <span className="bg-[#754133] p-1.5 rounded text-white"><ImageIcon size={18} /></span>
+                    Category Setup
+                </h1>
+
+                <div className="bg-white rounded-xl shadow-sm border p-6">
+                    <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-10">
+                        <div className="flex-1 space-y-5">
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Category Name *</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    className="w-full border rounded-lg px-4 py-2.5 outline-none focus:border-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Priority</label>
+                                <select 
+                                    name="priority"
+                                    value={formData.priority}
+                                    onChange={handleInputChange}
+                                    className="w-full border rounded-lg px-4 py-2.5 bg-white"
+                                >
+                                    {[...Array(11).keys()].map(p => (
+                                        <option key={p} value={p}>{p}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Category Logo *</label>
+                                <input 
+                                    type="file" 
+                                    name="image_url" 
+                                    onChange={handleInputChange} 
+                                    className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                    accept="image/*" 
+                                />
+                            </div>
+                        </div>
+
+                        <div className="w-full lg:w-[300px] flex justify-center">
+                            <div className="w-56 h-56 border-2 border-dashed rounded-xl flex items-center justify-center bg-slate-50 overflow-hidden">
+                                {imagePreview ? (
+                                    <img src={imagePreview} alt="preview" className="w-full h-full object-contain p-2" />
+                                ) : (
+                                    <ImageIcon size={60} className="text-slate-200" />
+                                )}
+                            </div>
+                        </div>
+                    </form>
+
+                    <div className="flex justify-end gap-3 mt-8">
+                        <button type="button" onClick={handleReset} className="px-8 py-2.5 bg-slate-100 rounded-lg hover:bg-slate-200 font-bold">Reset</button>
+                        <button onClick={handleSubmit} className="px-8 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold shadow-md">
+                            {isEditMode ? "Update" : "Submit"}
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div className="bg-slate-800 rounded-3xl border border-slate-700 overflow-hidden shadow-2xl mb-6">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-700/50 text-[10px] uppercase text-slate-400 font-black tracking-widest">
-                        <tr>
-                            <th className="p-5">Category Info</th>
-                            <th className="p-5">Pricing & Offers</th>
-                            <th className="p-5 text-center">Manage</th>
-                            <th className="p-5 text-right pr-10">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-700">
-                        {loading ? (
-                            <tr><td colSpan="4" className="p-10 text-center font-bold animate-pulse uppercase italic">Syncing with Server...</td></tr>
-                        ) : categories.length > 0 ? categories.map((cat) => (
-                            <tr key={cat._id} className="hover:bg-slate-700/30 transition-all">
-                                <td className="p-4 flex items-center gap-4">
-                                    {/* ✅ Fix: getImageUrl function use karein */}
-                                    <img src={getImageUrl(cat.image_url)} className="w-16 h-16 rounded-2xl object-cover border-2 border-slate-600" alt="" />
-                                    <div>
-                                        <div className="font-bold text-lg uppercase tracking-tighter">{cat.name}</div>
-                                        <div className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-full inline-block font-black mt-1">
-                                            {cat.discount_text || 'No Active Offer'}
-                                        </div>
-                                    </div>
-                                </td>
-                                {/* Rest of your table cells... */}
-                                <td className="p-4 text-xs font-medium">
-                                    <div className="text-emerald-400 font-bold mb-1 underline decoration-emerald-500/30">₹{cat.min_price} - ₹{cat.max_price}</div>
-                                    <div className="text-blue-400 text-[9px] italic">💳 {cat.card_offers || 'Standard Offers'}</div>
-                                    <div className="text-yellow-500 text-[9px] italic">🎉 {cat.festival_offers || 'No Festival Offers'}</div>
-                                </td>
-                                <td className="p-4 text-center">
-                                    <button onClick={() => navigate(`/admin/products/add/${cat._id}`)} className="bg-blue-600/10 text-blue-400 border border-blue-500/30 text-[10px] font-black px-4 py-2 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-md">+ PRODUCTS</button>
-                                </td>
-                                <td className="p-4 text-right pr-10 space-x-6">
-                                    <button onClick={() => { setFormData(cat); setImagePreview(getImageUrl(cat.image_url)); setSelectedId(cat._id); setIsEditMode(true); setShowModal(true); }} className="text-blue-400 font-black text-[10px] uppercase hover:underline">Edit</button>
-                                    <button onClick={() => { setSelectedId(cat._id); setShowDeleteModal(true); }} className="text-red-500 font-black text-[10px] uppercase hover:underline">Delete</button>
-                                </td>
+            {/* List Section */}
+            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <div className="p-4 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/50">
+                    <h3 className="font-bold">Category List <span className="ml-2 bg-blue-100 px-2 py-0.5 rounded text-blue-600 text-xs">{categories.length}</span></h3>
+                    
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <div className="relative flex-1 md:w-64">
+                            <input 
+                                type="text" 
+                                placeholder="Search..." 
+                                className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:border-blue-500 outline-none"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            <Search className="absolute left-3 top-2.5 text-slate-400" size={16} />
+                        </div>
+                        
+                        <CSVLink 
+                            data={categories} 
+                            headers={csvHeaders} 
+                            filename={"categories.csv"}
+                            className="flex items-center gap-2 border bg-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-50"
+                        >
+                            <Download size={16} /> Export
+                        </CSVLink>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-50 border-b">
+                            <tr>
+                                <th className="px-6 py-4">#</th>
+                                <th className="px-6 py-4">Image</th>
+                                <th className="px-6 py-4">Name</th>
+                                <th className="px-6 py-4 text-center">Priority</th>
+                                <th className="px-6 py-4 text-center">Action</th>
                             </tr>
-                        )) : (
-                            <tr><td colSpan="4" className="p-10 text-center text-slate-500 italic uppercase tracking-widest font-bold">No Records Found.</td></tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Pagination & Stats */}
-            <div className="flex justify-between items-center bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-xl">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">Inventory Stats: {categories.length} loaded</span>
-                <div className="flex gap-2">
-                    <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => prev - 1)} className="px-4 py-2 bg-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-30">Prev</button>
-                    <button disabled={currentPage >= pagination.last_page} onClick={() => setCurrentPage(prev => prev + 1)} className="px-4 py-2 bg-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest disabled:opacity-30">Next</button>
+                        </thead>
+                        <tbody className="divide-y">
+                            {loading ? (
+                                <tr><td colSpan="5" className="text-center py-10">Loading...</td></tr>
+                            ) : categories.map((cat, index) => (
+                                <tr key={cat._id} className="hover:bg-slate-50/50 transition-colors">
+                                    <td className="px-6 py-4">{index + 1}</td>
+                                    <td className="px-6 py-4">
+                                        <img 
+                                            // Ensure URL is correctly formed
+                                            src={cat.image_url.startsWith('http') 
+    ? cat.image_url 
+    : `${API_BASE}${cat.image_url.startsWith('/') ? '' : '/'}${cat.image_url}`}
+                                            alt={cat.name} 
+                                            className="w-12 h-12 rounded-lg object-cover border" 
+                                            onError={(e) => e.target.src = "https://via.placeholder.com/50"}
+                                        />
+                                    </td>
+                                    <td className="px-6 py-4 font-medium">{cat.name}</td>
+                                    <td className="px-6 py-4 text-center">
+                                        <span className="bg-slate-100 px-2 py-1 rounded text-xs font-bold">{cat.priority}</span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex justify-center gap-3">
+                                            <button 
+                                                onClick={() => {
+                                                    setFormData({
+                                                        name: cat.name,
+                                                        priority: cat.priority,
+                                                        show_in_nav: cat.show_in_nav,
+                                                        image_url: cat.image_url
+                                                    });
+                                                    setSelectedId(cat._id);
+                                                    setIsEditMode(true);
+                                                    setImagePreview(cat.image_url.startsWith('http') ? cat.image_url : `${API_BASE}${cat.image_url}`);
+                                                }}
+                                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"
+                                            >
+                                                <Edit size={16} />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDelete(cat._id)}
+                                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-
-            {/* --- MODAL (ADD/EDIT) --- */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/95 backdrop-blur-md flex justify-center items-center z-50 p-4 overflow-y-auto">
-                    <div className="bg-slate-800 border border-slate-700 rounded-[2rem] w-full max-w-3xl shadow-2xl my-auto">
-                        <div className="p-6 border-b border-slate-700 flex justify-between items-center">
-                            <h2 className="text-xl font-black text-blue-500 uppercase italic tracking-widest">{isEditMode ? 'Modify Record' : 'New  Entry'}</h2>
-                            <button onClick={closeModal} className="text-4xl font-thin hover:text-red-500 transition-colors">&times;</button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Category Title</label>
-                                <input name="name" value={formData.name} onChange={handleInputChange} required className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all font-bold" placeholder="e.g. Healthcare" />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Computed Discount</label>
-                                <input name="discount_text" value={formData.discount_text} className="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl text-emerald-500 font-black uppercase tracking-widest" readOnly />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Base Price (₹)</label>
-                                <input name="min_price" type="number" value={formData.min_price} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all font-bold" required />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Ceiling Price (₹)</label>
-                                <input name="max_price" type="number" value={formData.max_price} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl outline-none focus:border-blue-500 transition-all font-bold" required />
-                            </div>
-                            <div className="md:col-span-2 space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Visual Asset (Image)</label>
-                                <div className="flex gap-4 items-center p-4 bg-slate-950 rounded-2xl border border-slate-800 shadow-inner">
-                                    <input type="file" name="image_url" onChange={handleInputChange} className="text-[10px] text-slate-500 file:bg-blue-600 file:border-none file:text-white file:rounded-lg file:px-4 file:py-1 file:mr-4 file:cursor-pointer hover:file:bg-blue-500" />
-                                    {imagePreview && <img src={imagePreview} className="w-20 h-20 rounded-2xl object-cover border-4 border-slate-800 shadow-lg" />}
-                                </div>
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Banking Logic</label>
-                                <textarea name="card_offers" value={formData.card_offers} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl h-28 resize-none text-[11px] text-blue-400 italic font-bold" placeholder="Bank offers..."></textarea>
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Event Logic</label>
-                                <textarea name="festival_offers" value={formData.festival_offers} onChange={handleInputChange} className="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl h-28 resize-none text-[11px] text-yellow-500 italic font-bold" placeholder="Seasonal discounts..."></textarea>
-                            </div>
-                            <button type="submit" className="md:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-700 p-5 rounded-3xl font-black text-lg shadow-xl hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-widest shadow-blue-500/20">
-                                {isEditMode ? 'Commit Database Update' : 'Initialize Category'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* --- DELETE CONFIRMATION --- */}
-            {showDeleteModal && (
-                <div className="fixed inset-0 bg-black/90 flex justify-center items-center z-[100] backdrop-blur-sm">
-                    <div className="bg-slate-800 p-10 rounded-[3rem] border border-slate-700 text-center max-w-sm shadow-2xl">
-                        <div className="text-6xl mb-4 shadow-sm animate-bounce">⚠️</div>
-                        <h2 className="text-2xl font-black mb-2 uppercase tracking-tighter italic text-red-500">Confirm Deletion</h2>
-                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-8">This action will permanently purge the record from the database.</p>
-                        <div className="flex gap-4">
-                            <button onClick={() => setShowDeleteModal(false)} className="flex-1 bg-slate-700 p-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-600 transition-all">Abort</button>
-                            <button onClick={confirmDelete} className="flex-1 bg-red-600 p-4 rounded-2xl font-black text-white uppercase text-[10px] tracking-widest hover:bg-red-500 shadow-lg shadow-red-500/20 transition-all">Confirm</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

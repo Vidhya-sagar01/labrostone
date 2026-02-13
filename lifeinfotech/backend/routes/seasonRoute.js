@@ -1,44 +1,61 @@
 const express = require('express');
-const router = express.Router(); // ✅ Added this line
-const Season = require('../models/Season');
+const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const { protect } = require('../middleware/authMiddleware');
+const Product = require('../models/Product');
 
-// GET ALL SEASONS
-router.get('/', async (req, res) => {
+/* ==========================================
+   1. BANNER CONFIGURATION (Multer)
+========================================== */
+const storage = multer.diskStorage({
+  destination: 'public/uploads/banners/',
+  filename: (req, file, cb) => {
+    // Fixed name taaki purana banner overwrite ho jaye
+    cb(null, 'anantam-main-banner' + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage });
+const BASE_URL = process.env.BASE_URL || 'https://lebrostone.lifeinfotechinstitute.com/';
+
+// Note: Real world mein ise DB Settings model mein save karein
+let currentBannerUrl = `${BASE_URL}/banar/banner1.jpg`; 
+
+/* ==========================================
+   2. BANNER API ROUTES
+========================================== */
+
+// GET Banner (Public)
+router.get('/banner', (req, res) => {
+  res.json({ success: true, url: currentBannerUrl });
+});
+
+// UPLOAD Banner (Admin Only)
+router.post('/banner-upload', protect, upload.single('banner'), (req, res) => {
   try {
-    const seasons = await Season.find().sort({ createdAt: -1 });
-    res.json({ success: true, seasons });
+    if (req.file) {
+      currentBannerUrl = `${BASE_URL}/uploads/banners/${req.file.filename}`;
+      res.json({ success: true, url: currentBannerUrl, message: "Banner Updated! ✅" });
+    } else {
+      res.status(400).json({ success: false, message: "File missing ❌" });
+    }
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// CREATE NEW SEASON
-router.post('/', async (req, res) => {
-  try {
-    const newSeason = await Season.create(req.body);
-    res.status(201).json({ success: true, season: newSeason });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
-  }
-});
+/* ==========================================
+   3. PRODUCT COLLECTION ROUTES
+========================================== */
 
-// UPDATE SEASON
-router.put('/:id', async (req, res) => {
+// GET Selected Anantam Collection (Public)
+router.get('/collection', async (req, res) => {
   try {
-    const updated = await Season.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json({ success: true, season: updated });
+    const products = await Product.find({ is_anantam: true }).sort({ updatedAt: -1 });
+    res.json({ success: true, data: products });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
-  }
-});
-
-// DELETE SEASON
-router.delete('/:id', async (req, res) => {
-  try {
-    await Season.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: "Season Deleted" });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 

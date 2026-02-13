@@ -1,191 +1,577 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Save, Package, Plus, RefreshCw } from 'lucide-react';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+import { Save, Image as ImageIcon, Info, Package, Plus, Trash, Layers, Tag, ShoppingBag, X, Search } from 'lucide-react';
+
+const API_BASE = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000' 
+  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
 
 const Season = () => {
-  // 1. States Define Karein
-  const [categories, setCategories] = useState([]);
-  const [products1, setProducts1] = useState([]);
-  const [products2, setProducts2] = useState([]);
-  
-  const [selectedCat1, setSelectedCat1] = useState('');
-  const [selectedCat2, setSelectedCat2] = useState('');
-  const [selectedProd1, setSelectedProd1] = useState(null);
-  const [selectedProd2, setSelectedProd2] = useState(null);
-  
-  const [comboName, setComboName] = useState('');
-  const [sellingPrice, setSellingPrice] = useState(0);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    comboPrice: 0,
+    originalPrice: 0,
+    discountAmount: 0,
+    discountType: 'Flat',
+    minOrderQty: 1,
+    comboStock: 0,
+    status: true
+  });
+
+  const [comboProducts, setComboProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [thumbnail, setThumbnail] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // const API_BASE = "http://localhost:5000";
-  const API_BASE = "https://labrostone-backend.onrender.com";
-
-  // 2. Categories Fetch Karein (Step-by-Step Fix)
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/api/categories`);
-        // Backend response handle karein
-        const catData = res.data.categories || res.data.data || res.data;
-        setCategories(Array.isArray(catData) ? catData : []);
-      } catch (err) {
-        console.error("Category load error:", err);
-      }
-    };
-    fetchCategories();
+  useEffect(() => { 
+    fetchProducts(); 
   }, []);
 
-  // 3. Products Fetch Function
-  const fetchProds = async (catId, section) => {
-    if (!catId) return;
+  const fetchProducts = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/products/by-category/${catId}`);
-      if (section === 1) setProducts1(res.data.data || []);
-      else setProducts2(res.data.data || []);
-    } catch (err) {
-      console.error("Product load error:", err);
+      const token = localStorage.getItem("adminToken");
+      const res = await axios.get(`${API_BASE}/api/products`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAllProducts(res.data.data || res.data || []);
+    } catch (err) { 
+      console.error("Fetch products error", err); 
     }
   };
 
-  // 4. Automatic MRP Calculation
-  const totalMRP = (selectedProd1?.variants[0]?.mrp || 0) + (selectedProd2?.variants[0]?.mrp || 0);
-
-  // 5. Save Combo to Backend
-  const saveCombo = async () => {
-    if (!selectedProd1 || !selectedProd2 || !comboName || !sellingPrice) {
-      alert("Please fill all details!");
-      return;
+  // Calculate original price from selected products
+  useEffect(() => {
+    if (comboProducts.length > 0) {
+      const total = comboProducts.reduce((sum, p) => sum + (Number(p.unitPrice) || 0), 0);
+      setFormData(prev => ({
+        ...prev,
+        originalPrice: total,
+        discountAmount: total - Number(prev.comboPrice || 0)
+      }));
     }
+  }, [comboProducts]);
+
+  const handleAddProduct = (product) => {
+    if (!comboProducts.some(p => p._id === product._id)) {
+      setComboProducts([...comboProducts, product]);
+    }
+  };
+
+  const handleRemoveProduct = (productId) => {
+    setComboProducts(comboProducts.filter(p => p._id !== productId));
+  };
+
+  const handleComboPriceChange = (e) => {
+    const price = Number(e.target.value);
+    setFormData({
+      ...formData,
+      comboPrice: price,
+      discountAmount: formData.originalPrice - price
+    });
+  };
+
+ const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (comboProducts.length < 2) return alert("⚠️ Combo mein kam se kam 2 products rakhein!");
+    if (formData.comboPrice <= 0) return alert("⚠️ Valid combo price set karein!");
+
+    setLoading(true);
+    const data = new FormData();
+    
+    // ✅ Data Append
+    data.append('name', formData.name);
+    data.append('description', formData.description);
+    data.append('comboPrice', Number(formData.comboPrice));
+    data.append('originalPrice', Number(formData.originalPrice));
+    data.append('discountAmount', Number(formData.discountAmount));
+    data.append('discountType', formData.discountType);
+    data.append('minOrderQty', Number(formData.minOrderQty));
+    data.append('comboStock', Number(formData.comboStock));
+    data.append('status', formData.status);
+    
+    // ✅ Fixed: Products ID Array ko Stringify karke bhejein
+    const productIds = comboProducts.map(p => p._id);
+    data.append('products', JSON.stringify(productIds)); 
+    
+    if (thumbnail) data.append('thumbnail', thumbnail);
 
     try {
-      setLoading(true);
-      const token = localStorage.getItem('adminToken');
-      const data = {
-        name: comboName,
-        includedProducts: [selectedProd1._id, selectedProd2._id],
-        mrp: totalMRP,
-        selling_price: Number(sellingPrice),
-        category_id: selectedProd1.category_id // Default category assignment
-      };
-
-      await axios.post(`${API_BASE}/api/products/create-combo`, data, {
-        headers: { Authorization: `Bearer ${token}` }
+      const token = localStorage.getItem("adminToken");
+      await axios.post(`${API_BASE}/api/combos`, data, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
-      
-      alert("Combo Saved Successfully! 🎁");
-      window.location.reload(); // Refresh to clear states
-    } catch (err) {
-      alert("Error: " + err.response?.data?.message || "Failed to save");
+      alert("✅ Combo Created Successfully!");
+      resetForm();
+    } catch (err) { 
+      console.error(err);
+      alert("❌ Error: " + (err.response?.data?.message || "Server Internal Error")); 
     } finally {
       setLoading(false);
     }
   };
+  // Filter products
+  const filteredProducts = allProducts.filter(product => 
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    !comboProducts.some(cp => cp._id === product._id)
+  );
+
+  const resetForm = () => {
+  setFormData({
+    name: '',
+    description: '',
+    comboPrice: 0,
+    originalPrice: 0,
+    discountAmount: 0,
+    discountType: 'Flat',
+    minOrderQty: 1,
+    comboStock: 0,
+    status: true
+  });
+  setComboProducts([]);
+  setThumbnail(null);
+  // Agar file input use kar rahe ho toh use bhi reset karein
+  const fileInput = document.querySelector('input[type="file"]');
+  if (fileInput) fileInput.value = "";
+};
 
   return (
-    <div className="p-6 md:p-10 bg-slate-900 min-h-screen text-white font-sans">
+    <div className="p-4 md:p-6 bg-[#f8fafc] min-h-screen text-slate-700 font-sans">
       
-      {/* Header Bar */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-        <div>
-          <h1 className="text-3xl font-black uppercase italic text-orange-500 tracking-tighter">Combo Architect</h1>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Build product bundles with automatic pricing</p>
-        </div>
-        <div className="flex gap-4 w-full md:w-auto">
+      {/* --- Heading --- */}
+      <h1 className="text-xl font-bold mb-6 flex items-center gap-2">
+        <ShoppingBag size={20} className="text-purple-600" /> Create New Combo Offer
+      </h1>
+
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-[1400px] mx-auto">
+        
+        {/* BASIC INFO */}
+        <div className="bg-white rounded shadow-sm border p-6">
+          <label className="block text-xs font-bold mb-2 uppercase text-slate-500 italic">Combo Name</label>
           <input 
-            placeholder="Combo Name..." 
-            className="bg-slate-800 p-4 rounded-2xl border border-slate-700 outline-none focus:border-orange-500 font-bold flex-1"
-            value={comboName} 
-            onChange={e => setComboName(e.target.value)} 
+            type="text" 
+            placeholder="Ex: Summer Special Combo, Family Pack"
+            className="w-full border rounded p-2.5 mb-4 font-semibold text-lg" 
+            value={formData.name} 
+            onChange={e => setFormData({...formData, name: e.target.value})} 
+            required 
           />
-          <button 
-            onClick={saveCombo} 
-            disabled={loading}
-            className="bg-orange-500 hover:bg-orange-600 px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-orange-500/20 disabled:opacity-50 transition-all"
-          >
-            {loading ? <RefreshCw className="animate-spin" /> : <Save size={20}/>}
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* SECTION 1: Left Side Selection */}
-        <div className="bg-slate-800 p-8 rounded-[2.5rem] border border-slate-700">
-          <label className="text-[10px] font-black uppercase text-orange-500 mb-4 block">Select Product One</label>
-          <select 
-            className="w-full bg-slate-900 p-4 rounded-2xl mb-6 border border-slate-700 outline-none focus:border-orange-500 font-bold" 
-            value={selectedCat1} 
-            onChange={e => { setSelectedCat1(e.target.value); fetchProds(e.target.value, 1); }}
-          >
-            <option value="">Choose Category</option>
-            {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-          </select>
           
-          <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-            {products1.map(p => (
-              <div 
-                key={p._id} 
-                onClick={() => setSelectedProd1(p)} 
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${selectedProd1?._id === p._id ? 'border-orange-500 bg-orange-500/10' : 'border-slate-700 hover:bg-slate-700'}`}
-              >
-                <span className="font-bold text-sm uppercase">{p.name}</span>
-                <span className="text-xs font-black text-slate-500 italic">₹{p.variants[0]?.mrp}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* SECTION 2: Right Side Selection */}
-        <div className="bg-slate-800 p-8 rounded-[2.5rem] border border-slate-700">
-          <label className="text-[10px] font-black uppercase text-blue-500 mb-4 block">Select Product Two</label>
-          <select 
-            className="w-full bg-slate-900 p-4 rounded-2xl mb-6 border border-slate-700 outline-none focus:border-blue-500 font-bold" 
-            value={selectedCat2} 
-            onChange={e => { setSelectedCat2(e.target.value); fetchProds(e.target.value, 2); }}
-          >
-            <option value="">Choose Category</option>
-            {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-          </select>
-          
-          <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-            {products2.map(p => (
-              <div 
-                key={p._id} 
-                onClick={() => setSelectedProd2(p)} 
-                className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${selectedProd2?._id === p._id ? 'border-blue-500 bg-blue-500/10' : 'border-slate-700 hover:bg-slate-700'}`}
-              >
-                <span className="font-bold text-sm uppercase">{p.name}</span>
-                <span className="text-xs font-black text-slate-500 italic">₹{p.variants[0]?.mrp}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* PRICE SUMMARY BAR */}
-      <div className="mt-10 bg-white text-slate-900 p-10 rounded-[3.5rem] shadow-2xl flex flex-col md:flex-row justify-between items-center gap-8">
-        <div>
-          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Original MRP</div>
-          <div className="text-4xl font-black italic tracking-tighter">₹{totalMRP}</div>
-        </div>
-        
-        <div className="flex items-center gap-6 bg-slate-50 p-6 rounded-3xl border border-slate-100">
-          <div>
-            <label className="text-[10px] font-black uppercase text-emerald-600 block mb-1">Set Combo Price</label>
-            <input 
-              type="number" 
-              className="bg-transparent text-3xl font-black outline-none w-32 text-slate-800" 
-              placeholder="0"
-              value={sellingPrice} 
-              onChange={e => setSellingPrice(e.target.value)} 
+          <label className="block text-xs font-bold mb-2 uppercase text-slate-500 italic">Combo Description</label>
+          <div className="h-64 mb-4">
+            <ReactQuill 
+              theme="snow" 
+              className="h-48 bg-white" 
+              value={formData.description} 
+              onChange={val => setFormData({...formData, description: val})} 
             />
           </div>
-          <div className="text-right">
-            <div className="text-[10px] font-bold text-orange-500 uppercase">You Save</div>
-            <div className="text-xl font-black text-orange-500 italic">₹{totalMRP - sellingPrice}</div>
+        </div>
+
+        {/* COMBO PRODUCTS SECTION */}
+        <div className="bg-white rounded shadow-sm border">
+          <div className="px-6 py-4 border-b bg-slate-50 flex items-center gap-2 font-bold uppercase text-xs">
+            <Package size={18} className="text-purple-600" /> Combo Products
+          </div>
+          
+          <div className="p-6">
+            {/* Selected Products */}
+            <div className="mb-6">
+              <label className="block text-xs font-bold mb-3 uppercase italic text-slate-500">
+                Selected Products ({comboProducts.length})
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              
+              {comboProducts.length === 0 ? (
+                <div className="border-2 border-dashed rounded-lg p-12 text-center bg-slate-50">
+                  <Package size={60} className="text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-400 text-sm font-bold">Add products to create combo</p>
+                  <p className="text-xs text-slate-500 mt-1">Minimum 2 products required</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {comboProducts.map((product) => (
+                    <div 
+                      key={product._id} 
+                      className="border rounded-lg p-4 bg-purple-50 relative group hover:shadow-md transition-all"
+                    >
+                      <button 
+                        type="button"
+                        onClick={() => handleRemoveProduct(product._id)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-700 shadow-md z-10"
+                      >
+                        <X size={16} />
+                      </button>
+                      
+                      <div className="flex items-start gap-3">
+                        {product.thumbnail ? (
+                          <img 
+                            src={`${API_BASE}${product.thumbnail}`} 
+                            alt={product.name} 
+                            className="w-16 h-16 object-cover rounded border"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-slate-200 rounded border flex items-center justify-center">
+                            <Package size={24} className="text-slate-400" />
+                          </div>
+                        )}
+                        
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-sm text-slate-800 line-clamp-1">
+                            {product.name}
+                          </h4>
+                          <p className="text-xs text-slate-600 mt-1 font-bold">
+                            ₹{product.unitPrice} <span className="text-[10px] text-slate-400">/ {product.unit}</span>
+                          </p>
+                          {product.category?.name && (
+                            <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded mt-1 inline-block">
+                              {product.category.name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add Products Button */}
+            <button
+              type="button"
+              onClick={() => setShowProductModal(true)}
+              disabled={comboProducts.length >= 10}
+              className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-purple-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus size={18} /> 
+              {comboProducts.length === 0 ? 'Add Products to Combo' : 'Add More Products'}
+              {comboProducts.length >= 10 && <span className="text-xs">(Max 10 products)</span>}
+            </button>
+
+            {/* Combo Stats */}
+            {comboProducts.length >= 2 && (
+              <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-bold">Total Products</p>
+                    <p className="text-2xl font-black text-purple-600">{comboProducts.length}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-bold">Original Price</p>
+                    <p className="text-lg font-bold text-slate-600 line-through">₹{formData.originalPrice}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-bold">Total Savings</p>
+                    <p className="text-lg font-black text-green-600">₹{formData.discountAmount}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+
+        {/* COMBO PRICING */}
+        <div className="bg-white rounded shadow-sm border">
+          <div className="px-6 py-4 border-b bg-slate-50 flex items-center gap-2 font-bold uppercase text-xs">
+            <Tag size={18} className="text-purple-600" /> Combo Pricing
+          </div>
+          
+          <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Original Price (Auto-calculated) */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase italic flex items-center gap-1">
+                Original Price (Auto)
+              </label>
+              <input 
+                type="number" 
+                className="w-full border rounded-lg p-2.5 bg-slate-100 cursor-not-allowed font-bold text-slate-600" 
+                value={formData.originalPrice} 
+                readOnly
+              />
+              <p className="text-[10px] text-slate-400 mt-1">Sum of all product prices</p>
+            </div>
+
+            {/* Combo Price */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase italic flex items-center gap-1">
+                Combo Price (Special) <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="number" 
+                className="w-full border rounded-lg p-2.5 outline-none focus:border-purple-400 font-bold text-purple-600" 
+                value={formData.comboPrice} 
+                onChange={handleComboPriceChange}
+                required
+                min="1"
+              />
+              <p className="text-[10px] text-slate-400 mt-1">Special discounted price</p>
+            </div>
+
+            {/* Savings Display */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase italic">
+                Total Savings
+              </label>
+              <div className="w-full border rounded-lg p-2.5 bg-green-50 font-black text-green-700 text-lg">
+                ₹{formData.discountAmount}
+              </div>
+              {formData.originalPrice > 0 && (
+                <p className="text-[10px] text-green-600 font-bold mt-1">
+                  {(((formData.discountAmount / formData.originalPrice) * 100) || 0).toFixed(1)}% OFF
+                </p>
+              )}
+            </div>
+
+            {/* Minimum Order Quantity */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase italic">
+                Min Order Qty
+              </label>
+              <input 
+                type="number" 
+                className="w-full border rounded-lg p-2.5 outline-none focus:border-purple-400" 
+                value={formData.minOrderQty} 
+                onChange={e => setFormData({...formData, minOrderQty: e.target.value})}
+                min="1"
+              />
+            </div>
+
+            {/* Combo Stock */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase italic">
+                Combo Stock Qty
+              </label>
+              <input 
+                type="number" 
+                className="w-full border rounded-lg p-2.5 outline-none focus:border-purple-400" 
+                value={formData.comboStock} 
+                onChange={e => setFormData({...formData, comboStock: e.target.value})}
+                min="0"
+              />
+              <p className="text-[10px] text-slate-400 mt-1">Available combo packs</p>
+            </div>
+
+            {/* Discount Type */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase italic">
+                Discount Type
+              </label>
+              <select 
+                className="w-full border rounded-lg p-2.5 bg-white outline-none focus:border-purple-400" 
+                value={formData.discountType} 
+                onChange={e => setFormData({...formData, discountType: e.target.value})}
+              >
+                <option value="Flat">Flat Discount</option>
+                <option value="Percent">Percentage</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* THUMBNAIL */}
+        <div className="bg-white rounded shadow-sm border">
+          <div className="px-6 py-4 border-b bg-slate-50 flex items-center gap-2 font-bold uppercase text-xs">
+            <ImageIcon size={18} className="text-purple-600" /> Combo Thumbnail
+          </div>
+          
+          <div className="p-6">
+            <label className="block text-xs font-bold mb-4 uppercase text-slate-500 italic">
+              Combo Image (16:9 Recommended)
+            </label>
+            <div className="border-2 border-dashed rounded-lg p-8 text-center relative cursor-pointer bg-slate-50 min-h-[200px] flex items-center justify-center">
+              {thumbnail ? (
+                <img 
+                  src={URL.createObjectURL(thumbnail)} 
+                  alt="Combo thumbnail" 
+                  className="max-h-48 object-contain" 
+                />
+              ) : (
+                <>
+                  <ShoppingBag size={48} className="text-slate-300 mb-2" />
+                  <p className="text-slate-400 text-sm">Upload combo promotional image</p>
+                </>
+              )}
+              <input 
+                type="file" 
+                accept="image/*" 
+                className="absolute inset-0 opacity-0 cursor-pointer" 
+                onChange={e => setThumbnail(e.target.files[0])} 
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* STATUS */}
+        <div className="bg-white rounded shadow-sm border p-6">
+          <div className="flex items-center justify-between max-w-md">
+            <div className="flex items-center gap-2">
+              <Info size={16} className="text-slate-400" />
+              <span className="text-xs font-bold uppercase text-slate-500 italic">
+                Combo Status
+              </span>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer" 
+                checked={formData.status} 
+                onChange={e => setFormData({ ...formData, status: e.target.checked })} 
+              />
+              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+        </div>
+
+        {/* SUBMIT BUTTONS */}
+        <div className="flex justify-end gap-4 pb-10">
+          <button 
+            type="reset" 
+            onClick={() => {
+              setFormData({
+                name: '', description: '', comboPrice: 0, originalPrice: 0,
+                discountAmount: 0, discountType: 'Flat', minOrderQty: 1,
+                comboStock: 0, status: true
+              });
+              setComboProducts([]);
+              setThumbnail(null);
+            }}
+            className="px-10 py-3 bg-slate-400 text-white rounded font-bold hover:bg-slate-500 shadow-md transition-all uppercase text-sm"
+          >
+            Reset
+          </button>
+          <button 
+            type="submit" 
+            disabled={comboProducts.length < 2 || !formData.comboPrice}
+            className="px-10 py-3 bg-purple-600 text-white rounded font-bold shadow-xl flex items-center gap-2 hover:bg-purple-700 transition-all uppercase text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save size={18} /> Create Combo Offer
+          </button>
+        </div>
+      </form>
+
+      {/* --- PRODUCT SELECTION MODAL --- */}
+      {showProductModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-300">
+            
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <Package size={20} className="text-purple-600" />
+                Select Products for Combo
+              </h2>
+              <button 
+                onClick={() => setShowProductModal(false)}
+                className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+              >
+                <X size={24} className="text-slate-500" />
+              </button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="px-6 py-4 border-b bg-white">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search products by name..."
+                  className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Product Grid */}
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-12">
+                  <Package size={48} className="text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500">
+                    {searchQuery ? 'No products found' : 'Sabhi products select ho gaye hain!'}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredProducts.map((product) => (
+                    <div 
+                      key={product._id} 
+                      className="border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer hover:border-purple-400 group relative"
+                      onClick={() => handleAddProduct(product)}
+                    >
+                      <div className="flex items-start gap-3">
+                        {product.thumbnail ? (
+                          <img 
+                            src={`${API_BASE}${product.thumbnail}`} 
+                            alt={product.name} 
+                            className="w-16 h-16 object-cover rounded border"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 bg-slate-200 rounded border flex items-center justify-center">
+                            <Package size={24} className="text-slate-400" />
+                          </div>
+                        )}
+                        
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-sm text-slate-800 line-clamp-1">
+                            {product.name}
+                          </h4>
+                          <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                            {product.description 
+                              ? product.description.replace(/<[^>]*>/g, '').substring(0, 60) + '...' 
+                              : 'No description'}
+                          </p>
+                          <div className="mt-2 flex items-center justify-between">
+                            <span className="text-sm font-bold text-purple-600">
+                              ₹{product.unitPrice}
+                            </span>
+                            <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                              {product.unit}
+                            </span>
+                          </div>
+                          {product.category?.name && (
+                            <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded mt-1 inline-block">
+                              {product.category.name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="bg-purple-600 text-white rounded-full p-2 shadow-lg">
+                          <Plus size={16} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t bg-slate-50 flex justify-between items-center">
+              <p className="text-sm text-slate-600 font-bold">
+                Selected: <span className="text-purple-600">{comboProducts.length}</span> | 
+                Available: <span className="text-slate-500">{filteredProducts.length}</span>
+              </p>
+              <button
+                onClick={() => setShowProductModal(false)}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-all"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

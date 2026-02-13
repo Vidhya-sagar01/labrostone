@@ -20,7 +20,7 @@ const Slider = () => {
   const [formData, setFormData] = useState(initialForm);
 
   // axios.defaults.baseURL = 'http://localhost:5000';
-  const API_BASE = "https://labrostone-backend.onrender.com";
+  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
 
   const getAuthHeader = (isMultipart = false) => {
     const token = localStorage.getItem('adminToken');

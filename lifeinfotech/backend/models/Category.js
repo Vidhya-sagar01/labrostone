@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
+  // Har category ek Brand se link hogi
+  brand: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Brand', 
+    required: false 
+  },
   name: { 
     type: String, 
     required: true, 
@@ -9,30 +15,18 @@ const categorySchema = new mongoose.Schema({
   },
   image_url: { 
     type: String, 
-    default: null 
+    required: true 
   },
-  min_price: { 
+ 
+  priority: { 
     type: Number, 
-    required: true, 
     default: 0 
   },
-  max_price: { 
-    type: Number, 
-    required: true, 
-    default: 0 
+
+  show_in_nav: { 
+    type: Boolean, 
+    default: false 
   },
-  discount_text: { 
-    type: String, 
-    default: null 
-  },
-  card_offers: { 
-    type: String, // SQL text field ke liye String sahi hai
-    default: null 
-  },
-  festival_offers: { 
-    type: String, 
-    default: null 
-  }
 }, { 
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } 
 });

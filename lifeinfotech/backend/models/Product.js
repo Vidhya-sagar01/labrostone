@@ -2,57 +2,36 @@ const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  category_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
-  season: { type: mongoose.Schema.Types.ObjectId, ref: 'Season' }, 
-
-  // --- COMBO LOGIC (Integrated) ---
-  is_combo: { 
+  description: { type: String, required: true },
+  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+  subCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'SubCategory' },
+  subSubCategory: { type: mongoose.Schema.Types.ObjectId, ref: 'SubSubCategory' },
+  brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand' },
+  productType: { type: String, default: 'Physical' },
+  sku: { type: String, unique: true },
+  unit: { type: String, default: 'kg' },
+  unitPrice: { type: Number, required: true },
+  minOrderQty: { type: Number, default: 1 },
+  currentStockQty: { type: Number, default: 0 },
+  discountType: { type: String, default: 'Flat' },
+  discountAmount: { type: Number, default: 0 },
+  shippingCost: { type: Number, default: 0 },
+  thumbnail: { type: String }, // Image Path
+  images: [String], // Additional Images
+  status: { type: Boolean, default: true },
+  productTag: { 
+    type: String, 
+    enum: ['Simple', 'Best Seller', 'New Arrival'], 
+    default: 'Simple' 
+  },
+  promotion: { 
+    type: Boolean, 
+    default: false // By default promotion deactive rahega
+  },
+  is_anantam: { 
     type: Boolean, 
     default: false 
-  },
-  // Isme hum un products ki ID save karenge jo is combo ka hissa hain
-  included_products: [
-    { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Product' 
-    }
-  ],
-
-  short_description: { type: String },
-  long_description: { type: String },
-
-  // Pricing & Sizes
-  variants: [{
-    size: { type: String }, // e.g. "Combo Pack", "20g", "100ml"
-    mrp: { type: Number },
-    selling_price: { type: Number },
-  }],
-
-  // Bullet points (Mamaearth style)
-  features: [{
-    title: { type: String },
-    description: { type: String }
-  }],
-
-  how_to_use: { type: String },
-
-  faqs: [{
-    question: { type: String },
-    answer: { type: String }
-  }],
-
-  // Badges & Stats
-  is_bestseller: { type: Boolean, default: false },
-  in_stock: { type: Boolean, default: true },
-  rating: { type: Number, default: 4.5 },
-  reviews_count: { type: Number, default: 0 },
-
-  // Media
-  images: [{ type: String }], 
-
-  is_anantam: { type: Boolean, default: false },
-
-  createdAt: { type: Date, default: Date.now }
-});
+  }
+}, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

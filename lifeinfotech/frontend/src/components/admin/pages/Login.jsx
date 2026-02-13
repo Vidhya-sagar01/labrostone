@@ -1,31 +1,32 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    // ✅ STEP 1: API URL yahan set karein (Comment/Uncomment as needed)
+    // const API_BASE = "http://localhost:5000"; 
+    const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
+
+    // ✅ STEP 2: Logo ka sahi Path (Backend ke uploads folder se)
+    // Agar filename 'logo.png' hai to end me change kar lein
+    const LOGO_URL = `${API_BASE}/uploads/logo/centerlogo.png`; 
+
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            // Backend API call
-            // const res = await axios.post('http://localhost:5000/api/admin/login', { email, password });
-            const res = await axios.post('https://labrostone-backend.onrender.com/api/admin/login', { email, password });
-           console.log("Token received:", res.data.token); 
-           console.log("Success status:", res.data.success);
-           console.log("Response from Backend:", res.data); 
+            // ✅ STEP 3: Axios ab API_BASE use karega
+            const res = await axios.post(`${API_BASE}/api/admin/login`, { email, password });
+            
             if (res.data.success) {
-                // Backend se aane wala token save karein
                 localStorage.setItem('adminToken', res.data.token);
-
-                alert("Login Successful!✅");
-                
-                // Full page refresh taaki App.jsx protection hat jaye
+                alert("Login Successful! ✅");
                 window.location.href = '/admin/dashboard';
             }
         } catch (err) {
-            const errorMsg = err.response?.data?.message || "Connection Error! Backend .";
+            console.error(err);
+            const errorMsg = err.response?.data?.message || "Connection Error! Backend is down.";
             alert(errorMsg);
         }
     };
@@ -33,7 +34,17 @@ const Login = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-100">
             <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-md text-center border border-gray-200">
-                <img src="/admin/Lebrostone logo (3).png" alt="Lebrostone" className="h-20 mx-auto mb-6" />
+                
+                {/* ✅ STEP 4: Image Source Fixed */}
+                <img 
+                    src={LOGO_URL} 
+                    alt="Lebrostone" 
+                    className="h-20 mx-auto mb-6 object-contain" 
+                    onError={(e) => {
+                        e.target.style.display = 'none'; // Agar image na mile to hide kar de
+                        console.log("Logo failed to load from:", LOGO_URL);
+                    }}
+                />
                 
                 <h2 className="text-3xl font-black text-slate-800 mb-2 uppercase tracking-tighter italic">Admin Portal</h2>
                 <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-8">Inventory Control System</p>
@@ -70,5 +81,4 @@ const Login = () => {
     );
 };
 
-// --- IS LINE KO CHECK KAREIN, YAHI MISSING THI ---
 export default Login;

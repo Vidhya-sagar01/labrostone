@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
+const BASE_URL = process.env.BASE_URL || 'https://lebrostone.lifeinfotechinstitute.com/';
 
 // Note: Real world mein ise DB Settings model mein save karein
 let currentBannerUrl = `${BASE_URL}/banar/banner1.jpg`; 
@@ -54,6 +54,28 @@ router.get('/collection', async (req, res) => {
   try {
     const products = await Product.find({ is_anantam: true }).sort({ updatedAt: -1 });
     res.json({ success: true, data: products });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ✅ ADD THIS: Toggle Anantam Status Route
+router.put('/anantam/:id', protect, async (req, res) => {
+  try {
+    const { is_anantam } = req.body;
+    
+    // Database mein product ka status update karein
+    const updatedProduct = await Product.findByIdAndUpdate(
+      req.params.id,
+      { is_anantam: is_anantam },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    res.json({ success: true, data: updatedProduct });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

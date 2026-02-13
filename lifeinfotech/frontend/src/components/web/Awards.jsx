@@ -1,46 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Awards = () => {
-  // --- 1. PRODUCT DATA WITH AWARD BADGES ---
+  // 🟢 Apka Backend URL
+  const BACKEND_URL = "http://localhost:5000"; 
+
   const awardProducts = [
     {
       id: 1,
-      image: "/awards/awards0.jpg", // Hair Revival Serum
-      badge: "/awards/awards1.jpg", // Cosmopolitan Winner 2019
-      alt: "Cosmopolitan Beauty Awards 2019 Winner"
+      // ✅ Sahi hai (Backticks ` use kiye hain)
+      image: `${BACKEND_URL}/uploads/awords/1.webp`, 
+      badge: "https://cdn-icons-png.flaticon.com/512/10444/10444535.png",
+      alt: "Cosmopolitan Beauty Awards 2019 Winner",
+      title: "Best Hair Serum"
     },
     {
       id: 2,
-      image: "/awards/awards2.jpg", // Gulab Arka
-      badge: "/awards/awards3.jpg", // Cosmopolitan Winner 2019
-      alt: "Cosmopolitan Beauty Awards 2019 Winner"
+      // 🔧 Fixed: Pehle yahan double quotes " the, ab backticks ` hain
+      image: `${BACKEND_URL}/uploads/awords/2.jpg`,
+      badge: "https://cdn-icons-png.flaticon.com/512/10444/10444535.png",
+      alt: "Vogue Beauty Awards Winner",
+      title: "Pure Rose Water"
     },
     {
       id: 3,
-      image: "/awards/awards4.jpg", // Gold and Saffron Gel
-      badge: "/awards/awards5.jpg", // Harper's Bazaar Conscious Beauty
-      alt: "Harper's Bazaar Conscious Beauty Awards"
+      // 🔧 Fixed
+      image: `${BACKEND_URL}/uploads/awords/3.jpg`,
+      badge: "https://cdn-icons-png.flaticon.com/512/10444/10444535.png",
+      alt: "Harper's Bazaar Conscious Beauty",
+      title: "Gold Saffron Gel"
     },
     {
       id: 4,
-      image: "/awards/awards6.jpg", // Nourishing Hair Oil
-      badge: "/awards/awards7.jpg", // Harper's Bazaar Conscious Beauty
-      alt: "Harper's Bazaar Conscious Beauty Awards"
+      // 🔧 Fixed
+      image: `${BACKEND_URL}/uploads/awords/4.jpg`,
+      badge: "https://cdn-icons-png.flaticon.com/512/10444/10444535.png",
+      alt: "Elle Beauty Awards Winner",
+      title: "Nourishing Hair Oil"
     },
     {
       id: 5,
-      image: "/awards/awards2.jpg", // Extra Product for sliding
-      badge: "/awards/awards0.jpg",
-      alt: "Beauty Award"
+      // ✅ Sahi hai
+      image: `${BACKEND_URL}/uploads/awords/5.jpg`,
+      badge: "https://cdn-icons-png.flaticon.com/512/10444/10444535.png",
+      alt: "Clean Beauty Award",
+      title: "Herbal Cleanser"
     }
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const itemsToShow = 4; // Desktop pe 4 products dikhenge
+  const [itemsToShow, setItemsToShow] = useState(4);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) setItemsToShow(1);
+      else if (window.innerWidth < 1024) setItemsToShow(2);
+      else setItemsToShow(4);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const maxIndex = awardProducts.length - itemsToShow;
 
-  // --- 2. MANUAL CLICK LOGIC (< >) ---
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
   };
@@ -50,62 +73,73 @@ const Awards = () => {
   };
 
   return (
-    <div className="py-16 bg-[#FEF9F1]"> {/* Light cream background as per screenshot */}
+    <div className="py-20 bg-[#FEF9F1]"> 
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 uppercase tracking-widest text-black">
-          Awards & Accolades
-        </h2>
+        
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold uppercase tracking-[0.3em] text-black">
+            Awards & Accolades
+          </h2>
+          <p className="text-gray-500 mt-4 italic">Recognized for Purity and Excellence</p>
+        </div>
 
-        <div className="relative group max-w-7xl mx-auto px-10 md:px-16">
+        <div className="relative max-w-7xl mx-auto px-4 md:px-12">
           
-          {/* LEFT BUTTON (<) */}
+          {/* Previous Button */}
           <button 
             onClick={prevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-white border border-gray-200 text-gray-400 hover:bg-black hover:text-white transition-all shadow-sm"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white border border-gray-100 text-gray-400 hover:bg-black hover:text-white transition-all shadow-lg active:scale-90"
           >
             <ChevronLeft size={24} />
           </button>
 
-          {/* SLIDER TRACK */}
+          {/* Slider Window */}
           <div className="overflow-hidden">
             <div 
-              className="flex transition-transform duration-500 ease-in-out"
+              className="flex transition-transform duration-700 cubic-bezier(0.4, 0, 0.2, 1)"
               style={{ transform: `translateX(-${currentIndex * (100 / itemsToShow)}%)` }}
             >
               {awardProducts.map((item) => (
                 <div 
                   key={item.id} 
-                  className="flex-shrink-0 px-4" 
+                  className="flex-shrink-0 px-3 md:px-5" 
                   style={{ width: `${100 / itemsToShow}%` }}
                 >
-                  {/* CARD DESIGN: Added white bg and shadow for clear visibility */}
-                  <div className="relative bg-white rounded-2xl p-6 h-[400px] flex items-center justify-center shadow-sm hover:shadow-md transition-shadow border border-gray-50">
+                  <div className="relative bg-white rounded-3xl p-8 h-[450px] flex flex-col items-center justify-center shadow-sm hover:shadow-2xl transition-all duration-500 group border border-orange-50/50">
                     
-                    {/* Product Image */}
-                    <img 
-                      src={item.image} 
-                      alt="Awarded Product" 
-                      className="max-h-full w-auto object-contain"
-                    />
-
-                    {/* Award Badge Overlay (Top Right) */}
-                    <div className="absolute top-10 right-4 w-24 md:w-32">
-                      <img 
-                        src={item.badge} 
-                        alt={item.alt} 
-                        className="w-full h-auto drop-shadow-md"
-                      />
+                    {/* Badge */}
+                    <div className="absolute top-6 right-6 w-20 md:w-24 z-10 transform group-hover:rotate-12 transition-transform duration-500">
+                      <img src={item.badge} alt="Award Badge" className="w-full h-auto drop-shadow-xl"/>
                     </div>
+
+                    {/* Product Image */}
+                    <div className="h-64 w-full mb-6 relative">
+                        <img 
+                          src={item.image} 
+                          alt={item.title} 
+                          className="h-full w-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700"
+                          onError={(e) => {
+                             e.target.src = "https://via.placeholder.com/400?text=Image+Not+Found";
+                          }}
+                        />
+                    </div>
+
+                    {/* Text Info */}
+                    <div className="text-center">
+                        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest">{item.title}</h3>
+                        <p className="text-[10px] text-gray-400 mt-2 font-medium tracking-tighter">{item.alt}</p>
+                    </div>
+                    
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* RIGHT BUTTON (>) */}
+          {/* Next Button */}
           <button 
             onClick={nextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-white border border-gray-200 text-gray-400 hover:bg-black hover:text-white transition-all shadow-sm"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white border border-gray-100 text-gray-400 hover:bg-black hover:text-white transition-all shadow-lg active:scale-90"
           >
             <ChevronRight size={24} />
           </button>

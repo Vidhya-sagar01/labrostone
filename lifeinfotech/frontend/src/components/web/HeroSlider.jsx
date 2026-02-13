@@ -1,112 +1,112 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { ChevronLeft, ChevronRight, Truck, ShieldCheck, Stethoscope } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Navigation, Pagination } from "swiper/modules";
+import { ChevronLeft, ChevronRight} from "lucide-react";
+import { FaShippingFast } from "react-icons/fa";
+import { IoBagCheckOutline } from "react-icons/io5";
+import { FaUserDoctor } from "react-icons/fa6";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
 
 const HeroSlider = () => {
   const [slides, setSlides] = useState([]);
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Backend URL constant
-  const API_BASE = "https://labrostone-backend.onrender.com";
+   const items = [
+        { icon: <FaShippingFast />, title: "Free Shipping" },
+        { icon: <IoBagCheckOutline />, title: "Secure Checkout" },
+        { icon: <FaUserDoctor />, title: "Free Doctor Consultation" },
+    ];
+
+  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
 
   useEffect(() => {
     const fetchSliders = async () => {
       try {
-        const response = await axios.get(`${API_BASE}/api/admin/sliders`);
-        if (response.data.success && Array.isArray(response.data.sliders)) {
-          setSlides(response.data.sliders);
+        const res = await axios.get(`${API_BASE}/api/admin/sliders`);
+
+        if (res.data.success && Array.isArray(res.data.sliders)) {
+          // only active sliders
+          const activeSliders = res.data.sliders.filter(
+            (s) => s.status === true
+          );
+          setSlides(activeSliders);
         }
-      } catch (error) {
-        console.error("Error fetching sliders:", error);
+      } catch (err) {
+        console.error("Slider error:", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchSliders();
   }, []);
 
-  const nextSlide = () => {
-    if (slides.length === 0) return;
-    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-  };
+  if (loading)
+    return (
+      <div className="h-[350px] md:h-[500px] flex items-center justify-center bg-gray-100 font-bold">
+        Loading Banners...
+      </div>
+    );
 
-  const prevSlide = () => {
-    if (slides.length === 0) return;
-    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
-  };
-
-  useEffect(() => {
-    if (slides.length === 0) return;
-    const interval = setInterval(nextSlide, 5000);
-    return () => clearInterval(interval);
-  }, [currentSlide, slides.length]);
-
-  if (loading) return <div className="h-[350px] md:h-[500px] flex items-center justify-center bg-gray-100 font-bold text-gray-800">Loading Banners...</div>;
   if (slides.length === 0) return null;
 
-  const slide = slides[currentSlide];
-
-  // ✅ Image Path Helper: Yeh hamesha Backend URL ko priority dega
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "";
-    if (imagePath.startsWith('http')) return imagePath;
-    return `${API_BASE}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
-  };
-
   return (
-    <div className="relative w-full group">
-      <div className="relative w-full overflow-hidden">
-        <img 
-          key={slide._id} 
-          src={getImageUrl(slide.image)} 
-          alt={slide.title || "Banner"} 
-          className="w-full h-[350px] md:h-[500px] object-cover object-top block animate-wait-zoom"
-          onError={(e) => {
-            // Fallback: Agar upar wala path fail ho jaye toh filename extract karke direct link try karein
-            const fileName = slide.image.split('/').pop();
-            e.target.src = `${API_BASE}/uploads/sliders/${fileName}`;
-          }}
-        />
+    <div className="w-full">
 
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="container mx-auto px-6 flex flex-col items-start justify-center h-full">
-            <div className="md:w-1/2 text-left space-y-4 md:space-y-6 pl-0 md:pl-12 pt-8 md:pt-0 pointer-events-auto">
-              {slide.title && (
-                <h2 className="text-2xl md:text-5xl font-bold text-white drop-shadow-2xl bg-black/30 p-4 rounded-lg">
-                  {slide.title}
-                </h2>
-              )}
+      {/* ================= SLIDER ================= */}
+      <Swiper
+        modules={[Autoplay, Navigation, Pagination]}
+        autoplay={{
+          delay: 1000,
+          disableOnInteraction: false,
+        }}
+        loop={true}
+        navigation={{
+          nextEl: ".custom-next",
+          prevEl: ".custom-prev",
+        }}
+        pagination={{ clickable: true }}
+        className="w-full h-[350px] md:h-[500px]"
+      >
+        {slides.map((slide) => (
+          <SwiperSlide key={slide._id}>
+            <img
+              src={slide.image}
+              alt={slide.title || "Banner"}
+              className="w-full h-full object-cover"
+            />
+          </SwiperSlide>
+        ))}
+
+        {/* Custom Navigation Buttons */}
+        <div className="custom-prev absolute left-4 top-1/2 -translate-y-1/2 z-20 cursor-pointer bg-white/30 backdrop-blur p-3 rounded-full">
+          <ChevronLeft />
+        </div>
+
+        <div className="custom-next absolute right-4 top-1/2 -translate-y-1/2 z-20 cursor-pointer bg-white/30 backdrop-blur p-3 rounded-full">
+          <ChevronRight />
+        </div>
+      </Swiper>
+
+      {/* ================= TRUST BAR ================= */}
+     <div className='bg-[#F8F5F0] px-2 w-full py-3 md:py-0 md:h-16 flex items-center'>
+            <div className='container mx-auto flex flex-row md:text-sm text-xs justify-center items-center gap-6 px-4'>
+                {items.map((item, idx) => (
+                    <div key={idx} className='flex items-center gap-4 text-black group'>
+                        <span className='text-3xl md:text-2xl transition-transform duration-300 group-hover:scale-110'>
+                            {item.icon}
+                        </span>
+                        <p className='text-xs md:text-xs font-thin uppercase tracking-wider'>
+                            {item.title}
+                        </p>
+                    </div>
+                ))}
             </div>
-          </div>
         </div>
-      </div>
-
-      <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/30 hover:bg-white z-20 transition opacity-0 group-hover:opacity-100">
-        <ChevronLeft size={24} className="text-gray-800" />
-      </button>
-      <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/30 hover:bg-white z-20 transition opacity-0 group-hover:opacity-100">
-        <ChevronRight size={24} className="text-gray-800" />
-      </button>
-
-      <div className="bg-[#Fdfbf7] py-4 border-t border-gray-200">
-        <div className="container mx-auto flex flex-wrap justify-center gap-6 md:gap-12 text-gray-700 text-xs md:text-sm font-bold px-4">
-          <div className="flex items-center gap-2"><Truck size={18} className="text-red-600" /> FREE SHIPPING</div>
-          <div className="flex items-center gap-2"><ShieldCheck size={18} className="text-red-600" /> SECURE CHECKOUT</div>
-          <div className="flex items-center gap-2"><Stethoscope size={18} className="text-red-600" /> FREE DOCTOR CONSULTATION</div>
-        </div>
-      </div>
-
-      <style>{`
-        @keyframes waitAndZoomOut {
-          0%   { transform: scale(1.1); }
-          80%  { transform: scale(1.1); }
-          100% { transform: scale(1.0); }
-        }
-        .animate-wait-zoom {
-          animation: waitAndZoomOut 5s ease-in-out infinite alternate; 
-        }
-      `}</style>
     </div>
   );
 };
