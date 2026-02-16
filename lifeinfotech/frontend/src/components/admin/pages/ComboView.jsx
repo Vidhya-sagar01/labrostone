@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { 
   Package, 
   Tag, 
@@ -13,10 +13,6 @@ import {
   Heart,
   ShoppingCart
 } from 'lucide-react';
-
-const API_BASE = (window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com').trim();
 
 const ComboView = ({ comboId }) => {
   const [combo, setCombo] = useState(null);
@@ -34,7 +30,7 @@ const ComboView = ({ comboId }) => {
   const fetchCombo = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE}/api/combos/${comboId}`);
+      const res = await instance.get(`/api/combos/${comboId}`);
       
       if (res.data.success && res.data.combo) {
         setCombo(res.data.combo);
@@ -67,7 +63,7 @@ const ComboView = ({ comboId }) => {
     try {
       const token = localStorage.getItem('userToken');
       
-      await axios.post(`${API_BASE}/api/cart`, {
+      await instance.post("/api/cart", {
         comboId: combo._id,
         quantity: quantity
       }, {

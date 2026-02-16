@@ -1,59 +1,72 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
-const { protect } = require('../middleware/authMiddleware');
-const Product = require('../models/Product');
-const Settings = require('../models/Settings');
+const multer = require("multer");
+const path = require("path");
+const { protect } = require("../middleware/authMiddleware");
+const Product = require("../models/Product");
+const Settings = require("../models/Settings");
 
 /* =========================
     MULTER CONFIG
 ========================= */
 const storage = multer.diskStorage({
-    destination: 'public/uploads/products/',
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + Math.round(Math.random() * 1e9) + path.extname(file.originalname));
-    }
+  destination: "public/uploads/products/",
+  filename: (req, file, cb) => {
+    cb(
+      null,
+      Date.now() +
+        "-" +
+        Math.round(Math.random() * 1e9) +
+        path.extname(file.originalname),
+    );
+  },
 });
 
 const bannerStorage = multer.diskStorage({
-    destination: 'public/uploads/banners/',
-    filename: (req, file, cb) => {
-        cb(null, 'anantam-main-banner' + path.extname(file.originalname));
-    }
+  destination: "public/uploads/banners/",
+  filename: (req, file, cb) => {
+    cb(null, "anantam-main-banner" + path.extname(file.originalname));
+  },
 });
 
 const upload = multer({ storage }).fields([
-    { name: 'thumbnail', maxCount: 1 },
-    { name: 'images', maxCount: 10 }
+  { name: "thumbnail", maxCount: 1 },
+  { name: "images", maxCount: 10 },
 ]);
 const bannerUpload = multer({ storage: bannerStorage });
 
-const BASE_URL = process.env.BASE_URL || 'https://lebrostone.lifeinfotechinstitute.com/';
+const BASE_URL =
+  process.env.BASE_URL || "https://lebrostone.lifeinfotechinstitute.com/";
 
 /* =========================
     HELPERS
 ========================= */
 const parseJsonFields = (data) => {
-    const fieldsToParse = ['variants', 'features', 'faqs', 'included_products'];
-    fieldsToParse.forEach(field => {
-        if (data[field] && typeof data[field] === 'string') {
-            try {
-                data[field] = JSON.parse(data[field]);
-            } catch (e) {
-                console.error(`Error parsing ${field}:`, e);
-            }
-        }
-    });
-    return data;
+  const fieldsToParse = ["variants", "features", "faqs", "included_products"];
+  fieldsToParse.forEach((field) => {
+    if (data[field] && typeof data[field] === "string") {
+      try {
+        data[field] = JSON.parse(data[field]);
+      } catch (e) {
+        console.error(`Error parsing ${field}:`, e);
+      }
+    }
+  });
+  return data;
 };
 
 const cleanObjectIds = (data) => {
-    // ✅ Change category_id to category
-    if (data.category === "" || data.category === "null" || data.category === undefined) delete data.category;
-    if (data.subCategory === "" || data.subCategory === "null") delete data.subCategory;
-    if (data.brand === "" || data.brand === "null") delete data.brand;
-    return data;
+  // ✅ Change category_id to category
+  if (
+    data.category === "" ||
+    data.category === "null" ||
+    data.category === undefined
+  )
+    delete data.category;
+  if (data.subCategory === "" || data.subCategory === "null")
+    delete data.subCategory;
+  if (data.brand === "" || data.brand === "null") delete data.brand;
+  return data;
 };
 
 /* ==========================================
@@ -61,54 +74,53 @@ const cleanObjectIds = (data) => {
 ========================================== */
 
 // --- SEARCH & FILTER ---
-router.get('/search', protect, async (req, res) => {
-    try {
-        const { category, startDate, endDate, is_combo } = req.query;
-        let query = {};
+router.get("/search", async (req, res) => {
+  try {
+    const { category, concern, ingredient, tag, is_combo } = req.query;
+    let query = {};
 
-        // ✅ Use 'category' instead of 'category_id'
-        if (category && category !== "null" && category !== "undefined") {
-            query.category = category; 
-        }
+    if (category && category !== "null") query.category = category;
+    if (concern && concern !== "null") query.concern = new RegExp(concern, "i");
+    if (ingredient && ingredient !== "null")
+      query.ingredients = { $in: [new RegExp(ingredient, "i")] };
 
-        if (is_combo === 'true') query.is_combo = true;
-        if (startDate || endDate) {
-            query.createdAt = {};
-            if (startDate) query.createdAt.$gte = new Date(startDate);
-            if (endDate) query.createdAt.$lte = new Date(endDate);
-        }
+    if (tag === "bestseller") query.is_bestseller = true;
+    if (tag === "newarrival") query.is_new_arrival = true;
+    if (is_combo === "true") query.is_combo = true;
 
-        const products = await Product.find(query)
-            .populate('category', 'name')
-            .sort({ createdAt: -1 });
+    const products = await Product.find(query)
+      .populate("category", "name")
+      .sort({ createdAt: -1 });
 
-        res.json({ success: true, data: products });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
+    res.json({ success: true, data: products });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // --- GET Banner (DB se) ---
-router.get('/banner', async (req, res) => {
-    try {
-        let settings = await Settings.findOne({ key: 'banner_settings' });
-        if (!settings) {
-            settings = await Settings.create({ key: 'banner_settings' });
-        }
-        res.json({ success: true, url: settings.currentBannerUrl });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
+router.get("/banner", async (req, res) => {
+  try {
+    let settings = await Settings.findOne({ key: "banner_settings" });
+    if (!settings) {
+      settings = await Settings.create({ key: "banner_settings" });
     }
+    res.json({ success: true, url: settings.currentBannerUrl });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // --- Collection fetch ---
-router.get('/anantam-collection', async (req, res) => {
-    try {
-        const products = await Product.find({ is_anantam: true }).sort({ updatedAt: -1 });
-        res.json({ success: true, data: products });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
+router.get("/anantam-collection", async (req, res) => {
+  try {
+    const products = await Product.find({ is_anantam: true }).sort({
+      updatedAt: -1,
+    });
+    res.json({ success: true, data: products });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 /* ==========================================
@@ -116,32 +128,56 @@ router.get('/anantam-collection', async (req, res) => {
 ========================================== */
 
 // Get All Products
-router.get('/', async (req, res) => {
-    try {
-        const products = await Product.find()
-            .populate('category', 'name')      // ✅ Changed from category_id
-            .populate('subCategory', 'name')   // ✅ Matches your JSON data
-            .populate('subSubCategory', 'name')
-            .populate('brand', 'name')
-            .sort({ createdAt: -1 });
-            
-        res.json({ success: true, data: products });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
+router.get("/", async (req, res) => {
+  try {
+    const products = await Product.find()
+      .populate("category", "name") // ✅ Changed from category_id
+      .populate("subCategory", "name") // ✅ Matches your JSON data
+      .populate("subSubCategory", "name")
+      .populate("brand", "name")
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: products });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // Get by Category
-router.get('/by-category/:categoryId', async (req, res) => {
-    try {
-        const products = await Product.find({ category_id: req.params.categoryId })
-            .populate('category_id', 'name') // Category ka naam lane ke liye
-            .sort({ createdAt: -1 });
-            
-        res.json({ success: true, products });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
+router.get("/by-category/:categoryId", async (req, res) => {
+  try {
+    const products = await Product.find({ category: req.params.categoryId })
+      .populate("category", "name")
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: products }); // Wrapped in 'data' for consistency
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Get by Concern
+router.get("/by-concern/:concernName", async (req, res) => {
+  try {
+    const products = await Product.find({
+      concern: new RegExp(req.params.concernName, "i"),
+    }).populate("category", "name");
+    res.json({ success: true, data: products });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Get by Ingredient
+router.get("/by-ingredient/:ingredientName", async (req, res) => {
+  try {
+    const products = await Product.find({
+      ingredients: { $in: [new RegExp(req.params.ingredientName, "i")] },
+    }).populate("category", "name");
+    res.json({ success: true, data: products });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 /* ==========================================
@@ -149,292 +185,324 @@ router.get('/by-category/:categoryId', async (req, res) => {
 ========================================== */
 
 // --- CREATE COMBO ROUTE ---
-router.post('/create-combo', protect, async (req, res) => {
-    try {
-        // ✅ 1. Frontend se aane wali key 'included_products' hai
-        const { name, included_products, mrp, selling_price, category_id } = req.body;
+router.post("/create-combo", protect, async (req, res) => {
+  try {
+    // ✅ 1. Frontend se aane wali key 'included_products' hai
+    const { name, included_products, mrp, selling_price, category_id } =
+      req.body;
 
-        // Validation: IDs honi chahiye
-        if (!included_products || included_products.length === 0) {
-            return res.status(400).json({ success: false, message: "No products selected for combo!" });
-        }
-
-        // Products fetch karein images ke liye
-        const productsData = await Product.find({ _id: { $in: included_products } });
-        const comboImages = productsData.map(p => p.images[0]).filter(img => img);
-
-        const newCombo = new Product({
-            name,
-            is_combo: true,
-            // ✅ 2. Key name match karein (included_products)
-            included_products: included_products, 
-            category_id,
-            // ✅ 3. Main level par bhi price save karein taaki ₹0 na dikhe
-            mrp: Number(mrp),
-            selling_price: Number(selling_price),
-            variants: [{
-                size: "Combo Pack",
-                mrp: Number(mrp),
-                selling_price: Number(selling_price)
-            }],
-            // Images logic
-            images: comboImages.length > 0 ? comboImages : ["uploads/default-combo.png"],
-            in_stock: true
-        });
-
-        await newCombo.save();
-        res.status(201).json({ success: true, message: "Combo Created Successfully! 🎁", data: newCombo });
-    } catch (err) {
-        console.error("Combo Save Error:", err);
-        res.status(400).json({ success: false, message: err.message });
+    // Validation: IDs honi chahiye
+    if (!included_products || included_products.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No products selected for combo!" });
     }
+
+    // Products fetch karein images ke liye
+    const productsData = await Product.find({
+      _id: { $in: included_products },
+    });
+    const comboImages = productsData
+      .map((p) => p.images[0])
+      .filter((img) => img);
+
+    const newCombo = new Product({
+      name,
+      is_combo: true,
+      // ✅ 2. Key name match karein (included_products)
+      included_products: included_products,
+      category_id,
+      // ✅ 3. Main level par bhi price save karein taaki ₹0 na dikhe
+      mrp: Number(mrp),
+      selling_price: Number(selling_price),
+      variants: [
+        {
+          size: "Combo Pack",
+          mrp: Number(mrp),
+          selling_price: Number(selling_price),
+        },
+      ],
+      // Images logic
+      images:
+        comboImages.length > 0 ? comboImages : ["uploads/default-combo.png"],
+      in_stock: true,
+    });
+
+    await newCombo.save();
+    res.status(201).json({
+      success: true,
+      message: "Combo Created Successfully! 🎁",
+      data: newCombo,
+    });
+  } catch (err) {
+    console.error("Combo Save Error:", err);
+    res.status(400).json({ success: false, message: err.message });
+  }
 });
 
 // --- Create Product ---
-router.post('/', protect, upload, async (req, res) => {
-    try {
-        let data = { ...req.body };
+router.post("/", protect, upload, async (req, res) => {
+  try {
+    let data = { ...req.body };
 
-        // 1. Files handling
-        if (req.files) {
-            if (req.files.thumbnail) {
-                data.thumbnail = `/uploads/products/${req.files.thumbnail[0].filename}`;
-            }
-            if (req.files.images) {
-                data.images = req.files.images.map(file => `/uploads/products/${file.filename}`);
-            }
-        }
-
-        // 2. Formatting Numbers (Prevent ₹0 issue)
-        data.unitPrice = Number(data.unitPrice) || 0;
-        data.minOrderQty = Number(data.minOrderQty) || 1;
-        data.currentStockQty = Number(data.currentStockQty) || 0;
-        data.discountAmount = Number(data.discountAmount) || 0;
-        data.taxAmount = Number(data.taxAmount) || 0;
-        data.shippingCost = Number(data.shippingCost) || 0;
-
-        // 3. Status logic
-        data.status = data.status === 'true' || data.status === true;
-
-        const newProduct = new Product(data);
-        await newProduct.save();
-
-        res.status(201).json({ 
-            success: true, 
-            message: "Product Created Successfully! ✅", 
-            data: newProduct 
-        });
-    } catch (err) {
-        console.error("Save Error:", err);
-        res.status(400).json({ success: false, message: err.message });
+    // 1. Files handling
+    if (req.files) {
+      if (req.files.thumbnail) {
+        data.thumbnail = `/uploads/products/${req.files.thumbnail[0].filename}`;
+      }
+      if (req.files.images) {
+        data.images = req.files.images.map(
+          (file) => `/uploads/products/${file.filename}`,
+        );
+      }
     }
+
+    // 2. Formatting Numbers (Prevent ₹0 issue)
+    data.unitPrice = Number(data.unitPrice) || 0;
+    data.minOrderQty = Number(data.minOrderQty) || 1;
+    data.currentStockQty = Number(data.currentStockQty) || 0;
+    data.discountAmount = Number(data.discountAmount) || 0;
+    data.taxAmount = Number(data.taxAmount) || 0;
+    data.shippingCost = Number(data.shippingCost) || 0;
+
+    // 3. Status logic
+    data.status = data.status === "true" || data.status === true;
+
+    const newProduct = new Product(data);
+    await newProduct.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Product Created Successfully! ✅",
+      data: newProduct,
+    });
+  } catch (err) {
+    console.error("Save Error:", err);
+    res.status(400).json({ success: false, message: err.message });
+  }
 });
 // --- Update Anantam Status ---
-router.put('/anantam/:id', protect, async (req, res) => {
-    try {
-        const { is_anantam } = req.body;
-        const updated = await Product.findByIdAndUpdate(
-            req.params.id, 
-            { is_anantam }, 
-            { new: true }
-        );
-        
-        if (!updated) {
-            return res.status(404).json({ success: false, message: "Product nahi mila" });
-        }
-        
-        res.json({ success: true, data: updated });
-    } catch (err) {
-        res.status(400).json({ success: false, message: err.message });
+router.put("/anantam/:id", protect, async (req, res) => {
+  try {
+    const { is_anantam } = req.body;
+    const updated = await Product.findByIdAndUpdate(
+      req.params.id,
+      { is_anantam },
+      { new: true },
+    );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product nahi mila" });
     }
+
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
 });
 
 // --- Toggle Bestseller ---
-router.put('/:id/bestseller', protect, async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-        if (!product) {
-            return res.status(404).json({ success: false, message: "Not found" });
-        }
-        
-        product.is_bestseller = !product.is_bestseller;
-        await product.save();
-        
-        res.json({ success: true, is_bestseller: product.is_bestseller });
-    } catch (err) {
-        res.status(400).json({ success: false, message: err.message });
+router.put("/:id/bestseller", protect, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Not found" });
     }
+
+    product.is_bestseller = !product.is_bestseller;
+    await product.save();
+
+    res.json({ success: true, is_bestseller: product.is_bestseller });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
 });
 
 // --- Banner Upload (DB mein save) ---
-router.post('/banner-upload', protect, bannerUpload.single('banner'), async (req, res) => {
+router.post(
+  "/banner-upload",
+  protect,
+  bannerUpload.single("banner"),
+  async (req, res) => {
     try {
-        if (req.file) {
-            const newUrl = `${BASE_URL}/uploads/banners/${req.file.filename}`;
-            
-            await Settings.findOneAndUpdate(
-                { key: 'banner_settings' },
-                { currentBannerUrl: newUrl },
-                { upsert: true }
-            );
+      if (req.file) {
+        const newUrl = `${BASE_URL}/uploads/banners/${req.file.filename}`;
 
-            res.json({ 
-                success: true, 
-                url: newUrl, 
-                message: "Banner Saved in DB! ✅" 
-            });
-        } else {
-            res.status(400).json({ success: false, message: "File missing ❌" });
-        }
+        await Settings.findOneAndUpdate(
+          { key: "banner_settings" },
+          { currentBannerUrl: newUrl },
+          { upsert: true },
+        );
+
+        res.json({
+          success: true,
+          url: newUrl,
+          message: "Banner Saved in DB! ✅",
+        });
+      } else {
+        res.status(400).json({ success: false, message: "File missing ❌" });
+      }
     } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
+      res.status(500).json({ success: false, message: err.message });
     }
-});
+  },
+);
 
 /* ==========================================
     4. PARAMETERIZED ROUTES
 ========================================== */
 
 // --- Get Single Product ---
-router.get('/:id', async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id)
-            .populate('category')
-            .populate('subCategory')
-            .populate('subSubCategory')
-            .populate('brand');
-            
-        if (!product) {
-            return res.status(404).json({ success: false, message: 'Product not found' });
-        }
-        
-        res.json({ success: true, data: product });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
+router.get("/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+      .populate("category")
+      .populate("subCategory")
+      .populate("subSubCategory")
+      .populate("brand");
+
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
+
+    res.json({ success: true, data: product });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // --- Update Full Product ---
 
 // --- Delete Product ---
 
+router.put("/status/:id", protect, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product)
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
 
-router.put('/status/:id', protect, async (req, res) => {
-    try {
-        const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    // Status ko flip karein (true -> false / false -> true)
+    product.status = !product.status;
+    await product.save();
 
-        // Status ko flip karein (true -> false / false -> true)
-        product.status = !product.status;
-        await product.save();
-
-        res.json({ success: true, message: `Product is now ${product.status ? 'Active' : 'Inactive'}`, status: product.status });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
+    res.json({
+      success: true,
+      message: `Product is now ${product.status ? "Active" : "Inactive"}`,
+      status: product.status,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 // Backend Route Fix
-router.put('/anantam/:id', protect, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { is_anantam } = req.body;
-        const updated = await Product.findByIdAndUpdate(
-            id, 
-            { $set: { is_anantam: is_anantam } }, 
-            { new: true }
-        );
-        res.json({ success: true, data: updated });
-    } catch (err) { res.status(400).json({ success: false, message: err.message }); }
+router.put("/anantam/:id", protect, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { is_anantam } = req.body;
+    const updated = await Product.findByIdAndUpdate(
+      id,
+      { $set: { is_anantam: is_anantam } },
+      { new: true },
+    );
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err.message });
+  }
 });
 
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id); // MongoDB ID search
-    
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    
+
     // Aapke frontend ke logic ke mutabik data wrap karke bhejein
-    res.json({ data: product }); 
+    res.json({ data: product });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
-router.delete('/:id', protect, async (req, res) => {
-    try {
-        await Product.findByIdAndDelete(req.params.id);
-        res.json({ success: true, message: 'Product Deleted 🗑️' });
-    } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
-    }
+router.delete("/:id", protect, async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Product Deleted 🗑️" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
+router.put("/:id", protect, upload, async (req, res) => {
+  try {
+    const { id } = req.params;
+    let data = { ...req.body };
 
-router.put('/:id', protect, upload, async (req, res) => {
-    try {
-        const { id } = req.params;
-        let data = { ...req.body };
+    // 1. Helper functions ka upyog (Jo aapne pehle define kiye hain)
+    data = parseJsonFields(data);
+    data = cleanObjectIds(data);
 
-        // 1. Helper functions ka upyog (Jo aapne pehle define kiye hain)
-        data = parseJsonFields(data);
-        data = cleanObjectIds(data);
+    // 2. Number fields ko ensure karein (Prevent string errors)
+    if (data.unitPrice) data.unitPrice = Number(data.unitPrice);
+    if (data.currentStockQty)
+      data.currentStockQty = Number(data.currentStockQty);
+    if (data.minOrderQty) data.minOrderQty = Number(data.minOrderQty);
 
-        // 2. Number fields ko ensure karein (Prevent string errors)
-        if (data.unitPrice) data.unitPrice = Number(data.unitPrice);
-        if (data.currentStockQty) data.currentStockQty = Number(data.currentStockQty);
-        if (data.minOrderQty) data.minOrderQty = Number(data.minOrderQty);
+    // 3. File Upload handling (Multer .fields ke liye)
+    if (req.files) {
+      // Main Thumbnail update logic
+      if (req.files.thumbnail && req.files.thumbnail[0]) {
+        data.thumbnail = `/uploads/products/${req.files.thumbnail[0].filename}`;
+      }
 
-        // 3. File Upload handling (Multer .fields ke liye)
-        if (req.files) {
-            // Main Thumbnail update logic
-            if (req.files.thumbnail && req.files.thumbnail[0]) {
-                data.thumbnail = `/uploads/products/${req.files.thumbnail[0].filename}`;
-            }
-
-            // Additional Gallery Images update logic
-            if (req.files.images && req.files.images.length > 0) {
-                const newGalleryImages = req.files.images.map(
-                    (file) => `/uploads/products/${file.filename}`
-                );
-                
-                // Agar aap nayi images ko purani images mein MERGE karna chahte hain:
-                // data.$push = { images: { $each: newGalleryImages } };
-                
-                // Agar aap images ko poori tarah REPLACE karna chahte hain:
-                data.images = newGalleryImages;
-            }
-        }
-
-        // 4. Database update
-        const updatedProduct = await Product.findByIdAndUpdate(
-            id,
-            { $set: data },
-            { new: true, runValidators: true }
+      // Additional Gallery Images update logic
+      if (req.files.images && req.files.images.length > 0) {
+        const newGalleryImages = req.files.images.map(
+          (file) => `/uploads/products/${file.filename}`,
         );
 
-        if (!updatedProduct) {
-            return res.status(404).json({ 
-                success: false, 
-                message: "Product nahi mila! ❌" 
-            });
-        }
+        // Agar aap nayi images ko purani images mein MERGE karna chahte hain:
+        // data.$push = { images: { $each: newGalleryImages } };
 
-        res.json({
-            success: true,
-            message: "Product Updated Successfully! ✅",
-            data: updatedProduct
-        });
-
-    } catch (err) {
-        console.error("Update error:", err);
-        res.status(400).json({ 
-            success: false, 
-            message: err.message 
-        });
+        // Agar aap images ko poori tarah REPLACE karna chahte hain:
+        data.images = newGalleryImages;
+      }
     }
+
+    // 4. Database update
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { $set: data },
+      { new: true, runValidators: true },
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product nahi mila! ❌",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Product Updated Successfully! ✅",
+      data: updatedProduct,
+    });
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
 });
 
 module.exports = router;

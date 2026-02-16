@@ -9,7 +9,7 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import axios from "axios";
+import instance, { getImageUrl } from "./api/AxiosConfig";
 import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
@@ -24,9 +24,6 @@ const Cart = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState("");
 
-  
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
-
   // Get initial user from local storage
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -39,7 +36,7 @@ const Cart = () => {
         return;
       }
       try {
-        const res = await axios.get(`${API_BASE}/api/user/${userId}`);
+        const res = await instance.get(`/api/user/${userId}`);
         if (res.data && res.data.data) {
           setUserData(res.data.data);
           setCartItems(res.data.data.cart || []);
@@ -51,7 +48,7 @@ const Cart = () => {
       }
     };
     fetchCart();
-  }, [navigate, API_BASE]);
+  }, [navigate, user?._id, user?.id]);
 
   // // 2. Sync Cart with DB
   // const syncCartWithDB = async (updatedCart) => {
@@ -90,7 +87,7 @@ const Cart = () => {
   const applyCoupon = async () => {
     setCouponError("");
     try {
-      const res = await axios.get(`${API_BASE}/api/coupons/all`);
+      const res = await instance.get("/api/coupons/all");
       const allCoupons = res.data;
       const found = allCoupons.find(
         (c) => c.code === couponCode.toUpperCase() && c.isActive,
@@ -122,7 +119,7 @@ const Cart = () => {
         address: userData.address,
       };
 
-      const res = await axios.post(`${API_BASE}/api/orders/place`, orderData);
+      const res = await instance.post("/api/orders/place", orderData);
       if (res.data.success) {
         alert("🎉 Order Placed Successfully!");
         setCartItems([]);
@@ -197,7 +194,7 @@ const Cart = () => {
                 >
                   <div className="flex flex-col items-center gap-3">
                     <img
-                      src={item.image}
+                      src={getImageUrl(item.image) || item.image}
                       alt={item.name}
                       className="w-24 h-24 object-contain border p-1 bg-white"
                     />

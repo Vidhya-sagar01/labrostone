@@ -10,7 +10,7 @@ import {
   XCircle,
   Clock,
 } from "lucide-react";
-import axios from "axios";
+import instance, { getImageUrl } from "./api/AxiosConfig";
 
 const ProfilePage = () => {
   const [userData, setUserData] = useState(
@@ -21,8 +21,6 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
   const [fetchingOrders, setFetchingOrders] = useState(false);
-
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com/api";
 
   const [addressForm, setAddressForm] = useState(
     userData.address || {
@@ -44,7 +42,7 @@ const ProfilePage = () => {
   const fetchUserOrders = async () => {
     setFetchingOrders(true);
     try {
-      const res = await axios.get(`${API_BASE}/orders/user/${userData._id}`);
+      const res = await instance.get(`/api/orders/user/${userData._id}`);
       setOrders(res.data.success ? res.data.data : []);
     } catch (err) {
       console.error("Orders fetch error:", err);
@@ -56,12 +54,9 @@ const ProfilePage = () => {
   // 2. Update Status in Database
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
-      const res = await axios.put(
-        `${API_BASE}/orders/update-status/${orderId}`,
-        {
-          status: newStatus,
-        },
-      );
+      const res = await instance.put(`/api/orders/update-status/${orderId}`, {
+        status: newStatus,
+      });
       if (res.data.success) {
         alert(`Order marked as ${newStatus}`);
         fetchUserOrders(); // UI refresh
@@ -79,8 +74,8 @@ const ProfilePage = () => {
     if (!userData._id) return alert("Please login again.");
     setLoading(true);
     try {
-      const response = await axios.put(
-        `${API_BASE}/user/update-address/${userData._id}`,
+      const response = await instance.put(
+        `/api/user/update-address/${userData._id}`,
         {
           address: addressForm,
         },
@@ -293,7 +288,7 @@ const ProfilePage = () => {
                             className="flex gap-4 items-center bg-slate-50/50 p-3 rounded-xl border border-slate-100"
                           >
                             <img
-                              src={item.image}
+                              src={getImageUrl(item.image) || item.image}
                               className="w-16 h-16 object-contain bg-white rounded-lg border p-1"
                               alt="p"
                             />

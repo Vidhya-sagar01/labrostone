@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { Save, ArrowLeft, Image as ImageIcon, Info, Cpu, Plus, Trash } from 'lucide-react';
-
-const API_BASE = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
 
 const Editprodoct = () => {
   const { id } = useParams();
@@ -61,10 +57,10 @@ const Editprodoct = () => {
     try {
       const getHeader = { headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` } };
       const [cat, sub, subSub, br] = await Promise.all([
-        axios.get(`${API_BASE}/api/categories`, getHeader),
-        axios.get(`${API_BASE}/api/subcategories`, getHeader),
-        axios.get(`${API_BASE}/api/subsubcategories`, getHeader),
-        axios.get(`${API_BASE}/api/brands`, getHeader)
+        instance.get("/api/categories", getHeader),
+        instance.get("/api/subcategories", getHeader),
+        instance.get("/api/subsubcategories", getHeader),
+        instance.get("/api/brands", getHeader)
       ]);
       setCategories(cat.data.data || []);
       setSubCategories(sub.data.data || []);
@@ -75,7 +71,7 @@ const Editprodoct = () => {
 
   const fetchProductDetails = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/products/${id}`);
+      const res = await instance.get(`/api/products/${id}`);
       const p = res.data.data;
       
       setFormData({
@@ -127,7 +123,7 @@ const Editprodoct = () => {
     }
 
     try {
-      await axios.put(`${API_BASE}/api/products/${id}`, data, {
+      await instance.put(`/api/products/${id}`, data, {
         headers: { 
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem("adminToken")}` 

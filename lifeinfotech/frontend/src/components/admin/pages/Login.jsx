@@ -1,23 +1,16 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import instance, { IMAGE_BASE_URL } from '../../web/api/AxiosConfig';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    // ✅ STEP 1: API URL yahan set karein (Comment/Uncomment as needed)
-    // const API_BASE = "http://localhost:5000"; 
-    const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
-
-    // ✅ STEP 2: Logo ka sahi Path (Backend ke uploads folder se)
-    // Agar filename 'logo.png' hai to end me change kar lein
-    const LOGO_URL = `${API_BASE}/uploads/logo/centerlogo.png`; 
+    const LOGO_URL = `${IMAGE_BASE_URL}/uploads/logo/centerlogo.png`;
 
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            // ✅ STEP 3: Axios ab API_BASE use karega
-            const res = await axios.post(`${API_BASE}/api/admin/login`, { email, password });
+            const res = await instance.post("/api/admin/login", { email, password });
             
             if (res.data.success) {
                 localStorage.setItem('adminToken', res.data.token);

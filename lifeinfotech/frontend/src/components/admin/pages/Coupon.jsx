@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { Trash2, Ticket, Plus, Loader2, Clock, AlertCircle, Calendar } from 'lucide-react';
 
 const Coupon = () => {
@@ -15,16 +15,11 @@ const Coupon = () => {
         expiryDate: '' 
     });
 
-    const isLocal = window.location.hostname === "localhost";
-    const API_URL = isLocal 
-        ? "http://localhost:5000/api/coupons" 
-        : "https://lebrostonebackend.lifeinfotechinstitute.com/api/coupons";
-
     useEffect(() => { fetchCoupons(); }, []);
 
     const fetchCoupons = async () => {
         try {
-            const res = await axios.get(`${API_URL}/all`);
+            const res = await instance.get("/api/coupons/all");
             setCoupons(res.data);
         } catch (err) { console.error("Fetch Error:", err); }
     };
@@ -39,7 +34,7 @@ const Coupon = () => {
 
         setLoading(true);
         try {
-            const res = await axios.post(`${API_URL}/add`, formData);
+            const res = await instance.post("/api/coupons/add", formData);
             if (res.data.success) {
                 alert("Coupon Created Successfully! ✅");
                 setFormData({ code: '', discountAmount: '', minOrderAmount: '', startDate: '', expiryDate: '' });
@@ -53,7 +48,7 @@ const Coupon = () => {
     const deleteCoupon = async (id) => {
         if(window.confirm("Pakka delete karna hai?")) {
             try {
-                await axios.delete(`${API_URL}/delete/${id}`);
+                await instance.delete(`/api/coupons/delete/${id}`);
                 fetchCoupons();
             } catch (err) { alert("Delete failed"); }
         }

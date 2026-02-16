@@ -1,41 +1,42 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
+import instance, { getImageUrl } from "./api/AxiosConfig";
 import { Plus, Minus, Loader2 } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import "swiper/css";
+import "swiper/css/navigation";
 
 // Components
 import ProductGallery from "../product/ProductGallery";
 import ProductInfo from "../product/ProductInfo";
 import ProductSidebar from "../product/ProductSidebar";
 import Reviews from "../product/Reviews";
+import { useRef } from "react";
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("Product Description");
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
-
-  const isLocal =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
+  const [suggestedProducts, setSuggestedProducts] = useState([]);
+  const swiperRef = useRef(null);
 
   const getCleanUrl = (img) => {
     if (!img) return "";
-    if (img.startsWith("http")) return img;
-    // Removing leading slash if present to avoid double slashes
-    let cleanPath = img.startsWith("/") ? img.substring(1) : img;
-    return `${API_BASE}/${cleanPath}`;
+    return getImageUrl(img);
   };
 
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${API_BASE}/api/products/${id}`);
+        const res = await instance.get(`/api/products/${id}`);
         const data = res.data.data;
 
         // --- IMAGE LOGIC ---
@@ -78,10 +79,28 @@ const ProductDetail = () => {
 
         setProduct(formattedProduct);
         setSelectedVariant(formattedProduct.variants[0]);
+        
+        // Fetch suggested products (same category or random)
+        fetchSuggestedProducts(data.category?._id, data._id);
+        
         setLoading(false);
       } catch (err) {
         console.error("Error fetching product:", err);
         setLoading(false);
+      }
+    };
+    
+    const fetchSuggestedProducts = async (categoryId, currentProductId) => {
+      try {
+        const res = await instance.get("/api/products");
+        let products = res.data.data || [];
+        // Filter out current product and take 8 random products
+        products = products
+          .filter(p => p._id !== currentProductId)
+          .slice(0, 8);
+        setSuggestedProducts(products);
+      } catch (err) {
+        console.error("Error fetching suggested products:", err);
       }
     };
 
@@ -235,6 +254,71 @@ const ProductDetail = () => {
             </div>
           </div>
         </div>
+
+        {/* Suggested Products Section */}
+        {suggestedProducts.length > 0 && (
+          <div className="mt-16 border-t border-gray-200 pt-12">
+            <h2 className="text-2xl font-bold mb-8 text-center uppercase tracking-wider">
+              You May Also Like
+            </h2>
+            
+            <div className="relative px-4 md:px-12">
+              {/* Navigation Buttons */}
+              <button
+                onClick={() => swiperRef.current?.slidePrev()}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <FaChevronLeft className="text-gray-600" />
+              </button>
+              <button
+                onClick={() => swiperRef.current?.slideNext()}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <FaChevronRight className="text-gray-600" />
+              </button>
+
+              <Swiper
+                modules={[Navigation]}
+                spaceBetween={24}
+                slidesPerView={2}
+                onSwiper={(swiper) => (swiperRef.current = swiper)}
+                breakpoints={{
+                  640: { slidesPerView: 2 },
+                  768: { slidesPerView: 3 },
+                  1024: { slidesPerView: 4 },
+                }}
+                className="pb-4"
+              >
+                {suggestedProducts.map((item) => (
+                  <SwiperSlide key={item._id}>
+                    <div
+                      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all cursor-pointer border border-gray-100 group"
+                      onClick={() => navigate(`/product/${item._id}`)}
+                    >
+                      <div className="aspect-square overflow-hidden bg-gray-50">
+                        <img
+                          src={getCleanUrl(item.thumbnail || (item.images && item.images[0]))}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-sm mb-2 line-clamp-2 text-gray-900">{item.name}</h3>
+                        <p className="text-gray-500 text-xs mb-2">{item.category?.name || item.brand?.name || "Product"}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[#00AFEF] font-bold">₹{item.unitPrice}</span>
+                          {item.discountAmount > 0 && (
+                            <span className="text-xs text-gray-400 line-through">₹{item.unitPrice + item.discountAmount}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

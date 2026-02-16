@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { IndianRupee, Calendar, Search, Loader2, CheckCircle } from 'lucide-react';
 
 const Payment = () => {
@@ -7,18 +7,13 @@ const Payment = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
 
-    const isLocal = window.location.hostname === "localhost";
-    const API_BASE = isLocal 
-        ? "http://localhost:5000/api" 
-        : "https://lebrostonebackend.lifeinfotechinstitute.com/api";
-
     useEffect(() => {
         fetchTransactions();
     }, []);
 
     const fetchTransactions = async () => {
         try {
-            const res = await axios.get(`${API_BASE}/payments/transactions/all`);
+            const res = await instance.get("/api/payments/transactions/all");
             if (res.data.success) {
                 setTransactions(res.data.data);
             }

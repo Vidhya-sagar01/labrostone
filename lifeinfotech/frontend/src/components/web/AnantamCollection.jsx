@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import instance, { getImageUrl } from "./api/AxiosConfig";
 import { ShoppingCart, RefreshCw, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -13,25 +13,12 @@ const AnantamCollection = () => {
   );
   const [loading, setLoading] = useState(true);
 
-  const isLocal =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
-
-  // --- 1. URL CLEANER HELPER ---
   const getCleanUrl = (imagePath) => {
     if (!imagePath || imagePath.length === 0) return "";
     const path = Array.isArray(imagePath) ? imagePath[0] : imagePath;
     if (typeof path === "string") {
-      if (path.startsWith("http")) {
-        return path
-          .replace(
-            "https://lebrostonebackend.lifeinfotechinstitute.com",
-            API_BASE,
-          )
-          .replace("https://lebrostone.lifeinfotechinstitute.com", API_BASE);
-      }
-      return `${API_BASE}/${path.replace(/^\//, "")}`;
+      if (path.startsWith("http")) return path;
+      return getImageUrl(path);
     }
     return path;
   };
@@ -115,8 +102,8 @@ const AnantamCollection = () => {
     const fetchAnantamData = async () => {
       try {
         const [bannerRes, productRes] = await Promise.all([
-          axios.get(`${API_BASE}/api/products/banner`),
-          axios.get(`${API_BASE}/api/products/anantam-collection`),
+          instance.get("/api/products/banner"),
+          instance.get("/api/products/anantam-collection"),
         ]);
 
         if (bannerRes.data.success && bannerRes.data.url) {

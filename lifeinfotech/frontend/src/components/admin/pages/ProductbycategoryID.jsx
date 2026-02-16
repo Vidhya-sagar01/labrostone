@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance, { getImageUrl } from '../../web/api/AxiosConfig';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
     Plus, Trash2, X, Edit, ArrowLeft, Save, 
     BookOpen, AlignLeft, PieChart, Star, PlusCircle, 
     XCircle, Package, Info, DollarSign, Image as ImageIcon 
 } from 'lucide-react';
-
-// ✅ LIVE BACKEND URL
-const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
-axios.defaults.baseURL = API_BASE;
 
 const ProductbycategoryID = () => {
     const { categoryId } = useParams();
@@ -56,7 +52,7 @@ const ProductbycategoryID = () => {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`/api/products/by-category/${categoryId}`);
+            const response = await instance.get(`/api/products/by-category/${categoryId}`);
             setProducts(response.data.data || []);
         } catch (error) { 
             setProducts([]); 
@@ -74,11 +70,8 @@ const ProductbycategoryID = () => {
     // =========================================================
     const processImageUrl = (imagePath) => {
         if (!imagePath) return "https://via.placeholder.com/150?text=No+Image";
-        if (typeof imagePath === 'string' && imagePath.startsWith('blob')) return imagePath;
-        if (typeof imagePath === 'string' && imagePath.startsWith('http')) {
-            return imagePath.replace('https://labrostone-backend.onrender.com', API_BASE).replace('https://lebrostone.lifeinfotechinstitute.com', API_BASE);
-        }
-        return `${API_BASE}/${String(imagePath).replace(/^\//, '')}`;
+        if (typeof imagePath === 'string' && (imagePath.startsWith('blob') || imagePath.startsWith('http'))) return imagePath;
+        return getImageUrl(imagePath);
     };
 
     // =========================================================
@@ -173,7 +166,7 @@ const ProductbycategoryID = () => {
 
     const toggleBestsellerStatus = async (id) => {
         try {
-            await axios.put(`${API_BASE}/api/products/${id}/bestseller`, {}, getAuthHeader());
+            await instance.put(`/api/products/${id}/bestseller`, {}, getAuthHeader());
             fetchProducts();
         } catch (e) { 
             alert("Toggle Failed."); 
@@ -198,8 +191,8 @@ const ProductbycategoryID = () => {
 
         try {
             const config = { headers: { ...getAuthHeader().headers, 'Content-Type': 'multipart/form-data' } };
-            if (isEditMode) await axios.put(`/api/products/${selectedId}`, data, config);
-            else await axios.post(`/api/products`, data, config);
+            if (isEditMode) await instance.put(`/api/products/${selectedId}`, data, config);
+            else await instance.post(`/api/products`, data, config);
             alert("Success! ✅");
             closeModal();
             fetchProducts();
@@ -211,7 +204,7 @@ const ProductbycategoryID = () => {
     const handleDelete = async (id) => {
         if (window.confirm("Delete Product?")) {
             try {
-                await axios.delete(`/api/products/${id}`, getAuthHeader());
+                await instance.delete(`/api/products/${id}`, getAuthHeader());
                 fetchProducts();
             } catch (e) { alert("Delete Failed"); }
         }

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { 
   Plus, Trash2, Save, RotateCcw, ListChecks, FlaskConical, 
   BookOpen, Search, Package, Edit, LayoutList 
 } from 'lucide-react';
 
 const Features = () => {
-  const [products, setProducts] = useState([]); // Dropdown ke liye
-  const [allFeaturesList, setAllFeaturesList] = useState([]); // Table ke liye
+  const [products, setProducts] = useState([]);
+  const [allFeaturesList, setAllFeaturesList] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -16,20 +16,16 @@ const Features = () => {
   const [howToUse, setHowToUse] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = "http://localhost:5000/api";
-
   useEffect(() => {
     fetchInitialData();
   }, []);
 
   const fetchInitialData = async () => {
     try {
-      // Dropdown ke liye products
-      const prodRes = await axios.get(`${API_BASE}/products`);
+      const prodRes = await instance.get("/api/products");
       setProducts(prodRes.data.data || prodRes.data);
 
-      // Table ke liye ProductFeatures collection ka data
-      const featRes = await axios.get(`${API_BASE}/features/all/list`);
+      const featRes = await instance.get("/api/features/all/list");
       setAllFeaturesList(featRes.data.data || []);
     } catch (err) {
       console.error("Data fetch error:", err);
@@ -47,7 +43,7 @@ const Features = () => {
 
   const fetchFeatureDetails = async (id) => {
     try {
-      const res = await axios.get(`${API_BASE}/features/${id}`);
+      const res = await instance.get(`/api/features/${id}`);
       if (res.data && res.data._id) {
         setFeatures(res.data.features.length ? res.data.features : [""]);
         setIngredients(res.data.ingredients.length ? res.data.ingredients : [""]);
@@ -70,7 +66,7 @@ const Features = () => {
     if (!selectedProductId) return alert("Pehle product select karein!");
     setLoading(true);
     try {
-      await axios.post(`${API_BASE}/features/save`, {
+      await instance.post("/api/features/save", {
         productId: selectedProductId,
         features: features.filter(f => f.trim() !== ""),
         ingredients: ingredients.filter(i => i.trim() !== ""),
@@ -88,7 +84,7 @@ const Features = () => {
   // Table functions (Delete)
   const handleDelete = async (id) => {
     if(window.confirm("Delete karein?")) {
-        await axios.delete(`${API_BASE}/features/${id}`);
+        await instance.delete(`/api/features/${id}`);
         fetchInitialData();
     }
   }

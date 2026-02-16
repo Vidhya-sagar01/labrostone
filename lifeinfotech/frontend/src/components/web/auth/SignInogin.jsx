@@ -5,14 +5,26 @@ import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, Lock, Phone } from "lucide-react";
 import Navbar from "../comman/Navbar";
 import Footer from "../comman/Footer";
+import instance from "../api/AxiosConfig";
 
 const SignInogin = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [formData, setFormData] = useState({ phoneNumber: "", password: "" });
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Mobile validation: Sirf numbers allow honge aur max 10 digits
+    if (name === "phoneNumber") {
+      const onlyNums = value.replace(/[^0-9]/g, "");
+      if (onlyNums.length <= 10) {
+        setFormData({ ...formData, [name]: onlyNums });
+      }
+      return;
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleAuthSuccess = (userData) => {
@@ -25,19 +37,12 @@ const SignInogin = () => {
   const handleGoogleSuccess = async (response) => {
     try {
       const details = jwtDecode(response.credential);
-      const res = await fetch(
-        "https://lebrostonebackend.lifeinfotechinstitute.com/api/google-auth",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: details.email,
-            name: details.name,
-            sub: details.sub,
-          }),
-        },
-      );
-      const data = await res.json();
+      const res = await instance.post("/api/google-auth", {
+        email: details.email,
+        name: details.name,
+        sub: details.sub,
+      });
+      const data = res.data;
       if (data.success) handleAuthSuccess(data.user);
     } catch (error) {
       console.error(error);
@@ -46,18 +51,18 @@ const SignInogin = () => {
 
   const handleManualLogin = async (e) => {
     e.preventDefault();
+
+    // Check for 10 digits
+    if (formData.phoneNumber.length !== 10) {
+      alert("Please enter a valid 10-digit mobile number");
+      return;
+    }
+
     try {
-      const res = await fetch(
-        "https://lebrostonebackend.lifeinfotechinstitute.com/api/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        },
-      );
-      const data = await res.json();
+      const res = await instance.post("/api/login", formData);
+      const data = res.data;
       if (data.success) handleAuthSuccess(data.user);
-      else alert(data.message);
+      else alert(data.message || "Invalid credentials");
     } catch (error) {
       console.error(error);
     }
@@ -92,16 +97,17 @@ const SignInogin = () => {
             {/* Mobile Number Input */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">
-                Enter you email
+                Enter Mobile Number
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                   <Phone size={18} />
                 </span>
                 <input
-                  type="email"
-                  name="email"
-                  placeholder="Enter your email"
+                  type="text"
+                  name="phoneNumber"
+                  placeholder="10-digit mobile number"
+                  value={formData.phoneNumber}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#00a688]/20 focus:border-[#00a688] outline-none transition-all"
                   required
@@ -122,6 +128,7 @@ const SignInogin = () => {
                   type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="Enter your password"
+                  value={formData.password}
                   onChange={handleInputChange}
                   className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-[#00a688]/20 focus:border-[#00a688] outline-none transition-all"
                   required
@@ -146,7 +153,6 @@ const SignInogin = () => {
               </label>
               <Link
                 to="/forgot-password"
-                size={14}
                 className="text-[#00a688] font-bold hover:underline"
               >
                 Forgot password?
@@ -173,13 +179,11 @@ const SignInogin = () => {
             </div>
           </div>
 
-          {/* GOOGLE SIGN IN BUTTON (BLUE PILL SHAPE) */}
+          {/* GOOGLE SIGN IN BUTTON */}
           <div className="flex justify-center">
             <div className="relative group">
-              {/* Overlaying the custom styled container over the real Google button */}
               <div className="absolute inset-0 z-0 bg-[#1a73e8] rounded-full flex items-center px-2 pointer-events-none min-w-[240px]">
                 <div className="bg-white rounded-full p-1.5 flex items-center justify-center">
-                  {/* Google Logo Icon Placeholder (Standard size) */}
                   <svg width="18" height="18" viewBox="0 0 18 18">
                     <path
                       fill="#4285F4"
@@ -203,8 +207,6 @@ const SignInogin = () => {
                   Sign in with Google
                 </span>
               </div>
-
-              {/* Actual Google Login (Hidden opacity but clickable) */}
               <div className="opacity-0 relative z-10">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}

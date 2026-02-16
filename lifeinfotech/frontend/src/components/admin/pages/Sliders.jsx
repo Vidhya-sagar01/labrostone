@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance, { getImageUrl } from '../../web/api/AxiosConfig';
 import { useNavigate } from 'react-router-dom';
 
 const Slider = () => {
@@ -19,9 +19,6 @@ const Slider = () => {
   const initialForm = { title: '', image: null, status: true };
   const [formData, setFormData] = useState(initialForm);
 
-  // axios.defaults.baseURL = 'http://localhost:5000';
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
-
   const getAuthHeader = (isMultipart = false) => {
     const token = localStorage.getItem('adminToken');
     return {
@@ -39,7 +36,7 @@ const Slider = () => {
   const fetchSliders = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(
+      const res = await instance.get(
         `/api/admin/sliders?search=${searchTerm}&page=${currentPage}`,
         getAuthHeader()
       );
@@ -71,9 +68,9 @@ const Slider = () => {
 
     try {
       if (isEditMode) {
-        await axios.put(`/api/admin/sliders/${selectedId}`, data, getAuthHeader(true));
+        await instance.put(`/api/admin/sliders/${selectedId}`, data, getAuthHeader(true));
       } else {
-        await axios.post('/api/admin/sliders', data, getAuthHeader(true));
+        await instance.post('/api/admin/sliders', data, getAuthHeader(true));
       }
       closeModal();
       fetchSliders();
@@ -91,7 +88,7 @@ const Slider = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(`/api/admin/sliders/${selectedId}`, getAuthHeader());
+      await instance.delete(`/api/admin/sliders/${selectedId}`, getAuthHeader());
       setShowDeleteModal(false);
       fetchSliders();
     } catch {
@@ -138,7 +135,7 @@ const Slider = () => {
             ) : sliders.map(slider => (
               <tr key={slider._id} className="hover:bg-slate-700/30">
                 <td className="p-4 flex items-center gap-4">
-                  <img src={slider.image} className="w-24 h-14 rounded-xl object-cover" />
+                  <img src={getImageUrl(slider.image) || slider.image} className="w-24 h-14 rounded-xl object-cover" alt="" />
                   <div className="font-bold uppercase">{slider.title}</div>
                 </td>
                 <td className="p-4 text-center">

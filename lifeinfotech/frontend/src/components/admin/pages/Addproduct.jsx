@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { Save, Image as ImageIcon, Info, Cpu, Plus, Trash ,Layers} from 'lucide-react';
-
-const API_BASE = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
 
 const AddProduct = () => {
   const [categories, setCategories] = useState([]);
@@ -46,10 +42,10 @@ const AddProduct = () => {
     try {
       const getHeader = { headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` } };
       const [cat, sub, subSub, br] = await Promise.all([
-        axios.get(`${API_BASE}/api/categories`, getHeader),
-        axios.get(`${API_BASE}/api/subcategories`, getHeader),
-        axios.get(`${API_BASE}/api/subsubcategories`, getHeader),
-        axios.get(`${API_BASE}/api/brands`, getHeader)
+        instance.get("/api/categories", getHeader),
+        instance.get("/api/subcategories", getHeader),
+        instance.get("/api/subsubcategories", getHeader),
+        instance.get("/api/brands", getHeader)
       ]);
       setCategories(cat.data.data || []);
       setSubCategories(sub.data.data || []);
@@ -84,7 +80,7 @@ const AddProduct = () => {
     });
 
     try {
-      await axios.post(`${API_BASE}/api/products`, data, {
+      await instance.post("/api/products", data, {
         headers: { 
           Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
           'Content-Type': 'multipart/form-data'

@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance, { getImageUrl } from '../../web/api/AxiosConfig';
 import { Search, RefreshCw, UploadCloud, Tag } from 'lucide-react';
-
-const isLocal = window.location.hostname === "localhost";
-const API_BASE = isLocal 
-    ? "http://localhost:5000" 
-    : "https://lebrostonebackend.lifeinfotechinstitute.com";
 
 const AnantamBanner = () => {
     const [allProducts, setAllProducts] = useState([]); // ✅ Original Data
@@ -28,7 +23,7 @@ const AnantamBanner = () => {
     const processImageUrl = (imagePath) => {
         if (!imagePath) return "https://via.placeholder.com/150?text=No+Image";
         if (typeof imagePath === 'string' && (imagePath.startsWith('http') || imagePath.startsWith('blob'))) return imagePath;
-        return `${API_BASE}/${String(imagePath).replace(/^\//, '')}`;
+        return getImageUrl(imagePath);
     };
 
     // ✅ Initial Data Fetch
@@ -37,14 +32,14 @@ const AnantamBanner = () => {
             try {
                 setLoading(true);
                 // 1. Fetch Banner
-                const bannerRes = await axios.get(`${API_BASE}/api/products/banner`);
+                const bannerRes = await instance.get("/api/products/banner");
                 if (bannerRes.data.success) {
                     const freshBanner = processImageUrl(bannerRes.data.url);
                     setBannerUrl(`${freshBanner}?t=${Date.now()}`);
                 }
 
                 // 2. Fetch All Products for filtering
-                const res = await axios.get(`${API_BASE}/api/products`, getAuthHeader());
+                const res = await instance.get("/api/products", getAuthHeader());
                 const data = res.data.data || [];
                 setAllProducts(data);
                 setFilteredProducts(data); // Default view
@@ -90,7 +85,7 @@ const AnantamBanner = () => {
 
     const handleToggleAnantam = async (productId, currentStatus) => {
         try {
-            const res = await axios.put(`${API_BASE}/api/products/anantam/${productId}`, 
+            const res = await instance.put(`/api/products/anantam/${productId}`, 
                 { is_anantam: !currentStatus }, getAuthHeader());
             if (res.data.success) {
                 // Update both lists
@@ -107,7 +102,7 @@ const AnantamBanner = () => {
         const formData = new FormData();
         formData.append('banner', file);
         try {
-            const res = await axios.post(`${API_BASE}/api/products/banner-upload`, formData, {
+            const res = await instance.post("/api/products/banner-upload", formData, {
                 headers: { ...getAuthHeader().headers, 'Content-Type': 'multipart/form-data' }
             });
             if (res.data.success) {

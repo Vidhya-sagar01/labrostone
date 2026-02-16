@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance, { getImageUrl } from '../../web/api/AxiosConfig';
 import { Search, Filter, Star, Eye, Edit, Trash2, ChevronLeft, ChevronRight, RefreshCcw,Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,8 +15,6 @@ const ProductList = () => {
   
   const itemsPerPage = 8;
 
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
-
   useEffect(() => {
     fetchInitialData();
   }, []);
@@ -25,8 +23,8 @@ const ProductList = () => {
     try {
       setLoading(true);
       const [prodRes, catRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/products`),
-        axios.get(`${API_BASE}/api/categories`)
+        instance.get("/api/products"),
+        instance.get("/api/categories")
       ]);
 
       const allProds = prodRes.data.data || prodRes.data.products || [];
@@ -49,7 +47,7 @@ const ProductList = () => {
         setDeletingId(productId);
         const adminToken = localStorage.getItem('adminToken');
         
-        await axios.delete(`${API_BASE}/api/products/${productId}`, {
+        await instance.delete(`/api/products/${productId}`, {
           headers: { Authorization: `Bearer ${adminToken}` }
         });
 
@@ -126,7 +124,7 @@ const ProductList = () => {
     // Assuming your toggle logic works, just triggering refresh here
     try {
         const adminToken = localStorage.getItem('adminToken'); // Ensure token key matches
-        await axios.put(`${API_BASE}/api/products/${productId}/bestseller`, {}, {
+        await instance.put(`/api/products/${productId}/bestseller`, {}, {
             headers: { Authorization: `Bearer ${adminToken}` }
         });
         // Update local state directly for speed
@@ -215,7 +213,7 @@ const ProductList = () => {
                   <div className="relative">
                     {/* ✅ USING NEW IMAGE FUNCTION */}
                     <img 
-                        src={getDisplayImage(prod)} 
+                        src={getImageUrl(getDisplayImage(prod)) || getDisplayImage(prod)} 
                         className="w-16 h-16 rounded-[1.2rem] object-cover border-2 border-slate-700 group-hover:border-blue-500 shadow-lg" 
                         alt="" 
                     />

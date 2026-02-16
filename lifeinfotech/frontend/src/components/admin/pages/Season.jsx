@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { Save, Image as ImageIcon, Info, Package, Plus, Trash, Layers, Tag, ShoppingBag, X, Search } from 'lucide-react';
-
-const API_BASE = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
 
 const Season = () => {
   const [formData, setFormData] = useState({
@@ -35,7 +31,7 @@ const Season = () => {
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem("adminToken");
-      const res = await axios.get(`${API_BASE}/api/products`, {
+      const res = await instance.get("/api/products", {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAllProducts(res.data.data || res.data || []);
@@ -103,7 +99,7 @@ const Season = () => {
 
     try {
       const token = localStorage.getItem("adminToken");
-      await axios.post(`${API_BASE}/api/combos`, data, {
+      await instance.post("/api/combos", data, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'

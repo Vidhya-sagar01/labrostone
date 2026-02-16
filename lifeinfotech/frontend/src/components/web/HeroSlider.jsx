@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import instance, { getImageUrl } from "./api/AxiosConfig";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -21,12 +21,10 @@ const HeroSlider = () => {
     { icon: <FaUserDoctor />, title: "Free Doctor Consultation" },
   ];
 
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
-
   useEffect(() => {
     const fetchSliders = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/admin/sliders`);
+        const res = await instance.get("/api/admin/sliders");
 
         if (res.data.success && Array.isArray(res.data.sliders)) {
           // only active sliders
@@ -74,7 +72,7 @@ const HeroSlider = () => {
         {slides.map((slide) => (
           <SwiperSlide key={slide._id}>
             <img
-              src={slide.image}
+              src={getImageUrl(slide.image) || slide.image}
               alt={slide.title || "Banner"}
               className="w-full h-full object-cover"
             />

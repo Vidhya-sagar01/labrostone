@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance, { getImageUrl } from '../../web/api/AxiosConfig';
 import { Search, Download, Edit, Trash2, Tag, X, AlertTriangle, ImageIcon } from 'lucide-react';
 import { CSVLink } from "react-csv";
-
-const API_BASE = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
 
 const Brandlist = () => {
   const [brands, setBrands] = useState([]);
@@ -37,7 +33,7 @@ const Brandlist = () => {
 
   const fetchBrands = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/api/brands`, getAuthHeader());
+      const response = await instance.get("/api/brands", getAuthHeader());
       setBrands(response.data.data || []);
       setLoading(false);
     } catch (error) {
@@ -52,7 +48,7 @@ const Brandlist = () => {
     setModalType(type);
     if (type === 'edit') {
       setEditName(brand.name);
-      setEditPreview(`${API_BASE}${brand.logo}`);
+      setEditPreview(getImageUrl(brand.logo) || "");
       setEditFile(null);
     }
   };
@@ -66,7 +62,7 @@ const Brandlist = () => {
   const confirmToggleStatus = async () => {
     try {
       const newStatus = !selectedBrand.status;
-      await axios.put(`${API_BASE}/api/brands/${selectedBrand._id}`, { status: newStatus }, getAuthHeader());
+      await instance.put(`/api/brands/${selectedBrand._id}`, { status: newStatus }, getAuthHeader());
       fetchBrands();
       closeModal();
     } catch (error) {
@@ -77,7 +73,7 @@ const Brandlist = () => {
   // ✅ 2. Delete Brand
   const confirmDelete = async () => {
     try {
-      await axios.delete(`${API_BASE}/api/brands/${selectedBrand._id}`, getAuthHeader());
+      await instance.delete(`/api/brands/${selectedBrand._id}`, getAuthHeader());
       fetchBrands();
       closeModal();
     } catch (error) {
@@ -93,7 +89,7 @@ const Brandlist = () => {
     if (editFile) formData.append('logo', editFile);
 
     try {
-      await axios.put(`${API_BASE}/api/brands/${selectedBrand._id}`, formData, getAuthHeader(true));
+      await instance.put(`/api/brands/${selectedBrand._id}`, formData, getAuthHeader(true));
       fetchBrands();
       closeModal();
       alert("Brand Updated! ✅");
@@ -134,7 +130,7 @@ const Brandlist = () => {
               {filteredBrands.map((brand, index) => (
                 <tr key={brand._id} className="border-b hover:bg-slate-50">
                   <td className="px-6 py-4">{index + 1}</td>
-                  <td className="px-6 py-4 flex justify-center"><img src={`${API_BASE}${brand.logo}`} className="w-12 h-12 object-contain" /></td>
+                  <td className="px-6 py-4 flex justify-center"><img src={getImageUrl(brand.logo)} className="w-12 h-12 object-contain" alt="" /></td>
                   <td className="px-6 py-4 font-medium">{brand.name}</td>
                   <td className="px-6 py-4 text-center">
                     <button onClick={() => handleAction('status', brand)} className={`h-6 w-11 rounded-full relative ${brand.status ? 'bg-blue-600' : 'bg-slate-300'}`}>

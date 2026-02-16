@@ -1,25 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { Trash2, Star, Play, Upload, Plus, Loader2, Video, X } from 'lucide-react';
 
 const RealAdmin = () => {
     const [reels, setReels] = useState([]);
     const [loading, setLoading] = useState(false);
     const [videoPreview, setVideoPreview] = useState(null);
-    const [activeVideo, setActiveVideo] = useState(null); // Clicked video ke liye state
+    const [activeVideo, setActiveVideo] = useState(null);
     const [formData, setFormData] = useState({ customerName: '', rating: 5, reviewText: '', video: null });
 
-    const API_BASE = (window.location.hostname === "localhost" 
-  ? "http://localhost:5000" 
-  : "https://lebrostonebackend.lifeinfotechinstitute.com")
-    
-    const API_URL = `${API_BASE}/api/reels`;
-
     useEffect(() => { fetchReels(); }, []);
-    console.log("API Base URL:", API_BASE);
+
     const fetchReels = async () => {
         try {
-            const res = await axios.get(`${API_URL}/all`);
+            const res = await instance.get("/api/reels/all");
             setReels(res.data);
         } catch (err) { console.error("Fetch error"); }
     };
@@ -45,7 +39,7 @@ const RealAdmin = () => {
 
         try {
             const token = localStorage.getItem('adminToken');
-            await axios.post(`${API_URL}/add`, data, {
+            await instance.post("/api/reels/add", data, {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
             });
             alert("Video Review Added! 🎬");
@@ -60,7 +54,7 @@ const RealAdmin = () => {
         e.stopPropagation(); // Delete click se video player open na ho
         if (window.confirm("Delete this video review?")) {
             const token = localStorage.getItem('adminToken');
-            await axios.delete(`${API_URL}/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await instance.delete(`/api/reels/${id}`, { headers: { Authorization: `Bearer ${token}` } });
             fetchReels();
         }
     };

@@ -4,24 +4,21 @@ import { Navigation, Autoplay } from "swiper/modules";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import "swiper/css";
 import "swiper/css/navigation";
-import instance from "./api/AxiosConfig";
+import { useNavigate } from "react-router-dom";
+import instance, { getImageUrl } from "./api/AxiosConfig";
 
 const Category = () => {
+  const navigate = useNavigate();
   const swiperRef = useRef(null);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
-
-  const getImageUrl = (url) => {
+  const getCategoryImageUrl = (url) => {
     if (!url) return "https://via.placeholder.com/400x400?text=Category";
-    if (url.startsWith("http")) return url;
-    const cleanPath = url.replace(/^\/+/, "");
-    return `${API_BASE}/${cleanPath}`;
+    return getImageUrl(url) || "https://via.placeholder.com/400x400?text=Category";
   };
 
   useEffect(() => {
-    // async should be inside, not on the effect itself
     const fetchCats = async () => {
       try {
         setLoading(true);
@@ -79,7 +76,7 @@ const Category = () => {
               pauseOnMouseEnter: true,
             }}
             speed={800}
-            loop={categories.length > 6} // Loop only if there's enough data
+            loop={categories.length > 6}
             onBeforeInit={(swiper) => {
               swiperRef.current = swiper;
             }}
@@ -87,17 +84,20 @@ const Category = () => {
           >
             {categories.map((item) => (
               <SwiperSlide key={item._id}>
-                <div className="flex flex-col items-center group cursor-pointer">
+                <div
+                  className="flex flex-col items-center group cursor-pointer"
+                  onClick={() => navigate(`/shop/category/${item._id}`)}
+                >
                   <div className="relative w-full aspect-square mb-4 overflow-hidden rounded-3xl shadow-md transition-transform duration-300 group-hover:scale-105">
                     <img
-                      src={getImageUrl(item.image_url)} // Use helper + correct key
-                      alt={item.name} // Correct key
+                      src={getCategoryImageUrl(item.image_url)}
+                      alt={item.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
 
                   <h3 className="text-sm md:text-base font-semibold text-gray-800 text-center tracking-wide uppercase">
-                    {item.name} {/* Correct key */}
+                    {item.name}
                   </h3>
                 </div>
               </SwiperSlide>

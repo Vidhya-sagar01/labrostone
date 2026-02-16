@@ -1,25 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 
 const User = () => {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   
-  // Modal states
-  const [selectedCart, setSelectedCart] = useState([]); // Cart items store karne ke liye
+  const [selectedCart, setSelectedCart] = useState([]);
   const [currentUserName, setCurrentUserName] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const isLocal = window.location.hostname === "localhost";
-  const BASE_URL = isLocal 
-    ? "http://localhost:5000/api" 
-    : "https://lebrostonebackend.lifeinfotechinstitute.com/api";
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${BASE_URL}/user/all`);
+      const response = await instance.get("/api/user/all");
       setUsers(Array.isArray(response.data) ? response.data : []); 
       setLoading(false);
     } catch (err) {

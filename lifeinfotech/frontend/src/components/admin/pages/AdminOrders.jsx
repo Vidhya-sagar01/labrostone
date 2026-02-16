@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { 
   Package, Search, Eye, Trash2, Loader2, 
   MapPin, CheckCircle, Clock, Truck, X, User, Receipt
@@ -11,18 +11,13 @@ const AdminOrders = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedOrder, setSelectedOrder] = useState(null);
 
-    const isLocal = window.location.hostname === "localhost";
-    const API_BASE = isLocal 
-        ? "http://localhost:5000/api" 
-        : "https://lebrostonebackend.lifeinfotechinstitute.com/api";
-
     useEffect(() => {
         fetchAllOrders();
     }, []);
 
     const fetchAllOrders = async () => {
         try {
-            const res = await axios.get(`${API_BASE}/orders/all`);
+            const res = await instance.get("/api/orders/all");
             setOrders(res.data.success ? res.data.data : []);
         } catch (err) {
             console.error("Fetch orders error:", err);
@@ -38,7 +33,7 @@ const AdminOrders = () => {
         if (window.confirm(`payment "${newStatus}"?`)) {
             try {
                 // Yeh aapke paymentRoutes ke update-payment endpoint ko call karega
-                const res = await axios.put(`${API_BASE}/payments/update-payment/${orderId}`, { 
+                const res = await instance.put(`/api/payments/update-payment/${orderId}`, { 
                     status: newStatus 
                 });
                 
@@ -54,7 +49,7 @@ const AdminOrders = () => {
 
     const updateStatus = async (orderId, newStatus) => {
         try {
-            const res = await axios.put(`${API_BASE}/orders/update-status/${orderId}`, { 
+            const res = await instance.put(`/api/orders/update-status/${orderId}`, { 
                 status: newStatus 
             });
             if (res.data.success) {
@@ -69,7 +64,7 @@ const AdminOrders = () => {
     const deleteOrder = async (id) => {
         if(window.confirm("Delete order record?")) {
             try {
-                await axios.delete(`${API_BASE}/orders/delete/${id}`);
+                await instance.delete(`/api/orders/delete/${id}`);
                 fetchAllOrders();
             } catch (err) { alert("Delete failed"); }
         }

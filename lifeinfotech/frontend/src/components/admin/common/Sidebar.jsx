@@ -7,10 +7,7 @@ import {
   Filter, ShoppingBag, CreditCard, Users, HelpCircle, Sun, PlayCircle, BookOpen
 } from 'lucide-react';
 
-// FIXED: Removed trailing spaces in production URL
-const API_BASE = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
+import { IMAGE_BASE_URL } from '../../web/api/AxiosConfig';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -45,7 +42,7 @@ const Sidebar = () => {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden">
             <img 
-              src={`${API_BASE}/uploads/logo/logo.png`} 
+              src={`${IMAGE_BASE_URL}/uploads/logo/logo.png`} 
               alt="L" 
               className="w-full h-full object-contain p-1"
               onError={(e) => {

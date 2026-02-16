@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { Search, Download, Edit, Trash2, Layers, RotateCcw, Send, X, AlertTriangle } from 'lucide-react';
-import { CSVLink } from "react-csv"; // CSV Export ke liye import zaroori hai
-
-const API_BASE = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
+import { CSVLink } from "react-csv";
 
 const SubSubCategory = () => {
   const [list, setList] = useState([]);
@@ -34,8 +30,8 @@ const SubSubCategory = () => {
   const fetchDependencies = async () => {
     try {
       const [catRes, subRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/categories`, getAuthHeader()),
-        axios.get(`${API_BASE}/api/subcategories`, getAuthHeader())
+        instance.get("/api/categories", getAuthHeader()),
+        instance.get("/api/subcategories", getAuthHeader())
       ]);
       setCategories(catRes.data.categories || catRes.data.data || []);
       setSubCategories(subRes.data.data || []);
@@ -44,7 +40,7 @@ const SubSubCategory = () => {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/subsubcategories`, getAuthHeader());
+      const res = await instance.get("/api/subsubcategories", getAuthHeader());
       setList(res.data.data || []);
       setLoading(false);
     } catch (err) { setLoading(false); }
@@ -70,7 +66,7 @@ const SubSubCategory = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE}/api/subsubcategories`, formData, getAuthHeader());
+      await instance.post("/api/subsubcategories", formData, getAuthHeader());
       alert("Added Successfully! ✅");
       setFormData(initialForm);
       setFilteredSubs([]);
@@ -81,7 +77,7 @@ const SubSubCategory = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API_BASE}/api/subsubcategories/${selectedItem._id}`, selectedItem, getAuthHeader());
+      await instance.put(`/api/subsubcategories/${selectedItem._id}`, selectedItem, getAuthHeader());
       alert("Updated Successfully! ✅");
       setModalType(null);
       fetchData();
@@ -90,7 +86,7 @@ const SubSubCategory = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(`${API_BASE}/api/subsubcategories/${selectedItem._id}`, getAuthHeader());
+      await instance.delete(`/api/subsubcategories/${selectedItem._id}`, getAuthHeader());
       setModalType(null);
       fetchData();
     } catch (err) { alert("Delete failed"); }

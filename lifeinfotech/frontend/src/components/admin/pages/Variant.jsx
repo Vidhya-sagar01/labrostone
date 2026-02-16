@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-// Note: Icons ke liye 'lucide-react' library best hai. 
-// Agar install nahi hai to: npm install lucide-react
+import instance from '../../web/api/AxiosConfig';
 import { Edit2, Trash2, Plus, X, Package } from 'lucide-react';
 
 const Variant = () => {
@@ -13,11 +11,9 @@ const Variant = () => {
     productId: '', 
     weightOrSize: '', 
     price: '', 
-    sku: '', // Naya SKU field
+    sku: '', 
     stock: '' 
   });
-
-  const API_BASE = "http://localhost:5000/api";
 
   useEffect(() => {
     fetchProducts();
@@ -26,14 +22,14 @@ const Variant = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/products`);
+      const res = await instance.get("/api/products");
       if (res.data && res.data.data) setProducts(res.data.data);
     } catch (err) { console.error("Error loading products", err); }
   };
 
   const fetchVariants = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/variants/all-variants`);
+      const res = await instance.get("/api/variants/all-variants");
       setVariants(res.data);
     } catch (err) { console.error("Error loading variants", err); }
   };
@@ -42,9 +38,9 @@ const Variant = () => {
     e.preventDefault();
     try {
       if (isEditing) {
-        await axios.put(`${API_BASE}/variants/update-variant/${currentId}`, formData);
+        await instance.put(`/api/variants/update-variant/${currentId}`, formData);
       } else {
-        await axios.post(`${API_BASE}/variants/add-variant`, formData);
+        await instance.post("/api/variants/add-variant", formData);
       }
       resetForm();
       fetchVariants();
@@ -71,7 +67,7 @@ const Variant = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this variant?")) {
-      await axios.delete(`${API_BASE}/variants/delete-variant/${id}`);
+      await instance.delete(`/api/variants/delete-variant/${id}`);
       fetchVariants();
     }
   };

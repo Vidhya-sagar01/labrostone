@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { ShoppingCart, Star, Minus, Plus, Tag, Loader2 } from "lucide-react";
-import axios from "axios";
+import instance from "../web/api/AxiosConfig";
 import { useNavigate } from "react-router-dom";
 
 const ProductSidebar = ({
@@ -11,7 +11,6 @@ const ProductSidebar = ({
 }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
 
   // --- SAFE CHECK ---
   if (!product || !selectedVariant) return null;
@@ -137,7 +136,7 @@ const ProductSidebar = ({
         image: product.images?.[0] || "",
       };
 
-      const response = await axios.post(`${API_BASE}/api/cart/add`, cartData);
+      const response = await instance.post("/api/cart/add", cartData);
 
       if (response.data.success) {
         alert(`${product.name} Added to Cart! ✅`);

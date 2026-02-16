@@ -48,12 +48,31 @@ const Navbar = () => {
 
   const navItems = [
     { name: "HOME", hasDropdown: false, path: "/" },
-    { name: "MEN'S HEALTH", hasDropdown: false, path: "/products" },
-    { name: "DAILY WELLNESS", hasDropdown: false },
-    { name: "WEIGHT MANAGEMENT", hasDropdown: false },
-    { name: "HAIR CARE", hasDropdown: false },
-    { name: "SKIN CARE", hasDropdown: false },
-    { name: "WOMEN'S HEALTH", hasDropdown: false },
+    { name: "SHOP ALL", hasDropdown: false, path: "/shop" },
+   
+    {
+      name: "MEN'S HEALTH",
+      hasDropdown: false,
+      path: "/shop/category/mens-health",
+    },
+    {
+      name: "DAILY WELLNESS",
+      hasDropdown: false,
+      path: "/shop/category/daily-wellness",
+    },
+    {
+      name: "WEIGHT MANAGEMENT",
+      hasDropdown: false,
+      path: "/shop/category/weight-management",
+    },
+    { name: "HAIR CARE", hasDropdown: false, path: "/shop/category/hair-care" },
+    { name: "SKIN CARE", hasDropdown: false, path: "/shop/category/skin-care" },
+    {
+      name: "WOMEN'S HEALTH",
+      hasDropdown: false,
+      path: "/shop/category/womens-health",
+    },
+    { name: "BLOG", hasDropdown: false, path: "/blogs" },
   ];
 
   return (

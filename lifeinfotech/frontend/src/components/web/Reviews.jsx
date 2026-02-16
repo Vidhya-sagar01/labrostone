@@ -2,27 +2,22 @@ import React, { useEffect, useState, useRef } from "react";
 import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
+import instance, { getImageUrl } from "./api/AxiosConfig";
 
 // Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 
 const Reviews = () => {
-  const isLocal =
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1";
-  const API_BASE_URL = "https://lebrostonebackend.lifeinfotechinstitute.com";
-
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const swiperRef = useRef(null);
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/reviews/all`);
-        const data = await res.json();
-
-        // Only active reviews
+        const res = await instance.get("/api/reviews/all");
+        const data = res.data;
         const activeReviews = data.filter((r) => r.status === true);
         setReviews(activeReviews);
       } catch (err) {
@@ -31,17 +26,8 @@ const Reviews = () => {
         setLoading(false);
       }
     };
-
     fetchReviews();
   }, []);
-
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return "";
-    if (imagePath.startsWith("http")) return imagePath;
-    return `${API_BASE_URL}${imagePath}`;
-  };
-
-  const swiperRef = useRef(null);
 
   if (loading)
     return (
@@ -63,24 +49,30 @@ const Reviews = () => {
           </div>
         </div>
 
-        <div className="relative max-w-2xl mx-auto group">
+        {/* Changed max-w-2xl to max-w-7xl to allow 3 columns to breathe */}
+        <div className="relative max-w-7xl mx-auto group">
           <Swiper
             modules={[Autoplay, Navigation]}
-            spaceBetween={30}
-            slidesPerView={1}
+            spaceBetween={20}
+            // Responsive breakpoints
+            breakpoints={{
+              640: { slidesPerView: 1 },
+              768: { slidesPerView: 2 },
+              1024: { slidesPerView: 3 }, // Shows 3 reviews on desktop
+            }}
             loop={true}
             autoplay={{
-              delay: 1000,
-              disableOnInteraction: false,
+              delay: 3000, // 3 seconds auto-scroll
+              disableOnInteraction: false, // Keeps autoplay running after manual swipe
             }}
             onSwiper={(swiper) => (swiperRef.current = swiper)}
-            className="pb-10"
+            className="pb-12"
           >
             {reviews.map((review) => (
-              <SwiperSlide key={review._id}>
-                <div className="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-gray-50 p-6 md:p-10 flex flex-col items-center text-center">
+              <SwiperSlide key={review._id} className="h-full">
+                <div className="bg-white h-full rounded-2xl shadow-md border border-gray-100 p-6 flex flex-col items-center text-center transition-transform duration-300 hover:shadow-lg">
                   {/* Customer Image */}
-                  <div className="w-16 h-16 md:w-20 md:h-20 mb-6 rounded-full overflow-hidden border-2 border-[#FAF6EA] shadow-md">
+                  <div className="w-16 h-16 mb-4 rounded-full overflow-hidden border-2 border-[#FAF6EA] shadow-sm">
                     <img
                       src={getImageUrl(review.customerImage)}
                       alt={review.customerName}
@@ -89,24 +81,28 @@ const Reviews = () => {
                   </div>
 
                   {/* Rating */}
-                  <div className="flex justify-center gap-1 mb-4">
-                    {[...Array(review.rating)].map((_, i) => (
+                  <div className="flex justify-center gap-1 mb-3">
+                    {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        size={16}
-                        fill="#fbbf24"
-                        className="text-yellow-400"
+                        size={14}
+                        fill={i < review.rating ? "#fbbf24" : "none"}
+                        className={
+                          i < review.rating
+                            ? "text-yellow-400"
+                            : "text-gray-300"
+                        }
                       />
                     ))}
                   </div>
 
                   {/* Comment */}
-                  <p className="text-base md:text-lg text-gray-700 italic leading-relaxed mb-6 font-medium">
+                  <p className="text-sm md:text-base text-gray-600 italic leading-relaxed mb-6 flex-grow">
                     "{review.comment}"
                   </p>
 
                   {/* Name */}
-                  <h3 className="text-sm md:text-base font-bold text-black uppercase tracking-widest">
+                  <h3 className="text-xs md:text-sm font-bold text-black uppercase tracking-widest">
                     {review.customerName}
                   </h3>
                 </div>
@@ -114,18 +110,18 @@ const Reviews = () => {
             ))}
           </Swiper>
 
-          {/* Custom Nav Buttons */}
+          {/* Navigation Buttons (Positioned outside the swiper container) */}
           <button
             onClick={() => swiperRef.current?.slidePrev()}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 z-20 w-10 h-10 rounded-full bg-white shadow-lg items-center justify-center text-gray-400 hover:text-black transition-all hidden md:flex"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 lg:-translate-x-12 z-30 w-10 h-10 rounded-full bg-white shadow-xl flex items-center justify-center text-gray-400 hover:text-black hover:scale-110 transition-all"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={24} />
           </button>
           <button
             onClick={() => swiperRef.current?.slideNext()}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 z-20 w-10 h-10 rounded-full bg-white shadow-lg items-center justify-center text-gray-400 hover:text-black transition-all hidden md:flex"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 lg:translate-x-12 z-30 w-10 h-10 rounded-full bg-white shadow-xl flex items-center justify-center text-gray-400 hover:text-black hover:scale-110 transition-all"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={24} />
           </button>
         </div>
       </div>

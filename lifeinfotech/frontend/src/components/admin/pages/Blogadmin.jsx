@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance, { getImageUrl } from '../../web/api/AxiosConfig';
 import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css'; // Editor style
+import 'react-quill-new/dist/quill.snow.css';
 import { Upload, Plus, Loader2, BookOpen, Trash2 } from 'lucide-react';
 
 const Blogadmin= () => {
@@ -15,13 +15,10 @@ const Blogadmin= () => {
         image: null 
     });
 
-    const API_BASE = window.location.hostname === "localhost" 
-        ? "http://localhost:5000" : "https://lebrostonebackend.lifeinfotechinstitute.com";
-
     useEffect(() => { fetchBlogs(); }, []);
 
     const fetchBlogs = async () => {
-        const res = await axios.get(`${API_BASE}/api/blogs/all`);
+        const res = await instance.get("/api/blogs/all");
         setBlogs(res.data);
     };
 
@@ -36,7 +33,7 @@ const Blogadmin= () => {
 
         try {
             const token = localStorage.getItem('adminToken');
-            await axios.post(`${API_BASE}/api/blogs/add`, data, {
+            await instance.post("/api/blogs/add", data, {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
             });
             alert("Blog Published! 🚀");
@@ -97,7 +94,7 @@ const Blogadmin= () => {
                     <h3 className="font-black uppercase text-xs text-slate-400 tracking-widest ml-4">Recent Blogs</h3>
                     {blogs.map(blog => (
                         <div key={blog._id} className="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 flex gap-4 group">
-                            <img src={`${API_BASE}${blog.image}`} className="w-24 h-24 rounded-2xl object-cover" />
+                            <img src={getImageUrl(blog.image)} className="w-24 h-24 rounded-2xl object-cover" alt="" />
                             <div className="flex-1">
                                 <h4 className="font-bold text-slate-800 line-clamp-1">{blog.title}</h4>
                                 <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">{blog.shortDescription}</p>

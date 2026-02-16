@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import instance from "../../web/api/AxiosConfig";
 import { useNavigate } from "react-router-dom";
 import { ImageIcon, Send, Search, Edit, Trash2, Download } from 'lucide-react';
 import { CSVLink } from "react-csv";
-
-// --- API BASE CONFIGURATION ---
-const API_BASE = window.location.hostname === "localhost" 
-    ? "http://localhost:5000" 
-    : "https://lebrostonebackend.lifeinfotechinstitute.com";
-
-// Axios ka base URL globally set kar rahe hain
-axios.defaults.baseURL = API_BASE;
 
 const Category = () => {
     const [categories, setCategories] = useState([]);
@@ -55,7 +47,7 @@ const Category = () => {
         setLoading(true);
         try {
             // Note: Humne axios.defaults set kiya hai isliye pura URL dene ki zarurat nahi
-            const response = await axios.get(`/api/categories?search=${searchTerm}`, getAuthHeader());
+            const response = await instance.get(`/api/categories?search=${searchTerm}`, getAuthHeader());
             const resData = response.data.data || response.data || [];
             
             const sortedData = Array.isArray(resData) 
@@ -109,10 +101,10 @@ const Category = () => {
 
         try {
             if (isEditMode) {
-                await axios.put(`/api/categories/${selectedId}`, data, getAuthHeader(true));
+                await instance.put(`/api/categories/${selectedId}`, data, getAuthHeader(true));
                 alert("Updated Successfully! ✅");
             } else {
-                await axios.post(`/api/categories`, data, getAuthHeader(true));
+                await instance.post(`/api/categories`, data, getAuthHeader(true));
                 alert("Created Successfully! ✅");
             }
             handleReset();
@@ -126,7 +118,7 @@ const Category = () => {
     const handleDelete = async (id) => {
         if(window.confirm("Delete this category?")) {
             try {
-                await axios.delete(`/api/categories/${id}`, getAuthHeader());
+                await instance.delete(`/api/categories/${id}`, getAuthHeader());
                 fetchCategories();
             } catch (error) {
                 alert("Delete failed!");

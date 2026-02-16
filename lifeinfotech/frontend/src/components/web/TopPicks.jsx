@@ -1,87 +1,78 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { FaStar, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
+import instance, { getImageUrl } from "./api/AxiosConfig";
+import { useNavigate } from "react-router-dom";
 
 import "swiper/css";
 import "swiper/css/navigation";
 
 const TopPicks = () => {
   const [activeTab, setActiveTab] = useState("BESTSELLERS");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const swiperRef = useRef(null);
 
   const categories = ["BESTSELLERS", "NEW ARRIVAL", "COMBO"];
 
-  const allProducts = [
-    {
-      id: 1,
-      title: "Lebrostone Shilajit",
-      price: 229,
-      originalPrice: 349,
-      reviews: 88,
-      image:
-        "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1000&auto=format&fit=crop",
-      badge: "NEW LAUNCH",
-      category: "BESTSELLERS",
-    },
-    {
-      id: 2,
-      title: "Jamun Powder",
-      price: 299,
-      originalPrice: 399,
-      reviews: 93,
-      image:
-        "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?q=80&w=1000&auto=format&fit=crop",
-      badge: "NEW",
-      category: "BESTSELLERS",
-    },
-    {
-      id: 3,
-      title: "Ashwagandha Powder",
-      price: 259,
-      originalPrice: 359,
-      reviews: 64,
-      image:
-        "https://images.unsplash.com/photo-1590086782792-42dd2350140d?q=80&w=1000&auto=format&fit=crop",
-      badge: "NEW",
-      category: "NEW ARRIVAL",
-    },
-    {
-      id: 4,
-      title: "Neem Capsules",
-      price: 199,
-      originalPrice: 299,
-      reviews: 41,
-      image:
-        "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?q=80&w=1000&auto=format&fit=crop",
-      badge: "NEW",
-      category: "NEW ARRIVAL",
-    },
-    {
-      id: 5,
-      title: "Immunity Combo",
-      price: 499,
-      originalPrice: 699,
-      reviews: 112,
-      image:
-        "https://images.unsplash.com/photo-1584467735871-bfb1a1c2b7c9?q=80&w=1000&auto=format&fit=crop",
-      badge: "COMBO",
-      category: "COMBO",
-    },
-    {
-      id: 6,
-      title: "Skin Care Combo",
-      price: 549,
-      originalPrice: 799,
-      reviews: 87,
-      image:
-        "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?q=80&w=1000&auto=format&fit=crop",
-      badge: "COMBO",
-      category: "COMBO",
-    },
-  ];
+  useEffect(() => {
+    const fetchTopPicks = async () => {
+      try {
+        setLoading(true);
+        
+        if (activeTab === "COMBO") {
+          // Fetch combos from combo API
+          const res = await instance.get("/api/combos/active/list");
+          // Map combo data to match product structure
+          const comboData = (res.data.data || []).map(combo => ({
+            _id: combo._id,
+            name: combo.name,
+            thumbnail: combo.thumbnail,
+            unitPrice: combo.comboPrice,
+            originalPrice: combo.originalPrice,
+            discountAmount: combo.discountAmount,
+            discountType: combo.discountType,
+            description: combo.description,
+            isCombo: true, // Flag to identify combo items
+            products: combo.products,
+            comboStock: combo.comboStock,
+            minOrderQty: combo.minOrderQty,
+          }));
+          setProducts(comboData);
+        } else {
+          // For BESTSELLERS and NEW ARRIVAL, fetch all products
+          // since tag filtering might return empty results
+          const res = await instance.get("/api/products");
+          let productData = res.data.data || [];
+          
+          if (activeTab === "BESTSELLERS") {
+            // Take first 10 products for bestsellers
+            productData = productData.slice(0, 10);
+          } else if (activeTab === "NEW ARRIVAL") {
+            // Sort by createdAt date (newest first) and take first 10
+            productData = productData
+              .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+              .slice(0, 10);
+          }
+          
+          setProducts(productData);
+        }
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching top picks:", err);
+        setLoading(false);
+      }
+    };
 
-  const filteredProducts = allProducts.filter((p) => p.category === activeTab);
+    fetchTopPicks();
+  }, [activeTab]);
+
+  const getCleanUrl = (img) => {
+    if (!img) return "https://via.placeholder.com/300?text=Product";
+    return getImageUrl(img) || "https://via.placeholder.com/300?text=Product";
+  };
 
   return (
     <section className="pt-10 md:pt-16 bg-white ">
@@ -134,7 +125,7 @@ const TopPicks = () => {
             modules={[Navigation, Autoplay]}
             spaceBetween={24}
             slidesPerView={1}
-            loop
+            loop={products.length > 3}
             autoplay={{ delay: 2500 }}
             breakpoints={{
               768: { slidesPerView: 2 },
@@ -142,28 +133,41 @@ const TopPicks = () => {
             }}
             onSwiper={(swiper) => (swiperRef.current = swiper)}
           >
-            {filteredProducts.map((product) => (
-              <SwiperSlide key={product.id} className="py-10 px-4">
+            {products.map((product) => (
+              <SwiperSlide key={product._id} className="py-10 px-4">
                 {/* CARD */}
-                <div className="bg-white rounded-2xl shadow-lg p-4 md:p-10 relative h-[240px] md:h-[260px]">
+                <div
+                  className="bg-white rounded-2xl shadow-lg p-4 md:p-10 relative h-[240px] md:h-[260px] cursor-pointer"
+                  onClick={() => navigate(product.isCombo ? `/combo/${product._id}` : `/product/${product._id}`)}
+                >
                   {/* FLOATING IMAGE */}
                   <div className="absolute -top-10 left-4 md:left-6 w-24 h-24 md:w-28 md:h-28 bg-white rounded-xl shadow overflow-hidden">
                     <img
-                      src={product.image}
-                      alt={product.title}
+                      src={getCleanUrl(
+                        product.thumbnail ||
+                          (product.images && product.images[0]),
+                      )}
+                      alt={product.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
 
                   {/* CONTENT */}
                   <div className="pl-28 md:pl-32 flex flex-col h-full justify-between">
-                    <span className="bg-pink-500 text-white text-xs px-3 py-1 rounded-full w-fit">
-                      {product.badge}
+                    <span className="bg-[#00a758] text-white text-[10px] px-3 py-1 rounded-full w-fit uppercase font-bold">
+                      {product.isCombo ? "COMBO" : (product.productTag || "LEBROSTONE")}
                     </span>
 
-                    <h3 className="font-bold text-lg line-clamp-2">
-                      {product.title}
+                    <h3 className="font-bold text-lg line-clamp-2 uppercase">
+                      {product.name}
                     </h3>
+                    
+                    {/* SHORT DESCRIPTION */}
+                    <p className="text-gray-500 text-xs line-clamp-2">
+                      {product.shortDescription || 
+                        (product.description ? product.description.replace(/<[^>]*>/g, '').substring(0, 50) + '...' : 
+                        'Premium quality product')}
+                    </p>
 
                     {/* RATING */}
                     <div className="flex items-center gap-2">
@@ -172,24 +176,33 @@ const TopPicks = () => {
                           <FaStar key={i} size={14} />
                         ))}
                       </div>
-                      <span className="text-sm text-gray-500">
-                        ({product.reviews})
-                      </span>
+                      <span className="text-sm text-gray-500">(4.9)</span>
                     </div>
 
                     {/* PRICE */}
                     <div className="flex items-center gap-3">
-                      <span className="line-through text-gray-400">
-                        ₹{product.originalPrice}
-                      </span>
-                      <span className="text-2xl font-bold">
-                        ₹{product.price}
-                      </span>
+                      {product.unitPrice > 0 && (
+                        <>
+                          <span className="line-through text-gray-400">
+                            ₹{product.unitPrice + 100}
+                          </span>
+                          <span className="text-2xl font-bold">
+                            ₹{product.unitPrice}
+                          </span>
+                        </>
+                      )}
                     </div>
 
                     {/* BUTTON */}
-                    <button className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-full font-semibold">
-                      ADD TO CART
+                    <button
+                      className="bg-[#00a758] hover:bg-[#008d4a] text-white py-2 rounded-full font-semibold text-xs tracking-widest uppercase transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const path = product.isCombo ? `/combo/${product._id}` : `/product/${product._id}`;
+                        window.location.href = path;
+                      }}
+                    >
+                      View Details
                     </button>
                   </div>
                 </div>

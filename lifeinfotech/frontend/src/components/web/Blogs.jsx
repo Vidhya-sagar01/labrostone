@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from "react";
-import instance from "./api/AxiosConfig";
+import { useNavigate } from "react-router-dom";
+import instance, { getImageUrl } from "./api/AxiosConfig";
 
 const Blog = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
-
-  // Helper to construct image URLs
-  const getImageUrl = (url) => {
+  const getBlogImageUrl = (url) => {
     if (!url) return "https://via.placeholder.com/400x400?text=Blog";
-    if (url.startsWith("http")) return url;
-    return `${API_BASE}${url}`;
+    return getImageUrl(url) || "https://via.placeholder.com/400x400?text=Blog";
   };
 
   // Helper to clean HTML tags and entities from descriptions
@@ -35,7 +33,7 @@ const Blog = () => {
           .map((item) => ({
             id: item._id,
             title: item.title,
-            image: getImageUrl(item.image),
+            image: getBlogImageUrl(item.image),
             // Clean up the <h3> and &nbsp; tags found in your console screenshot
             shortDescription: cleanText(item.shortDescription),
             author: item.author,
@@ -64,13 +62,17 @@ const Blog = () => {
     <section className="py-10 md:py-16 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-2xl font-bold text-center mb-10 uppercase tracking-wide">
-    Blogs
+          Blogs
         </h2>
 
         {data.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {data.map((item) => (
-              <article key={item.id} className="group cursor-pointer">
+              <article 
+                key={item.id} 
+                className="group cursor-pointer"
+                onClick={() => navigate(`/blog/${item.id}`)}
+              >
                 {/* Image Container */}
                 <div className="overflow-hidden rounded-xl mb-4 aspect-square shadow-md">
                   <img

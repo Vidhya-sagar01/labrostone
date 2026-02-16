@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { 
   Package, 
   Tag, 
@@ -16,11 +16,6 @@ import {
   Plus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-// ✅ FIXED: Trailing spaces completely removed
-const API_BASE = (window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com').trim();
 
 const ComboList = () => {
   const [combos, setCombos] = useState([]);
@@ -41,7 +36,7 @@ const ComboList = () => {
   const fetchCombos = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE}/api/combos`);
+      const res = await instance.get("/api/combos");
       
       if (res.data.success && res.data.data) {
         setCombos(res.data.data);
@@ -70,7 +65,7 @@ const ComboList = () => {
     try {
       const token = localStorage.getItem('adminToken');
       
-      await axios.delete(`${API_BASE}/api/combos/${id}`, {
+      await instance.delete(`/api/combos/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

@@ -19,16 +19,27 @@ router.post("/add", async (req, res) => {
     // 2. Check duplicate (Same Product + Same Variant)
     const existingItemIndex = user.cart.findIndex(
       (item) =>
+        item &&
+        item.productId &&
+        item.variantId &&
         item.productId.toString() === productId &&
         item.variantId.toString() === variantId,
     );
 
     if (existingItemIndex > -1) {
       // Quantity update karein
-      user.cart[existingItemIndex].quantity += Number(quantity);
+      user.cart[existingItemIndex].quantity =
+        (Number(user.cart[existingItemIndex].quantity) || 0) + Number(quantity);
     } else {
       // Naya item add karein
-      user.cart.push({ productId, variantId, quantity, price, name, image });
+      user.cart.push({
+        productId,
+        variantId,
+        quantity: Number(quantity),
+        price,
+        name,
+        image,
+      });
     }
 
     await user.save();

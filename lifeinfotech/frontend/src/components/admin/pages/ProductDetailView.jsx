@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance, { getImageUrl } from '../../web/api/AxiosConfig';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Globe, Star, ShoppingBag, MessageSquare, Edit, Package, Tag, Layers, Info } from 'lucide-react';
-
-const API_BASE = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
 
 const ProductDetailView = () => {
   const { productId } = useParams();
@@ -16,7 +12,7 @@ const ProductDetailView = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/products/${productId}`);
+        const res = await instance.get(`/api/products/${productId}`);
         setProduct(res.data.data || res.data); 
         setLoading(false);
       } catch (err) {
@@ -30,10 +26,9 @@ const ProductDetailView = () => {
   if (loading) return <div className="p-10 text-center font-bold">Loading Product Details...</div>;
   if (!product) return <div className="p-10 text-center">Product not found!</div>;
 
-  const getImageUrl = (url) => {
+  const getDisplayImageUrl = (url) => {
     if (!url) return 'https://via.placeholder.com/400';
-    if (url.startsWith('http')) return url;
-    return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
+    return getImageUrl(url) || 'https://via.placeholder.com/400';
   };
 
   return (
@@ -57,7 +52,7 @@ const ProductDetailView = () => {
           {/* LEFT: IMAGE & LIVE VIEW */}
           <div className="w-full lg:w-1/3 flex flex-col items-center">
             <div className="w-full aspect-square border rounded-xl overflow-hidden bg-white flex items-center justify-center p-4 mb-4 relative">
-              <img src={getImageUrl(product.thumbnail)} alt={product.name} className="max-w-full max-h-full object-contain" />
+              <img src={getDisplayImageUrl(product.thumbnail)} alt={product.name} className="max-w-full max-h-full object-contain" />
             </div>
             <button className="w-full py-2 border-2 border-blue-100 text-blue-600 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors">
               <Globe size={18} /> View live
@@ -73,7 +68,7 @@ const ProductDetailView = () => {
             <div className="flex flex-wrap gap-2 mb-4">
               {product.images?.map((img, i) => (
                 <div key={i} className="w-14 h-14 border rounded-lg overflow-hidden bg-white hover:border-blue-500 cursor-pointer">
-                  <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
+                  <img src={getDisplayImageUrl(img)} alt="" className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>

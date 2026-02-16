@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { Image as ImageIcon, RotateCcw, Send } from 'lucide-react';
-import axios from 'axios';
-
-// ✅ AUTO-SWITCH: Agar aap local machine pe hain toh localhost use hoga, varna live URL
-const API_BASE = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
+import instance from '../../web/api/AxiosConfig';
 
 const Brand = () => {
   const [brandName, setBrandName] = useState('');
@@ -42,7 +37,7 @@ const Brand = () => {
       const token = localStorage.getItem('adminToken');
       
       // ✅ API_BASE ka use kiya gaya hai
-      const response = await axios.post(`${API_BASE}/api/brands`, formData, {
+      const response = await instance.post("/api/brands", formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'

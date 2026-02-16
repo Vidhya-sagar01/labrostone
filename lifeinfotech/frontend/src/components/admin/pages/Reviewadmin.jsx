@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance, { getImageUrl } from '../../web/api/AxiosConfig';
 import { Trash2, Star, Upload, Plus, Loader2, UserCircle, MessageSquare } from 'lucide-react';
 
 const Reviewadmin = () => {
@@ -8,25 +8,18 @@ const Reviewadmin = () => {
     const [imagePreview, setImagePreview] = useState(null);
     const [formData, setFormData] = useState({ customerName: '', rating: 5, comment: '', image: null });
 
-    const API_BASE = window.location.hostname === "localhost" 
-        ? "http://localhost:5000" 
-        : "https://lebrostonebackend.lifeinfotechinstitute.com";
-    
-    const API_URL = `${API_BASE}/api/reviews`;
-
     useEffect(() => { fetchReviews(); }, []);
 
     const fetchReviews = async () => {
         try {
-            const res = await axios.get(`${API_URL}/all`);
-            setReviews(res.data);
+            const res = await instance.get("/api/reviews/all");
+        setReviews(res.data);
         } catch (err) { console.error("Fetch error"); }
     };
 
-    // ✅ Fix: Image URL processing logic
-    const getImageUrl = (path) => {
+    const getReviewImageUrl = (path) => {
         if (!path) return "https://via.placeholder.com/50";
-        return path.startsWith('http') ? path : `${API_BASE}${path}`;
+        return getImageUrl(path) || "https://via.placeholder.com/50";
     };
 
     const handleImageChange = (e) => {
@@ -48,7 +41,7 @@ const Reviewadmin = () => {
 
         try {
             const token = localStorage.getItem('adminToken');
-            await axios.post(`${API_URL}/add`, data, {
+            await instance.post("/api/reviews/add", data, {
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
             });
             alert("Review Published! ⭐");
@@ -62,7 +55,7 @@ const Reviewadmin = () => {
     const deleteReview = async (id) => {
         if (window.confirm("Delete this review?")) {
             const token = localStorage.getItem('adminToken');
-            await axios.delete(`${API_URL}/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            await instance.delete(`/api/reviews/${id}`, { headers: { Authorization: `Bearer ${token}` } });
             fetchReviews();
         }
     };
@@ -124,7 +117,7 @@ const Reviewadmin = () => {
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
                                                 <img 
-                                                    src={getImageUrl(rev.customerImage)} 
+                                                    src={getReviewImageUrl(rev.customerImage)} 
                                                     className="w-10 h-10 rounded-full object-cover border border-slate-200" 
                                                     onError={(e) => e.target.src = "https://via.placeholder.com/50"}
                                                 />

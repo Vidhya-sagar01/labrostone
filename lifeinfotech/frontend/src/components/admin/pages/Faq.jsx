@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import instance from "../../web/api/AxiosConfig";
 import { MessageSquare, Trash2, Plus, Loader2, HelpCircle, Box, ChevronRight } from "lucide-react";
 
 const Faq = () => {
@@ -11,9 +11,6 @@ const Faq = () => {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
 
-  const FAQ_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com/api/admin/faqs";
-  const PRODUCT_API = "https://lebrostonebackend.lifeinfotechinstitute.com/api/products";
-
   const getAuthHeader = () => {
     const token = localStorage.getItem('adminToken');
     return { headers: { 'Authorization': token ? `Bearer ${token}` : '' } };
@@ -22,7 +19,7 @@ const Faq = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const { data } = await axios.get(PRODUCT_API);
+        const { data } = await instance.get("/api/products");
         setProducts(data.data || data.products || []);
       } catch (err) { console.error("Error products"); }
     };
@@ -34,7 +31,7 @@ const Faq = () => {
     const fetchFaqs = async () => {
       setFetchLoading(true);
       try {
-        const { data } = await axios.get(`${FAQ_BASE}?productId=${selectedProduct}`);
+        const { data } = await instance.get(`/api/admin/faqs?productId=${selectedProduct}`);
         setFaqs(data.faqs || []);
       } catch (err) { console.error("Error FAQs"); }
       setFetchLoading(false);
@@ -46,7 +43,7 @@ const Faq = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await axios.post(FAQ_BASE, {
+      const { data } = await instance.post("/api/admin/faqs", {
         question, answer, productId: selectedProduct
       }, getAuthHeader());
       if (data.success) {
@@ -61,7 +58,7 @@ const Faq = () => {
   const handleDeleteFaq = async (id) => {
     if (window.confirm("Bhai, pakka delete karna hai?")) {
       try {
-        await axios.delete(`${FAQ_BASE}/${id}`, getAuthHeader());
+        await instance.delete(`/api/admin/faqs/${id}`, getAuthHeader());
         setFaqs(faqs.filter(f => f._id !== id));
       } catch (err) { alert("Delete failed"); }
     }

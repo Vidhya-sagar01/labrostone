@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { Package, ShoppingCart, Users, IndianRupee, Loader } from 'lucide-react'; 
 
 const Dashboard = () => {
@@ -12,25 +12,17 @@ const Dashboard = () => {
     recentOrders: []
   });
 
-  // ✅ Auto-detect API Base (Local or Live)
-  const isLocal = window.location.hostname === "localhost";
-  const API_BASE = isLocal 
-    ? "http://localhost:5000/api" 
-    : "https://lebrostonebackend.lifeinfotechinstitute.com/api";
-
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem('adminToken');
         
-        // Agar token nahi hai toh seedha login par bhej do
         if (!token) {
           window.location.href = "/admin/login";
           return;
         }
 
-        // Dashboard Stats API call
-        const res = await axios.get(`${API_BASE}/admin/dashboard-stats`, {
+        const res = await instance.get("/api/admin/dashboard-stats", {
             headers: { Authorization: `Bearer ${token}` }
         });
 

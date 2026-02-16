@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import instance from '../../web/api/AxiosConfig';
 import { Search, Download, Edit, Trash2, Layers, RotateCcw, Send, X, AlertTriangle } from 'lucide-react';
 import { CSVLink } from "react-csv";
-
-const API_BASE = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
 
 const SubCategory = () => {
   const [subCategories, setSubCategories] = useState([]);
@@ -32,14 +28,14 @@ const SubCategory = () => {
 
   const fetchDependencies = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/categories`, getAuthHeader());
+      const res = await instance.get("/api/categories", getAuthHeader());
       setCategories(res.data.categories || res.data.data || []);
     } catch (err) { console.error(err); }
   };
 
   const fetchSubCategories = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/subcategories`, getAuthHeader());
+      const res = await instance.get("/api/subcategories", getAuthHeader());
       setSubCategories(res.data.data || []);
       setLoading(false);
     } catch (err) { setLoading(false); }
@@ -48,7 +44,7 @@ const SubCategory = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE}/api/subcategories`, formData, getAuthHeader());
+      await instance.post("/api/subcategories", formData, getAuthHeader());
       alert("Sub Category Added! ✅");
       setFormData(initialFormState);
       fetchSubCategories();
@@ -59,7 +55,7 @@ const SubCategory = () => {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API_BASE}/api/subcategories/${selectedItem._id}`, selectedItem, getAuthHeader());
+      await instance.put(`/api/subcategories/${selectedItem._id}`, selectedItem, getAuthHeader());
       setModalType(null);
       fetchSubCategories();
       alert("Updated Successfully! ✅");
@@ -69,7 +65,7 @@ const SubCategory = () => {
   // ✅ Delete Logic
   const confirmDelete = async () => {
     try {
-      await axios.delete(`${API_BASE}/api/subcategories/${selectedItem._id}`, getAuthHeader());
+      await instance.delete(`/api/subcategories/${selectedItem._id}`, getAuthHeader());
       setModalType(null);
       fetchSubCategories();
       alert("Deleted! 🗑️");

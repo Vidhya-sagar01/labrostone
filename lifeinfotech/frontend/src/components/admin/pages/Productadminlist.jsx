@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import instance, { getImageUrl } from "../../web/api/AxiosConfig";
 import {
   Search,
   Download,
@@ -14,11 +14,6 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { CSVLink } from "react-csv";
-
-const API_BASE =
-  window.location.hostname === "localhost"
-    ? "http://localhost:5000"
-    : "https://lebrostonebackend.lifeinfotechinstitute.com";
 
 const Productadminlist = () => {
   const navigate = useNavigate();
@@ -58,10 +53,10 @@ const Productadminlist = () => {
   const fetchFilters = async () => {
     try {
       const [catRes, subRes, subSubRes, brandRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/categories`),
-        axios.get(`${API_BASE}/api/subcategories`),
-        axios.get(`${API_BASE}/api/subsubcategories`),
-        axios.get(`${API_BASE}/api/brands`),
+        instance.get("/api/categories"),
+        instance.get("/api/subcategories"),
+        instance.get("/api/subsubcategories"),
+        instance.get("/api/brands"),
       ]);
       setCategories(catRes.data.data || []);
       setSubCategories(subRes.data.data || []);
@@ -75,7 +70,7 @@ const Productadminlist = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE}/api/products`);
+      const res = await instance.get("/api/products");
       const data = res.data.data || [];
       setProducts(data);
       setFilteredProducts(data);
@@ -128,8 +123,8 @@ const Productadminlist = () => {
   const handleStatusToggle = async (id) => {
     try {
       const token = localStorage.getItem("adminToken");
-      const res = await axios.put(
-        `${API_BASE}/api/products/status/${id}`,
+      const res = await instance.put(
+        `/api/products/status/${id}`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -150,7 +145,7 @@ const Productadminlist = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Delete this product?")) {
       try {
-        await axios.delete(`${API_BASE}/api/products/${id}`, {
+        await instance.delete(`/api/products/${id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
           },
@@ -162,11 +157,9 @@ const Productadminlist = () => {
     }
   };
 
-  const getImageUrl = (url) => {
+  const getDisplayImageUrl = (url) => {
     if (!url) return "https://via.placeholder.com/40";
-    return url.startsWith("http")
-      ? url
-      : `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+    return getImageUrl(url) || "https://via.placeholder.com/40";
   };
   const updateProductTag = async (productId, newTag) => {
     try {
@@ -174,8 +167,8 @@ const Productadminlist = () => {
       const adminToken = localStorage.getItem("adminToken");
 
       // Backend ko update bhejna
-      await axios.put(
-        `${API_BASE}/api/products/${productId}`,
+      await instance.put(
+        `/api/products/${productId}`,
         { productTag: newTag },
         { headers: { Authorization: `Bearer ${adminToken}` } },
       );
@@ -386,7 +379,7 @@ const Productadminlist = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 border rounded-lg overflow-hidden bg-white shrink-0 shadow-sm">
                           <img
-                            src={getImageUrl(item.thumbnail)}
+                            src={getDisplayImageUrl(item.thumbnail)}
                             className="w-full h-full object-cover"
                             alt=""
                           />
