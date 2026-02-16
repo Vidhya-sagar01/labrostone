@@ -13,11 +13,9 @@ import ShopByConcern from './components/web/ShopByConcern';
 import OurStory from './components/web/OurStory';
 import AnantamCollection from './components/web/AnantamCollection';
 import Reviews from './components/web/Reviews';
-// import Awards from './components/web/Awards';
 import Blogs from './components/web/Blogs';
 import ProductDetail from "./components/web/ProductDetail";
 import AllProductByCategory from './components/category/AllproductbycategoryID';
-// import TopIngredients from './components/web/TopIngredients';
 
 // --- NEW USER AUTH & PROFILE COMPONENTS ---
 import SignInogin from './components/web/auth/SignInogin'; 
@@ -80,11 +78,9 @@ function App() {
           <ShopByCategory />
           <FindDosha />
           <ShopByConcern />
-          {/* <TopIngredients /> */}
           <OurStory />
           <AnantamCollection />
           <Reviews />
-          {/* <Awards /> */}
           <VideoReelsSection/>
           <Blogs />
           <TrustedBar />

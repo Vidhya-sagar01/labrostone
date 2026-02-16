@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const baseURL = "https://lebrostonebackend.lifeinfotechinstitute.com";
+
 const instance = axios.create({
-  baseURL: "https://lebrostonebackend.lifeinfotechinstitute.com",
+  baseURL,
   withCredentials: true,
 });
 

@@ -81,29 +81,29 @@ const TopPicks = () => {
     },
   ];
 
-  const filteredProducts = allProducts.filter(
-    (p) => p.category === activeTab
-  );
+  const filteredProducts = allProducts.filter((p) => p.category === activeTab);
 
   return (
-    <section className="py-20 bg-white">
+    <section className="pt-10 md:pt-16 bg-white ">
       <div className="max-w-7xl mx-auto px-4">
-
         {/* TITLE */}
-        <h2 className="text-2xl font-bold text-center mb-12 uppercase tracking-widest">
-          Top Picks This Season
-        </h2>
+        <div className="flex justify-center mb-10">
+          <div className="text-black py-3 px-12 md:px-24">
+            <h2 className="text-lg md:text-2xl font-bold uppercase tracking-[0.2em] text-center">
+              Top Picks This Season
+            </h2>
+          </div>
+        </div>
 
-        {/* TABS */}
-        <div className="flex justify-center mb-16">
-          <div className="flex bg-[#D2B48C] rounded-full p-1.5 shadow-sm">
+        <div className="flex justify-center mb-8 md:mb-16">
+          <div className="flex bg-[#D2B48C] rounded-full p-1 shadow-sm">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setActiveTab(category)}
                 className={`px-6 py-2 rounded-full text-xs font-semibold tracking-wider transition ${
                   activeTab === category
-                    ? "bg-white text-black shadow"
+                    ? "bg-[#FAF6EA] text-black shadow"
                     : "text-black hover:bg-white/30"
                 }`}
               >
@@ -115,18 +115,17 @@ const TopPicks = () => {
 
         {/* SLIDER */}
         <div className="relative">
-
           {/* NAV BUTTONS */}
           <button
             onClick={() => swiperRef.current?.slidePrev()}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white w-10 h-10 rounded-full shadow flex items-center justify-center"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white w-10 h-10 rounded-full shadow items-center justify-center -ml-2 hidden md:flex"
           >
             <FaChevronLeft />
           </button>
 
           <button
             onClick={() => swiperRef.current?.slideNext()}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white w-10 h-10 rounded-full shadow flex items-center justify-center"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white w-10 h-10 rounded-full shadow items-center justify-center -mr-2 hidden md:flex"
           >
             <FaChevronRight />
           </button>
@@ -144,15 +143,11 @@ const TopPicks = () => {
             onSwiper={(swiper) => (swiperRef.current = swiper)}
           >
             {filteredProducts.map((product) => (
-              <SwiperSlide key={product.id} 
-              className="py-20"
-              >
-
+              <SwiperSlide key={product.id} className="py-10 px-4">
                 {/* CARD */}
-                <div className="bg-white rounded-2xl shadow-lg p-10  relative h-[260px]">
-
+                <div className="bg-white rounded-2xl shadow-lg p-4 md:p-10 relative h-[240px] md:h-[260px]">
                   {/* FLOATING IMAGE */}
-                  <div className="absolute -top-10 left-6 w-28 h-28 bg-white rounded-xl shadow overflow-hidden">
+                  <div className="absolute -top-10 left-4 md:left-6 w-24 h-24 md:w-28 md:h-28 bg-white rounded-xl shadow overflow-hidden">
                     <img
                       src={product.image}
                       alt={product.title}
@@ -161,8 +156,7 @@ const TopPicks = () => {
                   </div>
 
                   {/* CONTENT */}
-                  <div className="pl-32 flex flex-col h-full justify-between">
-
+                  <div className="pl-28 md:pl-32 flex flex-col h-full justify-between">
                     <span className="bg-pink-500 text-white text-xs px-3 py-1 rounded-full w-fit">
                       {product.badge}
                     </span>
@@ -197,10 +191,8 @@ const TopPicks = () => {
                     <button className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-full font-semibold">
                       ADD TO CART
                     </button>
-
                   </div>
                 </div>
-
               </SwiperSlide>
             ))}
           </Swiper>

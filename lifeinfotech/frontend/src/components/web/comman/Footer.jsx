@@ -10,31 +10,31 @@ import { FaXTwitter } from "react-icons/fa6";
 
 const Footer = () => {
   return (
-    <footer className="bg-[#FFFF] pt-16 pb-8 font-sans">
+    <footer className="bg-[#FAF6EA] pt-10 md:pt-16 pb-6 md:pb-8 font-sans border-t">
       {/* Newsletter Section */}
-      <div className="max-w-7xl mx-auto px-4 text-center mb-16">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+      <div className="max-w-7xl mx-auto px-4 text-center mb-8 md:mb-16">
+        <h2 className="text-xl md:text-3xl font-bold text-gray-800 mb-2">
           Join the Lebrostone Newsletter
         </h2>
-        <p className="text-gray-600 mb-8">
+        <p className="text-sm text-gray-600 mb-6 md:mb-8">
           Get skincare tips, offers & new launch updates!
         </p>
 
-        <div className="max-w-xl mx-auto flex items-center bg-white rounded-full shadow-sm p-1 pr-1 pl-6 border border-gray-100">
-          <HiOutlineMail className="text-gray-400 text-xl mr-3" />
+        <div className="max-w-xl mx-auto flex items-center bg-white rounded-full shadow-sm p-1 pr-1 pl-4 md:pl-6 border border-gray-100">
+          <HiOutlineMail className="text-gray-400 text-lg md:text-xl mr-2 md:mr-3" />
           <input
             type="email"
             placeholder="youremail123@gmail.com"
-            className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm py-3"
+            className="flex-1 bg-transparent border-none outline-none text-gray-700 text-xs md:text-sm py-2 md:py-3"
           />
-          <button className="bg-[#C5A987] text-white px-8 py-3 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#b09675] transition-colors">
+          <button className="bg-[#C5A987] text-white px-5 md:px-8 py-2 md:py-3 rounded-full font-bold text-xs md:text-sm uppercase tracking-wider hover:bg-[#b09675] transition-colors">
             Subscribe
           </button>
         </div>
       </div>
 
       {/* Links Section */}
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 mb-16">
+      <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-y-8 gap-x-4 md:gap-10 mb-8 md:mb-16">
         {/* Shop */}
         <div>
           <h3 className="font-bold text-gray-800 mb-6 uppercase text-sm tracking-widest">
@@ -271,32 +271,32 @@ const Footer = () => {
       </div>
 
       {/* Footer Bottom */}
-      <div className="max-w-7xl mx-auto px-4 border-t border-gray-200/50 pt-8 flex flex-col items-center">
-        <div className="flex flex-wrap justify-center gap-4 mb-4 ">
+      <div className="max-w-7xl mx-auto px-4 border-t border-gray-200/50 pt-6 md:pt-8 flex flex-col items-center">
+        <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-4">
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
             alt="PayPal"
-            className="h-6"
+            className="h-4 md:h-6"
           />
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
             alt="Visa"
-            className="h-6"
+            className="h-4 md:h-6"
           />
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
             alt="Mastercard"
-            className="h-6"
+            className="h-4 md:h-6"
           />
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/3840px-Google_Pay_Logo.svg.png"
             alt="GPay"
-            className="h-6"
+            className="h-4 md:h-6"
           />
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1280px-UPI-Logo-vector.svg.png"
             alt="UPI"
-            className="h-6"
+            className="h-4 md:h-6"
           />
         </div>
         <p className="text-[10px] text-gray-400 uppercase tracking-widest">

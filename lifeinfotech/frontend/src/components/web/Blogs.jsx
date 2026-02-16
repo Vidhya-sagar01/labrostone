@@ -1,64 +1,103 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import instance from "./api/AxiosConfig";
 
 const Blog = () => {
-  const data = [
-    {
-      image:
-        "https://mantraherbal.in/cdn/shop/articles/SEOon_Saffron_Ashwagandha_Mahanarayan_Oil_For_Joint_And_Muscle_Support_3_47ecbd7c-cb4a-4452-848c-0fda00738620.jpg?v=1767432109&width=1200",
-      title: "Why Warm Oil Massage Is Essential for Winter Wellness",
-      dis: "Winter often brings more than just cold weather, it also triggers joint pain, muscle stiffness, body fatigue, and dryness, especially in ...",
-    },
-    {
-      image:
-        "https://mantraherbal.in/cdn/shop/articles/SEOon_dry.jpg?v=1765521878&width=1200",
-      title: "Why Warm Oil Massage Is Essential for Winter Wellness",
-      dis: "Winter often brings more than just cold weather, it also triggers joint pain, muscle stiffness, body fatigue, and dryness, especially in ...",
-    },
-    {
-      image:
-        "https://mantraherbal.in/cdn/shop/articles/SEOon_Gulab_Arka_Blog_Post_1_ad850f72-7391-41a4-905f-6cb562ba2349.jpg?v=1759143633&width=1200",
-      title: "Why Warm Oil Massage Is Essential for Winter Wellness",
-      dis: "Winter often brings more than just cold weather, it also triggers joint pain, muscle stiffness, body fatigue, and dryness, especially in ...",
-    },
-  ];
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
+
+  // Helper to construct image URLs
+  const getImageUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/400x400?text=Blog";
+    if (url.startsWith("http")) return url;
+    return `${API_BASE}${url}`;
+  };
+
+  // Helper to clean HTML tags and entities from descriptions
+  const cleanText = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ");
+  };
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        setLoading(true);
+        // Using await instead of .then() for cleaner logic
+        const res = await instance.get("/api/blogs/all");
+
+        // Based on your console: res.data is the Array [ {author, createdAt...} ]
+        const rawData = res.data || [];
+
+        const formatted = rawData
+          .filter((item) => item.status === true) // Show only active blogs
+          .map((item) => ({
+            id: item._id,
+            title: item.title,
+            image: getImageUrl(item.image),
+            // Clean up the <h3> and &nbsp; tags found in your console screenshot
+            shortDescription: cleanText(item.shortDescription),
+            author: item.author,
+          }));
+
+        setData(formatted);
+      } catch (err) {
+        console.error("Blog Fetch Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
-    <section className="py-16 px-4 bg-white">
+    <section className="py-10 md:py-16 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
-        <div className="px-20 mb-12 rounded-tl-[35px] w-fit mx-auto py-2 ">
-          <p className="text-3xl w-fit font-bold text-[#232222] tracking-tight uppercase ">
-            Blog    
-          </p>
-          
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {data.map((item, index) => (
-            <article key={index} className="group cursor-pointer">
-              <div className="overflow-hidden rounded-xl mb-6 aspect-4/3">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight group-hover:text-gray-700 transition-colors">
-                {item.title}
-              </h3>
-              <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
-                {item.dis}
-              </p>
-              <div className="mt-4 inline-block text-sm font-bold text-gray-900 border-b border-black pb-0.5">
-                Read More
-              </div>
-            </article>
-          ))}
-        </div>
-       <div className="flex justify-center mt-12">
-          <button className="group relative px-8 py-3 bg-black text-white font-semibold rounded-full hover:bg-gray-900 transition-all duration-300 shadow-lg hover:shadow-xl overflow-hidden">
-            <span className="relative z-10">View All Blogs</span>
-            <div className="absolute inset-0 bg-linear-to-r from-gray-800 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          </button>
-        </div>
+        <h2 className="text-2xl font-bold text-center mb-10 uppercase tracking-wide">
+    Blogs
+        </h2>
+
+        {data.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {data.map((item) => (
+              <article key={item.id} className="group cursor-pointer">
+                {/* Image Container */}
+                <div className="overflow-hidden rounded-xl mb-4 aspect-square shadow-md">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                  />
+                </div>
+
+                {/* Content */}
+                <h3 className="text-lg font-bold mb-2 group-hover:text-blue-600 transition">
+                  {item.title}
+                </h3>
+
+                <p className="text-gray-600 text-sm line-clamp-3 leading-relaxed">
+                  {item.shortDescription}
+                </p>
+
+                <div className="mt-3 font-semibold border-b-2 border-black inline-block text-xs uppercase tracking-tighter">
+                  Read More
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500">No active blogs found.</p>
+        )}
       </div>
     </section>
   );

@@ -1,22 +1,26 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const User = require('../models/User'); 
+const User = require("../models/User");
 
 // ✅ ADD TO CART ROUTE
-router.post('/add', async (req, res) => {
+router.post("/add", async (req, res) => {
   try {
-    const { userId, productId, variantId, quantity, price, name, image } = req.body;
+    const { userId, productId, variantId, quantity, price, name, image } =
+      req.body;
 
     // 1. User find karein
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     // 2. Check duplicate (Same Product + Same Variant)
-    const existingItemIndex = user.cart.findIndex(item => 
-      item.productId.toString() === productId && 
-      item.variantId.toString() === variantId
+    const existingItemIndex = user.cart.findIndex(
+      (item) =>
+        item.productId.toString() === productId &&
+        item.variantId.toString() === variantId,
     );
 
     if (existingItemIndex > -1) {
@@ -28,10 +32,13 @@ router.post('/add', async (req, res) => {
     }
 
     await user.save();
-    res.status(200).json({ success: true, message: "Cart Updated!", cart: user.cart });
-
+    res
+      .status(200)
+      .json({ success: true, message: "Cart Updated!", cart: user.cart });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
   }
 });
 

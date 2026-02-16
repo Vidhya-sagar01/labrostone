@@ -138,7 +138,7 @@ router.get('/by-category/:categoryId', async (req, res) => {
             .populate('category_id', 'name') // Category ka naam lane ke liye
             .sort({ createdAt: -1 });
             
-        res.json({ success: true, data: products });
+        res.json({ success: true, products });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });
     }
