@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import instance from '../../web/api/AxiosConfig';
+import { useToast } from '../../../context/ToastContext';
 import { 
   Package, Search, Eye, Trash2, Loader2, 
   MapPin, CheckCircle, Clock, Truck, X, User, Receipt
 } from 'lucide-react';
 
 const AdminOrders = () => {
+    const { success, error } = useToast();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -30,7 +32,7 @@ const AdminOrders = () => {
     const togglePaymentStatus = async (orderId, currentStatus) => {
         const newStatus = currentStatus === "Pending" ? "Received" : "Pending";
         
-        if (window.confirm(`payment "${newStatus}"?`)) {
+        if (window.confirm(`Change payment status to "${newStatus}"?`)) {
             try {
                 // Yeh aapke paymentRoutes ke update-payment endpoint ko call karega
                 const res = await instance.put(`/api/payments/update-payment/${orderId}`, { 
@@ -38,11 +40,11 @@ const AdminOrders = () => {
                 });
                 
                 if (res.data.success) {
-                    alert("Payment status updated and transaction recorded!");
+                    success("Payment status updated successfully!");
                     fetchAllOrders(); // Data refresh
                 }
             } catch (err) {
-                alert("Payment update failed.");
+                error("Payment update failed.");
             }
         }
     };
@@ -53,11 +55,11 @@ const AdminOrders = () => {
                 status: newStatus 
             });
             if (res.data.success) {
-                alert("Status Updated!");
+                success("Order status updated!");
                 fetchAllOrders();
             }
         } catch (err) {
-            alert("Error updating status");
+            error("Error updating status");
         }
     };
 
@@ -65,8 +67,11 @@ const AdminOrders = () => {
         if(window.confirm("Delete order record?")) {
             try {
                 await instance.delete(`/api/orders/delete/${id}`);
+                success("Order deleted successfully");
                 fetchAllOrders();
-            } catch (err) { alert("Delete failed"); }
+            } catch (err) { 
+                error("Delete failed"); 
+            }
         }
     };
 
@@ -200,12 +205,26 @@ const AdminOrders = () => {
                                         <User size={14} /> Shipping Information
                                     </h3>
                                     <div className="bg-slate-50 p-5 rounded-3xl border border-slate-100">
-                                        <p className="font-bold text-slate-900 text-lg mb-2 capitalize">{selectedOrder.shippingAddress?.houseNo}</p>
+                                        <p className="font-bold text-slate-900 text-lg mb-2 capitalize">H.no. {selectedOrder.shippingAddress?.houseNo}</p>
                                         <p className="text-sm text-slate-600 leading-relaxed font-medium">
                                             {selectedOrder.shippingAddress?.nearby},<br />
                                             {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state}<br />
                                             <span className="font-black text-slate-900">PIN: {selectedOrder.shippingAddress?.pincode}</span>
                                         </p>
+                                        <div className="mt-4 pt-4 border-t border-slate-200 space-y-2">
+                                            <p className="text-sm flex items-center gap-2">
+                                                <span className="text-slate-500 font-medium">Name:</span>
+                                                <span className="font-bold text-slate-900">{selectedOrder.user?.name || "N/A"}</span>
+                                            </p>
+                                            <p className="text-sm flex items-center gap-2">
+                                                <span className="text-slate-500 font-medium">Email:</span>
+                                                <span className="font-bold text-slate-900">{selectedOrder.user?.email || "N/A"}</span>
+                                            </p>
+                                            <p className="text-sm flex items-center gap-2">
+                                                <span className="text-slate-500 font-medium">Phone:</span>
+                                                <span className="font-bold text-slate-900">{selectedOrder.user?.phoneNumber || "N/A"}</span>
+                                            </p>
+                                        </div>
                                     </div>
                                 </section>
 

@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema({
       ref: "Order",
     },
   ],
+  isBlocked: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

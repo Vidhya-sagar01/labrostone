@@ -16,8 +16,10 @@ import {
   Trash2,
 } from "lucide-react";
 import instance, { getImageUrl } from "./api/AxiosConfig";
+import { useToast } from "../../context/ToastContext";
 
 const ProfilePage = () => {
+  const { success, error } = useToast();
   const [userData, setUserData] = useState(
     JSON.parse(localStorage.getItem("user")) || {},
   );
@@ -27,7 +29,6 @@ const ProfilePage = () => {
   const [orders, setOrders] = useState([]);
   const [fetchingOrders, setFetchingOrders] = useState(false);
   const [cart, setCart] = useState([]);
-  const [message, setMessage] = useState({ type: "", text: "" });
 
   // New state for validation errors
   const [errors, setErrors] = useState({});
@@ -58,11 +59,7 @@ const ProfilePage = () => {
     },
   );
 
-  // Show message helper
-  const showMessage = (type, text) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: "", text: "" }), 3000);
-  };
+
 
   useEffect(() => {
     if (activeTab === "orders" && userData._id) {
@@ -98,6 +95,7 @@ const ProfilePage = () => {
       }
     } catch (err) {
       console.error("Fetch user data error:", err);
+      error("Failed to load user data");
     }
   };
 
@@ -151,10 +149,13 @@ const ProfilePage = () => {
   const saveAddressToDB = async () => {
     // Prevent saving if there are active validation errors
     if (Object.keys(errors).length > 0) {
-      return alert("Please fix the errors before saving.");
+      return error("Please fix the errors before saving.");
     }
 
-    if (!userData._id) return alert("Please login again.");
+    if (!userData._id) {
+      error("Please login again.");
+      return;
+    }
     setLoading(true);
     try {
       const response = await instance.put(
@@ -168,10 +169,10 @@ const ProfilePage = () => {
         setUserData(updatedUser);
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setIsEditing(false);
-        showMessage("success", "Address saved!");
+        success("Address saved!");
       }
     } catch (error) {
-      showMessage("error", "Update failed!");
+      error("Update failed!");
     } finally {
       setLoading(false);
     }
@@ -180,7 +181,7 @@ const ProfilePage = () => {
   // Update Profile
   const handleProfileUpdate = async () => {
     if (!userData._id) {
-      showMessage("error", "Please login again");
+      error("Please login again");
       return;
     }
     setLoading(true);
@@ -198,11 +199,11 @@ const ProfilePage = () => {
         const updatedUser = { ...userData, ...profileForm, address: addressForm };
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setUserData(updatedUser);
-        showMessage("success", "Profile updated successfully!");
+        success("Profile updated successfully!");
       }
     } catch (err) {
       console.error("Update error:", err);
-      showMessage("error", "Failed to update profile");
+      error("Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -230,7 +231,7 @@ const ProfilePage = () => {
     
     setCart(updatedCart);
     await saveCartToDB(updatedCart);
-    showMessage("success", "Item removed from cart");
+    success("Item removed from cart");
   };
 
   const saveCartToDB = async (updatedCart) => {
@@ -241,7 +242,7 @@ const ProfilePage = () => {
       });
     } catch (err) {
       console.error("Cart update error:", err);
-      showMessage("error", "Failed to update cart");
+      error("Failed to update cart");
     }
   };
 
@@ -254,21 +255,6 @@ const ProfilePage = () => {
 
   return (
     <div className="bg-[#f1f3f6] min-h-screen py-6 px-4 md:px-10 flex flex-col md:flex-row gap-4 text-black font-sans">
-      {/* Message Alert */}
-      {message.text && (
-        <div className="fixed top-4 right-4 z-50">
-          <div
-            className={`p-4 rounded-lg shadow-lg ${
-              message.type === "success"
-                ? "bg-green-100 text-green-800 border border-green-200"
-                : "bg-red-100 text-red-800 border border-red-200"
-            }`}
-          >
-            {message.text}
-          </div>
-        </div>
-      )}
-
       {/* SIDEBAR */}
       <div className="w-full md:w-1/4 space-y-4">
         <div className="bg-white p-4 flex items-center gap-4 shadow-sm">

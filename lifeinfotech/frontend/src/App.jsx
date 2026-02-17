@@ -60,6 +60,10 @@ import ComboList from "./components/admin/pages/ComboList";
 import VideoReelsSection from "./components/web/VideoReelsSection";
 import TrustedBar from "./components/web/TrustedBar";
 import Subscribe from "./components/admin/pages/Subscribe";
+import PrivacyPolicy from "./components/web/pages/PrivacyPolicy";
+import ReturnPolicy from "./components/web/pages/ReturnPolicy";
+import Aboutus from "./components/web/pages/Aboutus";
+import TermConditions from "./components/web/pages/TermConditions";
 // ✅ HELPER COMPONENT: URL se ID nikalne ke liye
 const ComboViewWrapper = () => {
   const { id } = useParams();
@@ -95,7 +99,7 @@ function App() {
           </>
         }
       />
-
+   
       {/* 2. AUTH ROUTES */}
       <Route
         path="/login"
@@ -109,6 +113,7 @@ function App() {
           isUserAuthenticated ? <Navigate to="/" replace /> : <SignUplogin />
         }
       />
+
 
       {/* 3. USER PROTECTED ROUTES */}
       <Route
@@ -205,6 +210,46 @@ function App() {
           <>
             <Navbar />
             <AllProductByCategory />
+            <Footer />
+          </>
+        }
+      />
+      <Route
+        path="/privacy-policy"
+        element={
+          <>
+            <Navbar />
+            <PrivacyPolicy />
+            <Footer />
+          </>
+        }
+      />
+      <Route
+        path="/return-policy"
+        element={
+          <>
+            <Navbar />
+            <ReturnPolicy />
+            <Footer />
+          </>
+        }
+      />
+      <Route
+        path="/about-us"
+        element={
+          <>
+            <Navbar />
+            <Aboutus />
+            <Footer />
+          </>
+        }
+      />
+      <Route
+        path="/term-conditions"
+        element={
+          <>
+            <Navbar />
+            <TermConditions />
             <Footer />
           </>
         }

@@ -20,6 +20,13 @@ const orderSchema = new mongoose.Schema({
         state: String,
         pincode: String
     },
+    // Coupon information
+    coupon: {
+        code: { type: String },
+        discountType: { type: String, enum: ['percentage', 'fixed'] },
+        discountValue: { type: Number },
+        totalDiscount: { type: Number }
+    },
     paymentStatus: { type: String, default: "Pending" },
     deliveryStatus: { 
         type: String, 

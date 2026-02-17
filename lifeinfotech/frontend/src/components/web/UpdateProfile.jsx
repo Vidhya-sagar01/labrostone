@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { User, ShoppingCart, MapPin, Save, X, Plus, Minus, Trash2, Loader2 } from "lucide-react";
 import instance from "./api/AxiosConfig";
+import { useToast } from "../../context/ToastContext";
 
 const UpdateProfile = () => {
+  const { success, error } = useToast();
   const [userData, setUserData] = useState(
     JSON.parse(localStorage.getItem("user")) || {}
   );
@@ -10,7 +12,6 @@ const UpdateProfile = () => {
   const [loading, setLoading] = useState(false);
   const [fetchingData, setFetchingData] = useState(true);
   const [cart, setCart] = useState([]);
-  const [message, setMessage] = useState({ type: "", text: "" });
 
   // Profile form state
   const [profileForm, setProfileForm] = useState({
@@ -61,21 +62,18 @@ const UpdateProfile = () => {
       }
     } catch (err) {
       console.error("Fetch user data error:", err);
-      showMessage("error", "Failed to load user data");
+      error("Failed to load user data");
     } finally {
       setFetchingData(false);
     }
   };
 
-  const showMessage = (type, text) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: "", text: "" }), 3000);
-  };
+
 
   // Update Profile
   const handleProfileUpdate = async () => {
     if (!userData._id) {
-      showMessage("error", "Please login again");
+      error("Please login again");
       return;
     }
     setLoading(true);
@@ -93,11 +91,11 @@ const UpdateProfile = () => {
         const updatedUser = { ...userData, ...profileForm, address: addressForm };
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setUserData(updatedUser);
-        showMessage("success", "Profile updated successfully!");
+        success("Profile updated successfully!");
       }
     } catch (err) {
       console.error("Update error:", err);
-      showMessage("error", "Failed to update profile");
+      error("Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -106,7 +104,7 @@ const UpdateProfile = () => {
   // Update Address Only
   const handleAddressUpdate = async () => {
     if (!userData._id) {
-      showMessage("error", "Please login again");
+      error("Please login again");
       return;
     }
     setLoading(true);
@@ -119,11 +117,11 @@ const UpdateProfile = () => {
         const updatedUser = { ...userData, address: addressForm };
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setUserData(updatedUser);
-        showMessage("success", "Address updated successfully!");
+        success("Address updated successfully!");
       }
     } catch (err) {
       console.error("Address update error:", err);
-      showMessage("error", "Failed to update address");
+      error("Failed to update address");
     } finally {
       setLoading(false);
     }
@@ -151,7 +149,7 @@ const UpdateProfile = () => {
     
     setCart(updatedCart);
     await saveCartToDB(updatedCart);
-    showMessage("success", "Item removed from cart");
+    success("Item removed from cart");
   };
 
   const saveCartToDB = async (updatedCart) => {
@@ -162,7 +160,7 @@ const UpdateProfile = () => {
       });
     } catch (err) {
       console.error("Cart update error:", err);
-      showMessage("error", "Failed to update cart");
+      error("Failed to update cart");
     }
   };
 
@@ -193,19 +191,6 @@ const UpdateProfile = () => {
             Manage your profile, address, and cart
           </p>
         </div>
-
-        {/* Message Alert */}
-        {message.text && (
-          <div
-            className={`mb-6 p-4 rounded-lg ${
-              message.type === "success"
-                ? "bg-green-100 text-green-800 border border-green-200"
-                : "bg-red-100 text-red-800 border border-red-200"
-            }`}
-          >
-            {message.text}
-          </div>
-        )}
 
         {/* Tabs */}
         <div className="bg-white rounded-xl shadow-sm border mb-6">

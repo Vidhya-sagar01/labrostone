@@ -11,9 +11,11 @@ import {
 } from "lucide-react";
 import instance, { getImageUrl } from "./api/AxiosConfig";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../context/ToastContext";
 
 const Cart = () => {
   const navigate = useNavigate();
+  const { success, error } = useToast();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orderLoading, setOrderLoading] = useState(false);
@@ -23,6 +25,7 @@ const Cart = () => {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
 
   // Get initial user from local storage
   const user = JSON.parse(localStorage.getItem("user"));
@@ -50,63 +53,77 @@ const Cart = () => {
     fetchCart();
   }, [navigate, user?._id, user?.id]);
 
-  // // 2. Sync Cart with DB
-  // const syncCartWithDB = async (updatedCart) => {
-  //   const userId = user?._id || user?.id;
-  //   try {
-  //     // Mapping to ensure we only send what the backend expects
-  //     await axios.put(`${API_BASE}/api/user/update-cart/${userId}`, { cart: updatedCart });
-  //   } catch (err) {
-  //     console.error("Sync error:", err);
-  //   }
-  // };
+  // 2. Sync Cart with DB
+  const syncCartWithDB = async (updatedCart) => {
+    const userId = user?._id || user?.id;
+    try {
+      await instance.put(`/api/user/update-cart/${userId}`, { cart: updatedCart });
+    } catch (err) {
+      console.error("Sync error:", err);
+    }
+  };
 
-  // // --- INCREASE / DECREASE FUNCTIONALITY ---
-  // const updateQuantity = (productId, type) => {
-  //   const updatedCart = cartItems.map(item => {
-  //     if (item.productId === productId) {
-  //       const newQty = type === 'plus' ? item.quantity + 1 : item.quantity - 1;
-  //       // Logic: Cannot go below 1
-  //       return { ...item, quantity: Math.max(1, newQty) };
-  //     }
-  //     return item;
-  //   });
-  //   setCartItems(updatedCart);
-  //   syncCartWithDB(updatedCart);
-  // };
+  // --- INCREASE / DECREASE FUNCTIONALITY ---
+  const updateQuantity = (productId, type) => {
+    const updatedCart = cartItems.map(item => {
+      if (item.productId === productId) {
+        const newQty = type === 'plus' ? item.quantity + 1 : item.quantity - 1;
+        // Logic: Cannot go below 1
+        return { ...item, quantity: Math.max(1, newQty) };
+      }
+      return item;
+    });
+    setCartItems(updatedCart);
+    syncCartWithDB(updatedCart);
+  };
 
-  // // --- REMOVE FUNCTIONALITY ---
-  // const removeItem = async (productId) => {
-  //   if (window.confirm("Remove this item from cart?")) {
-  //     const updatedCart = cartItems.filter(item => item.productId !== productId);
-  //     setCartItems(updatedCart);
-  //     syncCartWithDB(updatedCart);
-  //   }
-  // };
+  // --- REMOVE FUNCTIONALITY ---
+  const removeItem = async (productId) => {
+    if (window.confirm("Remove this item from cart?")) {
+      const updatedCart = cartItems.filter(item => item.productId !== productId);
+      setCartItems(updatedCart);
+      syncCartWithDB(updatedCart);
+    }
+  };
 
   const applyCoupon = async () => {
     setCouponError("");
+    setCouponLoading(true);
+    
     try {
-      const res = await instance.get("/api/coupons/all");
-      const allCoupons = res.data;
-      const found = allCoupons.find(
-        (c) => c.code === couponCode.toUpperCase() && c.isActive,
-      );
+      // Prepare cart items for coupon validation
+      const cartItemsForCoupon = cartItems.map(item => ({
+        productId: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      }));
+      
+      const res = await instance.post("/api/coupons/apply", {
+        code: couponCode,
+        cartItems: cartItemsForCoupon
+      });
 
-      if (!found) {
-        setCouponError("Wrong Coupon Code!");
-        return;
+      if (res.data.success) {
+        setAppliedCoupon(res.data.data);
+        setShowCouponInput(false);
+        success(res.data.data.discountMessage);
       }
-      setAppliedCoupon(found);
-      setShowCouponInput(false);
     } catch (err) {
-      setCouponError("Server Error validating coupon.");
+      const errorMsg = err.response?.data?.message || "Failed to apply coupon";
+      setCouponError(errorMsg);
+      error(errorMsg);
+    } finally {
+      setCouponLoading(false);
     }
   };
 
   const handlePlaceOrder = async () => {
     const userId = user?._id || user?.id;
-    if (!userData?.address?.city) return alert("Please add an address first!");
+    if (!userData?.address?.city) {
+      error("Please add an address first!");
+      return;
+    }
 
     setOrderLoading(true);
     try {
@@ -117,16 +134,23 @@ const Cart = () => {
         discount,
         finalTotal,
         address: userData.address,
+        coupon: appliedCoupon ? {
+          code: appliedCoupon.coupon.code,
+          discountType: appliedCoupon.coupon.discountType,
+          discountValue: appliedCoupon.coupon.discountValue,
+          totalDiscount: appliedCoupon.totalDiscount
+        } : null
       };
 
       const res = await instance.post("/api/orders/place", orderData);
       if (res.data.success) {
-        alert("🎉 Order Placed Successfully!");
+        success("Order placed successfully!");
         setCartItems([]);
+        setAppliedCoupon(null);
         navigate("/profile");
       }
     } catch (err) {
-      alert("Something went wrong while placing the order.");
+      error("Something went wrong while placing the order.");
     } finally {
       setOrderLoading(false);
     }
@@ -136,7 +160,7 @@ const Cart = () => {
     (acc, item) => acc + item.price * item.quantity,
     0,
   );
-  const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+  const discount = appliedCoupon ? appliedCoupon.totalDiscount : 0;
   const finalTotal = Math.max(0, subTotal - discount);
 
   if (loading)
@@ -278,12 +302,14 @@ const Cart = () => {
                       className={`flex-1 border p-2 rounded outline-none uppercase font-bold text-sm ${couponError ? "border-red-500" : "focus:border-blue-500"}`}
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value)}
+                      disabled={couponLoading}
                     />
                     <button
                       onClick={applyCoupon}
-                      className="bg-blue-600 text-white px-4 py-2 rounded font-bold text-xs"
+                      disabled={couponLoading || !couponCode.trim()}
+                      className="bg-blue-600 text-white px-4 py-2 rounded font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      APPLY
+                      {couponLoading ? "..." : "APPLY"}
                     </button>
                   </div>
                 )}
@@ -294,21 +320,43 @@ const Cart = () => {
                 )}
               </div>
             ) : (
-              <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-lg flex justify-between items-center">
-                <div>
-                  <p className="text-emerald-700 font-bold text-xs">
-                    Applied: {appliedCoupon.code}
-                  </p>
-                  <p className="text-emerald-600 text-[10px]">
-                    Saved ₹{appliedCoupon.discountAmount}
-                  </p>
+              <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-emerald-700 font-bold text-xs">
+                      Applied: {appliedCoupon.coupon.code}
+                    </p>
+                    <p className="text-emerald-600 text-[10px]">
+                      {appliedCoupon.discountMessage}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setAppliedCoupon(null)}
+                    className="text-red-400 hover:text-red-600"
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setAppliedCoupon(null)}
-                  className="text-red-400 hover:text-red-600"
-                >
-                  <X size={18} />
-                </button>
+                {/* Show applicable items */}
+                {appliedCoupon.applicableItems && appliedCoupon.applicableItems.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-emerald-100">
+                    <p className="text-[10px] text-emerald-600 font-bold uppercase">
+                      Applied to {appliedCoupon.applicableItems.length} item(s):
+                    </p>
+                    <div className="mt-1 space-y-1">
+                      {appliedCoupon.applicableItems.slice(0, 2).map((item, idx) => (
+                        <p key={idx} className="text-[10px] text-emerald-700 truncate">
+                          • {item.name} (₹{item.discount.toFixed(0)} off)
+                        </p>
+                      ))}
+                      {appliedCoupon.applicableItems.length > 2 && (
+                        <p className="text-[10px] text-emerald-600">
+                          +{appliedCoupon.applicableItems.length - 2} more items
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

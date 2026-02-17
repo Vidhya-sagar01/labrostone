@@ -59,7 +59,9 @@ router.get('/user/:userId', async (req, res) => {
 
 router.get('/all', async (req, res) => {
     try {
-        const orders = await Order.find().sort({ orderDate: -1 });
+        const orders = await Order.find()
+            .populate('user', 'name email phoneNumber')
+            .sort({ orderDate: -1 });
         res.status(200).json({ success: true, data: orders });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

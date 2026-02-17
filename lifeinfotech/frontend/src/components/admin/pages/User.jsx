@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import instance from "../../web/api/AxiosConfig";
-import { Pencil, Trash2 } from "lucide-react";
+import { useToast } from "../../../context/ToastContext";
+import { Pencil, Trash2, Lock, Unlock } from "lucide-react";
 
 const User = () => {
+  const { success, error } = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -75,6 +77,20 @@ const User = () => {
     }
   };
 
+  // ================= BLOCK/UNBLOCK =================
+
+  const handleBlockUnblock = async (userId, isBlocked) => {
+    try {
+      const endpoint = isBlocked ? `/api/user/unblock/${userId}` : `/api/user/block/${userId}`;
+      await instance.put(endpoint);
+      success(isBlocked ? "User unblocked successfully" : "User blocked successfully");
+      fetchUsers(); // Refresh the list
+    } catch (err) {
+      console.error("Block/Unblock error:", err);
+      error("Failed to update user status");
+    }
+  };
+
   // ================= UI =================
 
   if (loading)
@@ -114,6 +130,7 @@ const User = () => {
               <th className="p-3 text-xs w-1/4">Name</th>
               <th className="p-3 text-xs w-1/4">Email</th>
               <th className="p-3 text-xs w-1/6">Mobile</th>
+              <th className="p-3 text-xs w-1/12">Status</th>
               <th className="p-3 text-xs text-center w-1/6">
                 Actions
               </th>
@@ -123,7 +140,7 @@ const User = () => {
           <tbody className="divide-y">
             {filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan="4" className="p-8 text-center text-gray-500">
+                <td colSpan="5" className="p-8 text-center text-gray-500">
                   No users found matching your search.
                 </td>
               </tr>
@@ -131,7 +148,7 @@ const User = () => {
               filteredUsers.map((user) => (
               <tr
                 key={user._id}
-                className="hover:bg-gray-50"
+                className={`hover:bg-gray-50 ${user.isBlocked ? 'bg-red-50' : ''}`}
               >
                 <td className="p-3 font-medium text-sm truncate max-w-xs">
                   {user.name}
@@ -145,6 +162,16 @@ const User = () => {
                   {user.phoneNumber || "N/A"}
                 </td>
 
+                <td className="p-3 text-sm">
+                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                    user.isBlocked 
+                      ? 'bg-red-100 text-red-600' 
+                      : 'bg-green-100 text-green-600'
+                  }`}>
+                    {user.isBlocked ? 'Blocked' : 'Active'}
+                  </span>
+                </td>
+
                 {/* ===== ACTION BUTTONS ===== */}
 
                 <td className="p-3 text-center">
@@ -155,6 +182,18 @@ const User = () => {
                       title="Edit"
                     >
                       <Pencil size={16} />
+                    </button>
+
+                    <button
+                      onClick={() => handleBlockUnblock(user._id, user.isBlocked)}
+                      className={`p-2 rounded transition-colors ${
+                        user.isBlocked
+                          ? 'bg-green-500 text-white hover:bg-green-600'
+                          : 'bg-orange-500 text-white hover:bg-orange-600'
+                      }`}
+                      title={user.isBlocked ? "Unblock User" : "Block User"}
+                    >
+                      {user.isBlocked ? <Unlock size={16} /> : <Lock size={16} />}
                     </button>
 
                     <button

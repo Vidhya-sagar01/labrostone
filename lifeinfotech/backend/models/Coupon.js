@@ -8,15 +8,25 @@ const couponSchema = new mongoose.Schema({
         uppercase: true, 
         trim: true 
     },
-    discountAmount: { 
+    discountType: {
+        type: String,
+        enum: ['percentage', 'fixed'],
+        default: 'fixed',
+        required: true
+    },
+    discountValue: { 
         type: Number, 
         required: true 
-    }, 
+    },
+    // Product-specific: array of product IDs this coupon applies to
+    applicableProducts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product'
+    }],
     minOrderAmount: { 
         type: Number, 
         default: 0 
     },
-    // ✅ Yeh field add karein
     startDate: { 
         type: Date, 
         required: true 

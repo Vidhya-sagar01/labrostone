@@ -276,6 +276,22 @@ const SignUplogin = () => {
             </button>
           </form>
 
+          {/* Google Sign Up/In */}
+          <div className="flex items-center justify-center gap-2 mt-8">
+            <div className="w-full h-[1px] bg-gray-300"></div>
+            <p className="text-sm text-gray-500">Or</p>
+            <div className="w-full h-[1px] bg-gray-300"></div>
+          </div>
+          <div className="flex items-center justify-center mt-4 gap-2 bg-white rounded-2xl">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              theme="outline"
+              size="large"
+              width="240"
+              shape="pill"
+            />
+          </div>
+         
           <p className="mt-8 text-sm text-center text-gray-500">
             Already have an account?{" "}
             <Link

@@ -53,6 +53,13 @@ router.post("/login", async (req, res) => {
         .json({ success: false, message: "Invalid Mobile Number or Password" });
     }
 
+    // Check if user is blocked
+    if (user.isBlocked) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Your account has been blocked. Please contact admin." });
+    }
+
     res.status(200).json({ success: true, user, token: "dummy-token" });
   } catch (err) {
     res.status(500).json({ success: false, message: "Server Error" });
@@ -74,6 +81,14 @@ router.post("/google-auth", async (req, res) => {
       });
       await user.save();
     }
+    
+    // Check if user is blocked
+    if (user.isBlocked) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Your account has been blocked. Please contact admin." });
+    }
+    
     res.status(200).json({ success: true, user });
   } catch (err) {
     res.status(500).json({ success: false, message: "Server Error" });

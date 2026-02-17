@@ -128,8 +128,23 @@ const Footer = () => {
               </button>
             </li>
             <li>
-              <button onClick={() => navigate("/shop")} className="hover:text-[#C5A987] text-left">
-                Shop All
+              <button onClick={() => navigate("/term-conditions")} className="hover:text-[#C5A987] text-left">
+                Terms & Conditions
+              </button>
+            </li>
+            <li>
+              <button onClick={() => navigate("/return-policy")} className="hover:text-[#C5A987] text-left">
+                Return Policy
+              </button>
+            </li>
+            <li>
+              <button onClick={() => navigate("/privacy-policy")} className="hover:text-[#C5A987] text-left">
+                Privacy Policy
+              </button>
+            </li>
+            <li>
+              <button onClick={() => navigate("/about-us")} className="hover:text-[#C5A987] text-left">
+               About Us
               </button>
             </li>
           </ul>
