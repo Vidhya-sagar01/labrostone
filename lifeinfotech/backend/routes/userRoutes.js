@@ -76,4 +76,39 @@ router.put('/update-address/:id', async (req, res) => {
   }
 });
 
+// 4. ✅ UPDATE Profile
+// Path: PUT /api/user/update-profile/:id
+router.put('/update-profile/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { name, email, phone, address } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { name, email, phone, address },
+      { new: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Profile updated successfully", data: updatedUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+// 5. ✅ DELETE User
+router.delete('/delete-user/:id', async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    res.status(200).json({ success: true, message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;

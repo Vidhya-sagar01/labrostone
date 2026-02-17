@@ -23,6 +23,7 @@ import AllProductByCategory from "./components/category/AllproductbycategoryID";
 import SignInogin from "./components/web/auth/SignInogin";
 import SignUplogin from "./components/web/signUpLogin";
 import UserProfile from "./components/web/UserProfile";
+import UpdateProfile from "./components/web/UpdateProfile";
 import Cart from "./components/web/Cart";
 import Checkout from "./components/web/Checkout";
 
@@ -117,6 +118,20 @@ function App() {
             <>
               <Navbar />
               <UserProfile />
+              <Footer />
+            </>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/update-profile"
+        element={
+          isUserAuthenticated ? (
+            <>
+              <Navbar />
+              <UpdateProfile />
               <Footer />
             </>
           ) : (
