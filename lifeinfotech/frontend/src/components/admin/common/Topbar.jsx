@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-const API_BASE = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000' 
-  : 'https://lebrostonebackend.lifeinfotechinstitute.com';
+const API_BASE ='https://lebrostonebackend.lifeinfotechinstitute.com';
 const Topbar = ({ toggleSidebar }) => {
   // Demo data (Inhe aap props ya API se replace kar sakte hain)
   const [currentLang, setCurrentLang] = useState({ name: 'English', code: 'en' });
@@ -65,7 +63,7 @@ const Topbar = ({ toggleSidebar }) => {
             className="flex items-center gap-3 hover:bg-gray-50 p-1 rounded-lg transition-all"
           >
             <div className="text-right hidden md:block">
-              <p className="text-sm font-bold text-gray-800 leading-none">Vidhya Sagar</p>
+              <p className="text-sm font-bold text-gray-800 leading-none">{currentLang.name}</p>
               <p className="text-[11px] text-gray-500 mt-1 uppercase font-semibold">Master Admin</p>
             </div>
            <img 
@@ -80,10 +78,6 @@ const Topbar = ({ toggleSidebar }) => {
 
           {isProfileOpen && (
             <div className="absolute right-0 mt-3 w-56 bg-white border rounded-xl shadow-2xl py-2 z-50">
-              <div className="px-4 py-3 border-b bg-gray-50/50">
-                <p className="text-sm font-bold text-gray-800">Vidhya Sagar</p>
-                <p className="text-xs text-gray-500 truncate">vidhya@example.com</p>
-              </div>
               <a href="#profile" className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition-colors">Settings</a>
               <div className="border-t my-1"></div>
               <button className="block w-full text-left px-4 py-2.5 text-sm text-red-600 font-medium hover:bg-red-50 transition-colors">

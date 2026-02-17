@@ -1,14 +1,40 @@
-import React from "react";
+import React, { useState } from "react";
 import { HiOutlineMail } from "react-icons/hi";
 import {
   FaFacebookF,
   FaInstagram,
   FaPinterestP,
   FaLinkedinIn,
+  FaYoutube,
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+import { useNavigate } from "react-router-dom";
+import instance from "../api/AxiosConfig";
 
 const Footer = () => {
+  const navigate = useNavigate();
+
+  const [email, setEmail] = useState("");
+  const [mess, setMess] = useState("");
+  const [st, setSt] = useState(false);
+  const subscribeHandler = () => {
+    instance.post("/api/subscription/add", { email })
+      .then((res) => {
+        setSt(true);
+        setMess(res.data.message);
+        setEmail("");
+       
+        setTimeout(() => {
+          setMess("");
+        }, 3000);
+      })
+      .catch((err) => {
+        setSt(false);
+        setMess("Failed to subscribe. Please try again later.");
+      });
+}
+
+
   return (
     <footer className="bg-[#FAF6EA] pt-10 md:pt-16 pb-6 md:pb-8 font-sans border-t">
       {/* Newsletter Section */}
@@ -25,12 +51,18 @@ const Footer = () => {
           <input
             type="email"
             placeholder="youremail123@gmail.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="flex-1 bg-transparent border-none outline-none text-gray-700 text-xs md:text-sm py-2 md:py-3"
           />
-          <button className="bg-[#C5A987] text-white px-5 md:px-8 py-2 md:py-3 rounded-full font-bold text-xs md:text-sm uppercase tracking-wider hover:bg-[#b09675] transition-colors">
+          {/* Error message */}
+          <button onClick={() => subscribeHandler()} className="bg-[#C5A987] text-white px-5 md:px-8 py-2 md:py-3 rounded-full font-bold text-xs md:text-sm uppercase tracking-wider hover:bg-[#b09675] transition-colors">
             Subscribe
           </button>
+          
         </div>
+        {st && <p className="text-green-500 text-xs md:text-sm">{mess}</p>}
+        {!st && <p className="text-red-500 text-xs md:text-sm">{mess}</p>}
       </div>
 
       {/* Links Section */}
@@ -42,49 +74,39 @@ const Footer = () => {
           </h3>
           <ul className="space-y-3 text-[13px] text-gray-600">
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
+              <button onClick={() => navigate("/shop/category/skin-care")} className="hover:text-[#C5A987] text-left">
                 Skin
-              </a>
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
+              <button onClick={() => navigate("/shop/category/daily-wellness")} className="hover:text-[#C5A987] text-left">
                 Bath & Body
-              </a>
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
+              <button onClick={() => navigate("/shop/category/hair-care")} className="hover:text-[#C5A987] text-left">
                 Hair
-              </a>
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
+              <button onClick={() => navigate("/shop/category/mens-health")} className="hover:text-[#C5A987] text-left">
                 Men
-              </a>
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Spa
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-[#C5A987]">
+              <button onClick={() => navigate("/collections/anantam")} className="hover:text-[#C5A987] text-left">
                 Anantam
-              </a>
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Kits & Gifting
-              </a>
+              <button onClick={() => navigate("/shop")} className="hover:text-[#C5A987] text-left">
+                All Products
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
+              <button onClick={() => navigate("/")} className="hover:text-[#C5A987] text-left">
                 Combos
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Exclusive Deals
-              </a>
+              </button>
             </li>
           </ul>
         </div>
@@ -96,24 +118,19 @@ const Footer = () => {
           </h3>
           <ul className="space-y-3 text-[13px] text-gray-600">
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
+              <button onClick={() => navigate("/")} className="hover:text-[#C5A987] text-left">
                 Our Story
-              </a>
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                About Lebrostone
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Media & Press
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-[#C5A987]">
+              <button onClick={() => navigate("/blogs")} className="hover:text-[#C5A987] text-left">
                 Blogs
-              </a>
+              </button>
+            </li>
+            <li>
+              <button onClick={() => navigate("/shop")} className="hover:text-[#C5A987] text-left">
+                Shop All
+              </button>
             </li>
           </ul>
         </div>
@@ -125,88 +142,58 @@ const Footer = () => {
           </h3>
           <ul className="space-y-3 text-[13px] text-gray-600">
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Contact Us
-              </a>
+              <button onClick={() => navigate("/profile")} className="hover:text-[#C5A987] text-left">
+                My Account
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Shipping Policy
-              </a>
+              <button onClick={() => navigate("/cart")} className="hover:text-[#C5A987] text-left">
+                My Cart
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Cancellation Policy
-              </a>
+              <button onClick={() => navigate("/profile")} className="hover:text-[#C5A987] text-left">
+                My Orders
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Return & Refund Policy
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Privacy Policy
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Terms & Conditions
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Disclaimer
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-[#C5A987]">
+              <button onClick={() => navigate("/")} className="hover:text-[#C5A987] text-left">
                 FAQs
-              </a>
+              </button>
             </li>
           </ul>
         </div>
 
-        {/* Available At */}
+        {/* Quick Links */}
         <div>
           <h3 className="font-bold text-gray-800 mb-6 uppercase text-sm tracking-widest">
-            Available At
+            Quick Links
           </h3>
           <ul className="space-y-3 text-[13px] text-gray-600">
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Amazon
-              </a>
+              <button onClick={() => navigate("/shop/category/mens-health")} className="hover:text-[#C5A987] text-left">
+                Men's Health
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Nykaa
-              </a>
+              <button onClick={() => navigate("/shop/category/womens-health")} className="hover:text-[#C5A987] text-left">
+                Women's Health
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Flipkart
-              </a>
+              <button onClick={() => navigate("/shop/category/weight-management")} className="hover:text-[#C5A987] text-left">
+                Weight Management
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Tira
-              </a>
+              <button onClick={() => navigate("/blogs")} className="hover:text-[#C5A987] text-left">
+                Blogs
+              </button>
             </li>
             <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Myntra
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Purplle
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-[#C5A987]">
-                Firstcry
-              </a>
+              <button onClick={() => navigate("/login")} className="hover:text-[#C5A987] text-left">
+                Login / Register
+              </button>
             </li>
           </ul>
         </div>
@@ -218,11 +205,11 @@ const Footer = () => {
           </h3>
           <div className="text-[13px] text-gray-600 space-y-4 leading-relaxed">
             <p>
-              31, Link Road, Opp. Defence Colony,
+              343, Alok Nagar
               <br />
-              Block A, Lajpat Nagar III,
+              Kanadiya Road, Indore 
               <br />
-              New Delhi – 110024, India
+               452016, MP, India
             </p>
             <p>
               Email:{" "}
@@ -233,34 +220,54 @@ const Footer = () => {
                 info@lebrostone.in
               </a>
             </p>
-            <p>Toll-Free : 1800-1028384</p>
+            <p>Mobile : +91 7067503515</p>
             <div className="flex gap-4 pt-4">
+
+              {/* {
+              Add this detail in the footer section 
+
+              Address:- 343, Alok Nagar, Kanadiya Road, Indore 452016, MP
+              Contact No:- 
+              Facebook:- https://www.facebook.com/profile.php?id=61587803026892
+              Instagram:- https://www.instagram.com/lebrostone_/
+              Youtube:-https://www.youtube.com/@Lebrostone
+              Pinterest:-https://in.pinterest.com/lebrostone/
+              Linkedin:-https://www.linkedin.com/company/lebrostone
+              Twitter :- https://x.com/lebrostone
+              
+              } */}
               <a
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61587803026892"
                 className="text-gray-800 hover:text-[#C5A987] transition-colors"
               >
                 <FaFacebookF />
               </a>
               <a
-                href="#"
+                href="https://www.youtube.com/@Lebrostone"
+                className="text-gray-800 hover:text-[#C5A987] transition-colors"
+              >
+                <FaYoutube />
+              </a>
+              <a
+                href="https://x.com/lebrostone"
                 className="text-gray-800 hover:text-[#C5A987] transition-colors"
               >
                 <FaXTwitter />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/lebrostone_/"
                 className="text-gray-800 hover:text-[#C5A987] transition-colors"
               >
                 <FaInstagram />
               </a>
               <a
-                href="#"
+                href="https://in.pinterest.com/lebrostone/"
                 className="text-gray-800 hover:text-[#C5A987] transition-colors"
               >
                 <FaPinterestP />
               </a>
               <a
-                href="#"
+                href="https://www.linkedin.com/company/lebrostone"
                 className="text-gray-800 hover:text-[#C5A987] transition-colors"
               >
                 <FaLinkedinIn />
@@ -272,33 +279,7 @@ const Footer = () => {
 
       {/* Footer Bottom */}
       <div className="max-w-7xl mx-auto px-4 border-t border-gray-200/50 pt-6 md:pt-8 flex flex-col items-center">
-        <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-4">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
-            alt="PayPal"
-            className="h-4 md:h-6"
-          />
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"
-            alt="Visa"
-            className="h-4 md:h-6"
-          />
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
-            alt="Mastercard"
-            className="h-4 md:h-6"
-          />
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/3840px-Google_Pay_Logo.svg.png"
-            alt="GPay"
-            className="h-4 md:h-6"
-          />
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/1280px-UPI-Logo-vector.svg.png"
-            alt="UPI"
-            className="h-4 md:h-6"
-          />
-        </div>
+      
         <p className="text-[10px] text-gray-400 uppercase tracking-widest">
           © 2026 Lebrostone. All Rights Reserved.
         </p>

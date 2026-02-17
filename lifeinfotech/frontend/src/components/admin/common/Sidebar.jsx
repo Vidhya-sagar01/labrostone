@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, ShoppingCart, Package, Star, 
-  Image as ImageIcon, Ticket, MessageSquare, 
+import {
+  LayoutDashboard, ShoppingCart, Package, Star,
+  Image as ImageIcon, Ticket, MessageSquare,
   ChevronDown, LogOut, PlusCircle, List,
   Filter, ShoppingBag, CreditCard, Users, HelpCircle, Sun, PlayCircle, BookOpen
 } from 'lucide-react';
 
 import { IMAGE_BASE_URL } from '../../web/api/AxiosConfig';
+import { FaRegEnvelope } from 'react-icons/fa';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -23,27 +24,27 @@ const Sidebar = () => {
   };
 
   // ACTIVE STATE: Blue background for top-level active items
-  const getLinkStyle = (path) => 
-    location.pathname === path 
-      ? 'bg-blue-600 text-white shadow-md font-semibold' 
+  const getLinkStyle = (path) =>
+    location.pathname === path
+      ? 'bg-blue-600 text-white shadow-md font-semibold'
       : 'text-gray-300 hover:bg-gray-800 hover:text-white';
 
   // PARENT MENU ACTIVE: Blue background when any child is active
-  const isParentActive = (pathPart) => 
-    location.pathname.includes(pathPart) 
-      ? 'text-white bg-blue-600' 
+  const isParentActive = (pathPart) =>
+    location.pathname.includes(pathPart)
+      ? 'text-white bg-blue-600'
       : 'text-gray-300';
 
   return (
     <aside className="w-64 bg-black text-white h-screen flex flex-col sticky top-0 shadow-xl overflow-hidden border-r border-gray-800">
-      
+
       {/* Branding - Darker shade for depth */}
       <div className="p-5 border-b border-gray-800 bg-gray-900">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden">
-            <img 
-              src={`${IMAGE_BASE_URL}/uploads/logo/logo.png`} 
-              alt="L" 
+            <img
+              src={`${IMAGE_BASE_URL}/uploads/logo/logo.png`}
+              alt="L"
               className="w-full h-full object-contain p-1"
               onError={(e) => {
                 e.target.style.display = 'none';
@@ -60,7 +61,7 @@ const Sidebar = () => {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 mt-4 space-y-1 overflow-y-auto custom-scrollbar">
-        
+
         {/* Dashboard */}
         <Link to="/admin/dashboard" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/dashboard')}`}>
           <LayoutDashboard size={18} />
@@ -74,7 +75,7 @@ const Sidebar = () => {
 
         {/* Brand Setup */}
         <div>
-          <button 
+          <button
             onClick={() => toggleMenu('brand')}
             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all hover:bg-gray-800 ${isParentActive('brand')}`}
           >
@@ -87,25 +88,23 @@ const Sidebar = () => {
           {openMenus['brand'] && (
             <ul className="mt-1 ml-4 space-y-1 border-l border-gray-700 pl-4">
               <li>
-                <Link 
-                  to="/admin/brand" 
-                  className={`flex items-center gap-2 py-2 text-xs transition-colors ${
-                    location.pathname === '/admin/brand' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
+                <Link
+                  to="/admin/brand"
+                  className={`flex items-center gap-2 py-2 text-xs transition-colors ${location.pathname === '/admin/brand'
+                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   <PlusCircle size={14} /> <span>Add Brand</span>
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/admin/brandslist" 
-                  className={`flex items-center gap-2 py-2 text-xs transition-colors ${
-                    location.pathname === '/admin/brandslist' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
+                <Link
+                  to="/admin/brandslist"
+                  className={`flex items-center gap-2 py-2 text-xs transition-colors ${location.pathname === '/admin/brandslist'
+                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   <List size={14} /> <span>All Brands</span>
                 </Link>
@@ -116,7 +115,7 @@ const Sidebar = () => {
 
         {/* Category Setup */}
         <div>
-          <button 
+          <button
             onClick={() => toggleMenu('category')}
             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all hover:bg-gray-800 ${isParentActive('category')}`}
           >
@@ -129,37 +128,34 @@ const Sidebar = () => {
           {openMenus['category'] && (
             <ul className="mt-1 ml-4 space-y-1 border-l border-gray-700 pl-4">
               <li>
-                <Link 
-                  to="/admin/category" 
-                  className={`block py-2 text-xs ${
-                    location.pathname === '/admin/category' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
+                <Link
+                  to="/admin/category"
+                  className={`block py-2 text-xs ${location.pathname === '/admin/category'
+                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   • Category
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/admin/subcategory" 
-                  className={`block py-2 text-xs ${
-                    location.pathname === '/admin/subcategory' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
+                <Link
+                  to="/admin/subcategory"
+                  className={`block py-2 text-xs ${location.pathname === '/admin/subcategory'
+                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   • Sub Category
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/admin/subSubCategory" 
-                  className={`block py-2 text-xs ${
-                    location.pathname === '/admin/subSubCategory' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
+                <Link
+                  to="/admin/subSubCategory"
+                  className={`block py-2 text-xs ${location.pathname === '/admin/subSubCategory'
+                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   • Sub Sub Category
                 </Link>
@@ -170,7 +166,7 @@ const Sidebar = () => {
 
         {/* Product Vault */}
         <div>
-          <button 
+          <button
             onClick={() => toggleMenu('products')}
             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all hover:bg-gray-800 ${isParentActive('product')}`}
           >
@@ -183,72 +179,66 @@ const Sidebar = () => {
           {openMenus['products'] && (
             <ul className="mt-1 ml-4 space-y-1 border-l border-gray-700 pl-4">
               <li>
-                <Link 
-                  to="/admin/addproduct" 
-                  className={`block py-2 text-xs ${
-                    location.pathname === '/admin/addproduct' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
+                <Link
+                  to="/admin/addproduct"
+                  className={`block py-2 text-xs ${location.pathname === '/admin/addproduct'
+                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   + New Product
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/admin/productadminlist" 
-                  className={`block py-2 text-xs ${
-                    location.pathname === '/admin/productadminlist' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
+                <Link
+                  to="/admin/productadminlist"
+                  className={`block py-2 text-xs ${location.pathname === '/admin/productadminlist'
+                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   Product List
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/admin/season" 
-                  className={`block py-2 text-xs ${
-                    location.pathname === '/admin/season' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
+                <Link
+                  to="/admin/season"
+                  className={`block py-2 text-xs ${location.pathname === '/admin/season'
+                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   Combo Packs
                 </Link>
               </li>
-                <Link 
-                  to="/admin/comboslist" 
-                  className={`block py-2 text-xs ${
-                    location.pathname === '/admin/comboslist' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
-                      : 'text-gray-400 hover:text-white'
+              <Link
+                to="/admin/comboslist"
+                className={`block py-2 text-xs ${location.pathname === '/admin/comboslist'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                   }`}
-                >
-                  Combo List
-                </Link>
+              >
+                Combo List
+              </Link>
               <li>
-                <Link 
-                  to="/admin/variant" 
-                  className={`block py-2 text-xs ${
-                    location.pathname === '/admin/variant' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
+                <Link
+                  to="/admin/variant"
+                  className={`block py-2 text-xs ${location.pathname === '/admin/variant'
+                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   Variants
                 </Link>
-                
+
               </li>
               <li>
-                <Link 
-                  to="/admin/features" 
-                  className={`block py-2 text-xs ${
-                    location.pathname === '/admin/features' 
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1' 
+                <Link
+                  to="/admin/features"
+                  className={`block py-2 text-xs ${location.pathname === '/admin/features'
+                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
                       : 'text-gray-400 hover:text-white'
-                  }`}
+                    }`}
                 >
                   Features
                 </Link>
@@ -291,7 +281,10 @@ const Sidebar = () => {
           <MessageSquare size={18} className="text-emerald-300" />
           <span className="text-sm font-medium">Reviews</span>
         </Link>
-
+        <Link to="/admin/subscribe" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/subscribe')}`}>
+          <FaRegEnvelope size={18} className="text-sky-300" />
+          <span className="text-sm font-medium">Subscribe</span>
+        </Link>
         <Link to="/admin/real" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/real')}`}>
           <PlayCircle size={18} className="text-fuchsia-300" />
           <span className="text-sm font-medium">Video Reels</span>
@@ -306,11 +299,12 @@ const Sidebar = () => {
           <HelpCircle size={18} className="text-sky-300" />
           <span className="text-sm font-medium">Help / FAQ</span>
         </Link>
+
       </nav>
 
       {/* Logout Section */}
       <div className="p-4 border-t border-gray-800 bg-gray-900">
-        <button 
+        <button
           onClick={() => {
             localStorage.removeItem('adminToken');
             window.location.href = '/admin/login';

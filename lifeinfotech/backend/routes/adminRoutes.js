@@ -135,7 +135,7 @@ router.get('/dashboard-stats', protect, async (req, res) => {
         const totalUsers = await User.countDocuments();
 
         const revenueResult = await Order.aggregate([
-            { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+            { $group: { _id: null, total: { $sum: "$finalTotal" } } }
         ]);
         const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
 

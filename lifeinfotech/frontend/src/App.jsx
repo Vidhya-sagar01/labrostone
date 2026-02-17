@@ -58,7 +58,7 @@ import ComboView from "./components/admin/pages/ComboView";
 import ComboList from "./components/admin/pages/ComboList";
 import VideoReelsSection from "./components/web/VideoReelsSection";
 import TrustedBar from "./components/web/TrustedBar";
-
+import Subscribe from "./components/admin/pages/Subscribe";
 // ✅ HELPER COMPONENT: URL se ID nikalne ke liye
 const ComboViewWrapper = () => {
   const { id } = useParams();
@@ -84,10 +84,12 @@ function App() {
             <ShopByConcern />
             <OurStory />
             <AnantamCollection />
-            <Reviews />
+          
             <VideoReelsSection />
             <Blogs />
+
             <TrustedBar />
+              <Reviews />
             <Footer />
           </>
         }
@@ -294,6 +296,7 @@ function App() {
                 <Route path="blog" element={<Blogadmin />} />
                 <Route path="variant" element={<Variant />} />
                 <Route path="features" element={<Features />} />
+                <Route path="subscribe" element={<Subscribe />} />
                 {/* ✅ COMBO ROUTES (CLEANED) */}
                 <Route path="comboslist" element={<ComboList />} />
                 <Route path="combo/view/:id" element={<ComboViewWrapper />} />

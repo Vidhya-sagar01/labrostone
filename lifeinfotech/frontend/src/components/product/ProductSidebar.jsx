@@ -113,7 +113,6 @@ const ProductSidebar = ({
   // ✅ STEP 3: Handle Add to Cart Function
   const handleAddToCart = async () => {
     if (!user || !user._id) {
-      alert("Login first 😊");
       navigate("/login");
       return;
     }

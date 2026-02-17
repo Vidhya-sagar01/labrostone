@@ -128,9 +128,7 @@ app.use("/api/reels", require("./routes/reelRoutes"));
 app.use("/api/blogs", require("./routes/blogRoutes"));
 app.use("/api/variants", require("./routes/variantRoute"));
 app.use("/api/features", require("./routes/featureRoutes"));
-
-// VERY IMPORTANT
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api/subscription", require("./routes/subscriptionRoutes"));
 app.get("/", (req, res) => {
   res.send("Lebrostone Backend is running 🚀");
 });

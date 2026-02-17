@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; // 1. Added useEffect
+import React, { useState, useEffect } from "react";
 import { CiUser, CiSearch, CiShoppingBasket } from "react-icons/ci";
 import { IoMdClose } from "react-icons/io";
 import { HiMenuAlt3 } from "react-icons/hi";
@@ -13,12 +13,21 @@ import instance from "../api/AxiosConfig";
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true); // 2. State for banner visibility
+  const [isVisible, setIsVisible] = useState(true); 
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const [cartCount, setCartCount] = useState(0);
 
-  // 3. Scroll logic: Hide banner if window.scrollY > 0
+  // Helper function to get initials (e.g., "John Doe" -> "JD")
+  const getInitials = (name) => {
+    if (!name) return "";
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0][0].toUpperCase();
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 0) {
@@ -32,56 +41,24 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // React.useEffect(() => {
-  //   const userId = user?.id || user?._id;
-  //   if (userId) {
-  //     instance
-  //       .post(`/cart/get`, { userId })
-  //       .then((response) => {
-  //         setCartCount(response.data.cart.items.length);
-  //       })
-  //       .catch((err) => {
-  //         console.error("Error fetching cart count:", err);
-  //       });
-  //   }
-  // }, [user?.id, user?._id]);
-
   const navItems = [
-    { name: "HOME", hasDropdown: false, path: "/" },
-    { name: "SHOP ALL", hasDropdown: false, path: "/shop" },
-   
-    {
-      name: "MEN'S HEALTH",
-      hasDropdown: false,
-      path: "/shop/category/mens-health",
-    },
-    {
-      name: "DAILY WELLNESS",
-      hasDropdown: false,
-      path: "/shop/category/daily-wellness",
-    },
-    {
-      name: "WEIGHT MANAGEMENT",
-      hasDropdown: false,
-      path: "/shop/category/weight-management",
-    },
-    { name: "HAIR CARE", hasDropdown: false, path: "/shop/category/hair-care" },
-    { name: "SKIN CARE", hasDropdown: false, path: "/shop/category/skin-care" },
-    {
-      name: "WOMEN'S HEALTH",
-      hasDropdown: false,
-      path: "/shop/category/womens-health",
-    },
-    { name: "BLOG", hasDropdown: false, path: "/blogs" },
+    { name: "HOME", path: "/" },
+    { name: "SHOP ALL", path: "/shop" }, 
+    { name: "DAILY WELLNESS", path: "/shop/category/daily-wellness" },
+    { name: "WEIGHT MANAGEMENT", path: "/shop/category/weight-management" },
+    { name: "HAIR CARE", path: "/shop/category/hair-care" },
+    { name: "SKIN CARE", path: "/shop/category/skin-care" },
+    { name: "MEN'S HEALTH", path: "/shop/category/mens-health" },
+    { name: "WOMEN'S HEALTH", path: "/shop/category/womens-health" },
+    { name: "BLOG", path: "/blogs" },
   ];
 
   return (
     <nav className="sticky top-0 left-0 w-full z-50 bg-[#FAF6EA] shadow-md font-sans">
-      {/* Top Banner - Conditioned by isVisible */}
+      {/* Top Banner */}
       <div
-        className={`bg-[#00a758] text-white flex justify-center items-center relative text-[10px] md:text-xs font-thin tracking-widest transition-all duration-300 overflow-hidden ${
-          isVisible ? "h-10 opacity-100 py-2" : "h-0 opacity-0 py-0"
-        }`}
+        className={`bg-[#00a758] text-white flex justify-center items-center relative text-[10px] md:text-xs font-thin tracking-widest transition-all duration-300 overflow-hidden ${isVisible ? "h-10 opacity-100 py-2" : "h-0 opacity-0 py-0"
+          }`}
       >
         <button className="absolute left-4 md:left-20 text-white/80 hover:text-white">
           <IoChevronBack size={16} />
@@ -97,7 +74,6 @@ const Navbar = () => {
 
       {/* Main Header Area */}
       <div className="max-w-360 mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
-        {/* ... rest of your code remains the same ... */}
         <div className="flex items-center justify-between">
           <a
             href="/"
@@ -134,12 +110,21 @@ const Navbar = () => {
 
           <div className="flex items-center gap-4 md:gap-6">
             <div className="flex items-center gap-3 md:gap-4 text-gray-800">
+              
+              {/* Profile Button Logic Starts Here */}
               <button
                 onClick={() => navigate("/profile")}
-                className="hover:text-[#C5A987] transition-colors"
+                className="hover:text-[#C5A987] transition-colors flex items-center gap-2"
               >
                 <CiUser size={24} strokeWidth={0.5} />
+                {user && user.name && (
+                  <span className="text-xs font-bold tracking-tighter border-l border-gray-400 pl-2">
+                    {getInitials(user.name)}
+                  </span>
+                )}
               </button>
+              {/* Profile Button Logic Ends Here */}
+
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
                 className="hover:text-[#C5A987] transition-colors"

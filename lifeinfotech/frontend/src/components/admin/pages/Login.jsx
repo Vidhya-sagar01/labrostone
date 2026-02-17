@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import instance, { IMAGE_BASE_URL } from '../../web/api/AxiosConfig';
-
+import instance from '../../web/api/AxiosConfig';
+import logo from '/logo.png';
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
-    const LOGO_URL = `${IMAGE_BASE_URL}/uploads/logo/centerlogo.png`;
-
+ 
+ 
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
             const res = await instance.post("/api/admin/login", { email, password });
             
             if (res.data.success) {
+                
                 localStorage.setItem('adminToken', res.data.token);
                 alert("Login Successful! ✅");
                 window.location.href = '/admin/dashboard';
@@ -30,12 +30,12 @@ const Login = () => {
                 
                 {/* ✅ STEP 4: Image Source Fixed */}
                 <img 
-                    src={LOGO_URL} 
+                    src={logo} 
                     alt="Lebrostone" 
                     className="h-20 mx-auto mb-6 object-contain" 
                     onError={(e) => {
                         e.target.style.display = 'none'; // Agar image na mile to hide kar de
-                        console.log("Logo failed to load from:", LOGO_URL);
+                        console.log("Logo failed to load from:", logo);
                     }}
                 />
                 
@@ -47,7 +47,7 @@ const Login = () => {
                         <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Email Access</label>
                         <input 
                             type="email" 
-                            placeholder="admin@lebrostone.com" 
+                            placeholder="Email" 
                             className="w-full p-4 mt-1 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-blue-500 transition-all font-bold"
                             onChange={(e) => setEmail(e.target.value)}
                             required 
@@ -58,7 +58,7 @@ const Login = () => {
                         <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Security Password</label>
                         <input 
                             type="password" 
-                            placeholder="••••••••" 
+                            placeholder="Password" 
                             className="w-full p-4 mt-1 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-blue-500 transition-all font-bold"
                             onChange={(e) => setPassword(e.target.value)}
                             required 

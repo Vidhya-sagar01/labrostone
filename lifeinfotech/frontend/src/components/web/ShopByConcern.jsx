@@ -73,11 +73,9 @@ const ingredients = [
 
 const SectionHeader = ({ title }) => (
   <div className="flex justify-center mb-10">
-    <div className=" text-black py-3 px-12 md:px-24 ">
-      <h2 className="text-lg md:text-2xl font-bold uppercase tracking-[0.2em] text-center">
-        {title}
-      </h2>
-    </div>
+    <h2 className="text-lg md:text-2xl font-bold uppercase tracking-[0.2em] text-center">
+      {title}
+    </h2>
   </div>
 );
 
@@ -86,107 +84,102 @@ const ShopByConcern = () => {
 
   return (
     <div className="py-10 md:py-16 bg-white px-4 md:px-8 overflow-hidden">
-      {/* Shop By Concern Section */}
-      <div className="max-w-7xl mx-auto mb-10 md:mb-16">
-        <div className="flex justify-center mb-6 md:mb-10">
-          <div className="text-black py-3 px-12 md:px-24">
-            <h2 className="text-lg md:text-2xl font-bold uppercase tracking-[0.2em] text-center">
-              Shop By Concern
-            </h2>
+      
+      {/* ================= SHOP BY CONCERN ================= */}
+      {/* ================= SHOP BY CONCERN ================= */}
+<div className="max-w-7xl mx-auto mb-10 md:mb-16">
+  <SectionHeader title="Shop By Concern" />
+
+  <Swiper
+    modules={[Autoplay]}
+    autoplay={{ delay: 3000, disableOnInteraction: false }}
+    loop={true}
+    spaceBetween={20}
+    slidesPerView={3} // Mobile: 3 cards
+    breakpoints={{
+      640: { slidesPerView: 2.5 },
+      768: { slidesPerView: 3.5 },
+      1024: { slidesPerView: 6 }, // Desktop: 6 cards (same as grid)
+    }}
+  >
+    {concerns.map((item, index) => (
+      <SwiperSlide key={index}>
+        <div
+          onClick={() => navigate(`/shop/concern/${item.title}`)}
+          className="flex flex-col items-center group cursor-pointer"
+        >
+          <div className="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 shadow-sm transition-transform duration-300 group-hover:scale-105">
+            <img
+              src={item.image}
+              alt={item.title}
+              className="w-full h-full object-cover"
+            />
           </div>
+
+          <p className="mt-4 text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wide text-center">
+            {item.title}
+          </p>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-6 mt-8">
-          {concerns.map((item, index) => (
-            <div
-              key={index}
-              className="flex flex-col items-center group cursor-pointer"
-              onClick={() => navigate(`/shop/concern/${item.title}`)}
-            >
-              <div className="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 shadow-sm transition-transform duration-300 group-hover:scale-105">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <p className="mt-4 text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                {item.title}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="w-full h-fit md:h-80 rounded-[2rem] overflow-hidden mb-10 md:mb-16">
-        <div className="w-full h-full rounded-xl bg-[url('/banner-ls.jpg')] bg-cover bg-center bg-no-repeat">
-          <div className="flex flex-col p-8 md:p-20 text-white text-xs md:text-base font-bold uppercase tracking-wide">
-            <h1 className="text-2xl font-bold">Natural Ayurvedic Wellness</h1>
-            <p className="text-sm md:text-base font-normal tracking-wide">
+      </SwiperSlide>
+    ))}
+  </Swiper>
+</div>
+
+
+      {/* ================= BANNER ================= */}
+      <div className="w-full md:h-80 rounded-[2rem] overflow-hidden mb-10 md:mb-16">
+        <div className="w-full h-full bg-[url('/banner-ls.jpg')] bg-cover bg-center">
+          <div className="p-8 md:p-20 text-white">
+            <h1 className="text-2xl font-bold">
+              Natural Ayurvedic Wellness
+            </h1>
+            <p className="text-sm md:text-base">
               Pure herbal solutions for immunity, skin care, hair growth &
               complete daily health.
             </p>
           </div>
         </div>
       </div>
-      {/* Shop By Ingredients Section */}
+
+      {/* ================= INGREDIENTS ================= */}
       <div className="max-w-7xl mx-auto mt-10">
         <SectionHeader title="Shop By Ingredients" />
-        <div className="mt-10 relative">
-          <Swiper
-            modules={[Autoplay]}
-            autoplay={{
-              delay: 1000,
-              disableOnInteraction: false,
-            }}
-            spaceBetween={20}
-            slidesPerView={1.5}
-            pagination={{ clickable: true, el: ".custom-pagination" }}
-            breakpoints={{
-              640: { slidesPerView: 2.5 },
-              768: { slidesPerView: 3.5 },
-              1024: { slidesPerView: 5.2 },
-            }}
-            className="pb-16"
-          >
-            {ingredients.map((item, index) => (
-              <SwiperSlide key={index}>
-                <div
-                  className="relative aspect-square overflow-hidden rounded-3xl group cursor-pointer border border-gray-100 shadow-md"
-                  onClick={() => navigate(`/shop/ingredient/${item.title}`)}
-                >
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  {/* Overlay for text */}
-                  <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-4">
-                    <p className="text-white text-sm md:text-base font-bold uppercase tracking-wide">
-                      {item.title}
-                    </p>
-                  </div>
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
 
-          {/* Custom Pagination Container */}
-          <div className="custom-pagination flex justify-center gap-2 -mt-8"></div>
-        </div>
+        <Swiper
+          modules={[Autoplay]}
+          autoplay={{ delay: 3000, disableOnInteraction: false }}
+          loop={true}
+          spaceBetween={20}
+          slidesPerView={3}
+          breakpoints={{
+            640: { slidesPerView: 2.5 },
+            768: { slidesPerView: 3.5 },
+            1024: { slidesPerView: 5.2 },
+          }}
+        >
+          {ingredients.map((item, index) => (
+            <SwiperSlide key={index}>
+              <div
+                onClick={() => navigate(`/shop/ingredient/${item.title}`)}
+                className="relative aspect-square overflow-hidden rounded-3xl border shadow-md cursor-pointer"
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                />
+
+                <div className="absolute bottom-0 w-full bg-black/60 p-3">
+                  <p className="text-white text-sm font-bold uppercase text-center">
+                    {item.title}
+                  </p>
+                </div>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
 
-      <style jsx>{`
-        .custom-pagination :global(.swiper-pagination-bullet) {
-          width: 8px;
-          height: 8px;
-          background-color: #d1d5db;
-          opacity: 1;
-        }
-        .custom-pagination :global(.swiper-pagination-bullet-active) {
-          background-color: #1a1a1a;
-          width: 12px;
-          border-radius: 4px;
-        }
-      `}</style>
     </div>
   );
 };

@@ -56,7 +56,7 @@ const TrustedBar = () => {
       <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8 px-4 opacity-70 grayscale hover:grayscale-0 transition-all">
         {items.map((item, index) => (
           <div
-            className="w-12 md:w-24 aspect-video flex items-center justify-center"
+            className="w-12  md:w-24 aspect-square flex items-center justify-center"
             key={index}
           >
             <img

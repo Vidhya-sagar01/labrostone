@@ -11,7 +11,7 @@ const Category = () => {
     const [imagePreview, setImagePreview] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
-
+    const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
     const initialFormState = {
         name: "",
         image_url: null,

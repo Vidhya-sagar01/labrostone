@@ -11,7 +11,7 @@ const Dashboard = () => {
     totalRevenue: 0,
     recentOrders: []
   });
-
+  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {

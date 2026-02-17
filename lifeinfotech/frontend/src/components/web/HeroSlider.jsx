@@ -54,7 +54,22 @@ const HeroSlider = () => {
 
   return (
     <div className="w-full">
-      {/* ================= SLIDER ================= */}
+     <meta name="description" content="Life Infotech - Your one-stop solution for all your needs." />
+    <meta name="keywords" content="Life Infotech, one-stop solution, needs" />
+    <meta name="author" content="Life Infotech" />
+    <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="bingbot" content="index, follow" />
+    <meta name="yahoobot" content="index, follow" />
+    <meta name="pinterest" content="index, follow" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@lifeinfotech1" />
+    <meta name="twitter:title" content="Life Infotech - Your one-stop solution for all your needs." />
+    <meta name="twitter:description" content="Life Infotech - Your one-stop solution for all your needs." />
+    <meta name="twitter:image" content="https://life-infotech1.vercel.app/api/og" />
+  
+
       <Swiper
         modules={[Autoplay, Navigation, Pagination]}
         autoplay={{
