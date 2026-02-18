@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import instance from '../api/AxiosConfig';
-import { Loader2, RotateCcw } from 'lucide-react';
+import { Loader2, Truck } from 'lucide-react';
 
-const ReturnPolicy = () => {
+const ShippingPolicy = () => {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,7 +11,7 @@ const ReturnPolicy = () => {
     const fetchContent = async () => {
       try {
         setLoading(true);
-        const response = await instance.get('/api/pages/Return Policy');
+        const response = await instance.get('/api/pages/Shipping Policy');
         
         if (response.data.success && response.data.data) {
           setContent(response.data.data.description || '');
@@ -19,7 +19,7 @@ const ReturnPolicy = () => {
           setError('Content not found');
         }
       } catch (err) {
-        console.error('Error fetching Return Policy:', err);
+        console.error('Error fetching Shipping Policy:', err);
         setError('Failed to load content');
       } finally {
         setLoading(false);
@@ -33,8 +33,8 @@ const ReturnPolicy = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="animate-spin mx-auto text-orange-600" size={48} />
-          <p className="mt-4 text-gray-600">Loading Return Policy...</p>
+          <Loader2 className="animate-spin mx-auto text-blue-600" size={48} />
+          <p className="mt-4 text-gray-600">Loading Shipping Policy...</p>
         </div>
       </div>
     );
@@ -57,12 +57,12 @@ const ReturnPolicy = () => {
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-8 py-12 text-center">
+          <div className="bg-gradient-to-r from-blue-500 to-cyan-500 px-8 py-12 text-center">
             <div className="flex justify-center mb-4">
-              <RotateCcw className="text-white" size={48} />
+              <Truck className="text-white" size={48} />
             </div>
-            <h1 className="text-4xl font-bold text-white mb-2">Return Policy</h1>
-            <p className="text-orange-100 text-lg">Hassle-free returns and exchanges</p>
+            <h1 className="text-4xl font-bold text-white mb-2">Shipping Policy</h1>
+            <p className="text-blue-100 text-lg">Fast and reliable delivery worldwide</p>
           </div>
 
           {/* Content */}
@@ -74,7 +74,7 @@ const ReturnPolicy = () => {
               />
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No content available for Return Policy</p>
+                <p className="text-gray-500 text-lg">No content available for Shipping Policy</p>
               </div>
             )}
           </div>
@@ -91,7 +91,7 @@ const ReturnPolicy = () => {
               </p>
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
               >
                 Back to Top
               </button>
@@ -103,4 +103,4 @@ const ReturnPolicy = () => {
   );
 };
 
-export default ReturnPolicy;
+export default ShippingPolicy;

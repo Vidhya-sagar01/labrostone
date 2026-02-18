@@ -21,6 +21,8 @@ const ComboView = ({ comboId }) => {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
+  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
+
   useEffect(() => {
     if (comboId) {
       fetchCombo();
@@ -271,7 +273,7 @@ const ComboView = ({ comboId }) => {
                         alt={product.name} 
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.target.src = "https://via.placeholder.com/150/6366f1/ffffff?text=Product";
+                          e.target.src = `${API_BASE}/uploads/products/product-1.jpg`;
                         }}
                       />
                     ) : (
