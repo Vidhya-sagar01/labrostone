@@ -39,7 +39,7 @@ import Productlist from "./components/admin/pages/Productlist";
 import Season from "./components/admin/pages/Season";
 import ProductDetailView from "./components/admin/pages/ProductDetailView";
 import AnantamBanner from "./components/admin/pages/AnantamBanner";
-import User from "./components/admin/pages/user";
+import User from "./components/admin/pages/User";
 import Coupon from "./components/admin/pages/Coupon";
 import AdminOrders from "./components/admin/pages/AdminOrders";
 import Payment from "./components/admin/pages/Payment";
@@ -64,6 +64,11 @@ import PrivacyPolicy from "./components/web/pages/PrivacyPolicy";
 import ReturnPolicy from "./components/web/pages/ReturnPolicy";
 import Aboutus from "./components/web/pages/Aboutus";
 import TermConditions from "./components/web/pages/TermConditions";
+import OrderConfig from "./components/admin/pages/OrderConfig";
+import BusinessPage from "./components/admin/pages/BusinessPage";
+import SupportPage from "./components/admin/pages/SupportPage";
+import Paymentpage from "./components/admin/pages/Paymentpage";
+import Inbox from "./components/admin/pages/Inbox";
 // ✅ HELPER COMPONENT: URL se ID nikalne ke liye
 const ComboViewWrapper = () => {
   const { id } = useParams();
@@ -331,6 +336,15 @@ function App() {
                 <Route path="faq" element={<Faq />} />
                 <Route path="productsshow" element={<Productlist />} />
                 <Route path="season" element={<Season />} />{" "}
+                <Route path="orderconfig" element={<OrderConfig />} />
+                <Route path="businesspage" element={<BusinessPage />} />
+                <Route path="support" element={<SupportPage />} />
+                <Route path="paymentpage" element={<Paymentpage />} />
+                <Route path="inbox" element={<Inbox />} />
+
+
+
+
                 {/* Season is your Add Combo Page */}
                 <Route
                   path="product/view/:productId"

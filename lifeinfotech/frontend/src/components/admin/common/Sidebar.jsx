@@ -4,11 +4,15 @@ import {
   LayoutDashboard, ShoppingCart, Package, Star,
   Image as ImageIcon, Ticket, MessageSquare,
   ChevronDown, LogOut, PlusCircle, List,
-  Filter, ShoppingBag, CreditCard, Users, HelpCircle, Sun, PlayCircle, BookOpen
+  Filter, ShoppingBag, CreditCard, Users, HelpCircle, Sun, PlayCircle, BookOpen,
+  LifeBuoy,
+  Key,
+  Package2
 } from 'lucide-react';
 
 import { IMAGE_BASE_URL } from '../../web/api/AxiosConfig';
 import { FaRegEnvelope } from 'react-icons/fa';
+import { HiCash } from 'react-icons/hi';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -60,7 +64,11 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 mt-4 space-y-1 overflow-y-auto custom-scrollbar">
+      <nav style={{
+        overflow: 'auto',
+        '-ms-overflow-style': 'none',
+        'scrollbar-width': 'none',
+      }} className="flex-1 px-3 mt-4 space-y-1 overflow-y-auto pb-5">
 
         {/* Dashboard */}
         <Link to="/admin/dashboard" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/dashboard')}`}>
@@ -91,8 +99,8 @@ const Sidebar = () => {
                 <Link
                   to="/admin/brand"
                   className={`flex items-center gap-2 py-2 text-xs transition-colors ${location.pathname === '/admin/brand'
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                      : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                     }`}
                 >
                   <PlusCircle size={14} /> <span>Add Brand</span>
@@ -102,8 +110,8 @@ const Sidebar = () => {
                 <Link
                   to="/admin/brandslist"
                   className={`flex items-center gap-2 py-2 text-xs transition-colors ${location.pathname === '/admin/brandslist'
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                      : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                     }`}
                 >
                   <List size={14} /> <span>All Brands</span>
@@ -131,8 +139,8 @@ const Sidebar = () => {
                 <Link
                   to="/admin/category"
                   className={`block py-2 text-xs ${location.pathname === '/admin/category'
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                      : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                     }`}
                 >
                   • Category
@@ -142,8 +150,8 @@ const Sidebar = () => {
                 <Link
                   to="/admin/subcategory"
                   className={`block py-2 text-xs ${location.pathname === '/admin/subcategory'
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                      : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                     }`}
                 >
                   • Sub Category
@@ -153,8 +161,8 @@ const Sidebar = () => {
                 <Link
                   to="/admin/subSubCategory"
                   className={`block py-2 text-xs ${location.pathname === '/admin/subSubCategory'
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                      : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                     }`}
                 >
                   • Sub Sub Category
@@ -182,8 +190,8 @@ const Sidebar = () => {
                 <Link
                   to="/admin/addproduct"
                   className={`block py-2 text-xs ${location.pathname === '/admin/addproduct'
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                      : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                     }`}
                 >
                   + New Product
@@ -193,8 +201,8 @@ const Sidebar = () => {
                 <Link
                   to="/admin/productadminlist"
                   className={`block py-2 text-xs ${location.pathname === '/admin/productadminlist'
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                      : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                     }`}
                 >
                   Product List
@@ -204,8 +212,8 @@ const Sidebar = () => {
                 <Link
                   to="/admin/season"
                   className={`block py-2 text-xs ${location.pathname === '/admin/season'
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                      : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                     }`}
                 >
                   Combo Packs
@@ -214,8 +222,8 @@ const Sidebar = () => {
               <Link
                 to="/admin/comboslist"
                 className={`block py-2 text-xs ${location.pathname === '/admin/comboslist'
-                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                    : 'text-gray-400 hover:text-white'
+                  ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                  : 'text-gray-400 hover:text-white'
                   }`}
               >
                 Combo List
@@ -224,8 +232,8 @@ const Sidebar = () => {
                 <Link
                   to="/admin/variant"
                   className={`block py-2 text-xs ${location.pathname === '/admin/variant'
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                      : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                     }`}
                 >
                   Variants
@@ -236,8 +244,8 @@ const Sidebar = () => {
                 <Link
                   to="/admin/features"
                   className={`block py-2 text-xs ${location.pathname === '/admin/features'
-                      ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                      : 'text-gray-400 hover:text-white'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
                     }`}
                 >
                   Features
@@ -299,6 +307,43 @@ const Sidebar = () => {
           <HelpCircle size={18} className="text-sky-300" />
           <span className="text-sm font-medium">Help / FAQ</span>
         </Link>
+
+        {/* Help & Support */}
+
+        <div className="pt-4 pb-1 px-3">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Help & Support</p>
+        </div>
+
+        <Link to="/admin/inbox" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/inbox')}`}>
+          <LifeBuoy size={18} className="text-sky-300" />
+          <span className="text-sm font-medium">Inbox</span>
+        </Link>
+        <Link to="/admin/support" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/support')}`}>
+          <LifeBuoy size={18} className="text-sky-300" />
+          <span className="text-sm font-medium">Support Ticket</span>
+        </Link>
+
+        {/* System Settings */}
+        <div className="pt-4 pb-1 px-3">
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">System Settings</p>
+        </div>
+
+        <Link to="/admin/paymentpage" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/paymentpage')}`}>
+          <HiCash size={18} className="text-sky-300" />
+          <span className="text-sm font-medium">Payment Gateway</span>
+        </Link>
+
+        <Link to="/admin/orderconfig" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/orderconfig')}`}>
+          <Key size={18} className="text-yellow-300" />
+          <span className="text-sm font-medium">Order Configuration</span>
+        </Link>
+
+        <Link to="/admin/businesspage" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/businesspage')}`}>
+          <Package2 size={18} className="text-sky-300" />
+          <span className="text-sm font-medium">Business Pages</span>
+        </Link>
+
+
 
       </nav>
 
