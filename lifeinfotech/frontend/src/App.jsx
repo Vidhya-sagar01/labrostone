@@ -88,6 +88,7 @@ function App() {
           <>
             <Navbar />
             <HeroSlider />
+      
             <TopPicks />
             <ShopByCategory />
             <FindDosha />
@@ -341,6 +342,7 @@ function App() {
                 <Route path="support" element={<SupportPage />} />
                 <Route path="paymentpage" element={<Paymentpage />} />
                 <Route path="inbox" element={<Inbox />} />
+                <Route path="heroslider" element={<Sliders />} />
 
 
 

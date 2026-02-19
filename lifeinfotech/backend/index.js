@@ -28,7 +28,7 @@ uploadDirs.forEach((dir) => {
    =============================== */
 const allowedOrigins = [
   "https://lebrostone.lifeinfotechinstitute.com",
-  "https://lebrostonebackend.lifeinfotechinstitute.com",
+  "https://lebrostonebackend4.lifeinfotechinstitute.com",
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:5000",

@@ -18,7 +18,7 @@ const Editprodoct = () => {
   const [subSubCategories, setSubSubCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
+  const API_BASE = "https://lebrostonebackend4.lifeinfotechinstitute.com";
 
   // Full FormData State (Matching AddProduct)
   const [formData, setFormData] = useState({

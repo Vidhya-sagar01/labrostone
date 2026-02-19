@@ -21,7 +21,7 @@ const ComboView = ({ comboId }) => {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  const API_BASE = "https://lebrostonebackend.lifeinfotechinstitute.com";
+  const API_BASE = "https://lebrostonebackend4.lifeinfotechinstitute.com";
 
   useEffect(() => {
     if (comboId) {

@@ -7,7 +7,8 @@ import {
   Filter, ShoppingBag, CreditCard, Users, HelpCircle, Sun, PlayCircle, BookOpen,
   LifeBuoy,
   Key,
-  Package2
+  Package2,
+  BanknoteArrowUpIcon
 } from 'lucide-react';
 
 import { IMAGE_BASE_URL } from '../../web/api/AxiosConfig';
@@ -341,6 +342,10 @@ const Sidebar = () => {
         <Link to="/admin/businesspage" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/businesspage')}`}>
           <Package2 size={18} className="text-sky-300" />
           <span className="text-sm font-medium">Business Pages</span>
+        </Link>
+        <Link to="/admin/heroslider" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/heroslider')}`}>
+          <BanknoteArrowUpIcon size={18} className="text-fuchsia-300" />
+          <span className="text-sm font-medium">Hero Slider</span>
         </Link>
 
 

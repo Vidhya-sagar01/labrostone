@@ -54,7 +54,7 @@ router.post('/temp-register', async (req, res) => {
 
         const existingAdmin = await Admin.findOne({ email });
         if (existingAdmin) {
-            return res.status(400).json({ success: false, message: "Admin pehle se bana hua hai!" });
+            return res.status(400).json({ success: false, message: "Admin already exists!" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -67,7 +67,7 @@ router.post('/temp-register', async (req, res) => {
 
         res.status(201).json({ 
             success: true, 
-            message: 'Naya admin account admin@gmail.com ke liye ban gaya hai!', 
+            message: 'New admin account created for admin@gmail.com!', 
             admin: { email: newAdmin.email } 
         });
     } catch (err) {
