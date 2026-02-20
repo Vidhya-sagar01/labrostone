@@ -85,10 +85,12 @@ const ShopByConcern = () => {
   const [concerns, setConcerns] = useState([]);
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [offerBanner, setOfferBanner] = useState(null);
 
   useEffect(() => {
     fetchConcerns();
     fetchIngredients();
+    fetchOfferBanner();
   }, []);
 
   const fetchConcerns = async () => {
@@ -118,6 +120,17 @@ const ShopByConcern = () => {
       setIngredients(defaultIngredients);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOfferBanner = async () => {
+    try {
+      const res = await instance.get("/api/offer-content/type/offerBanner");
+      if (res.data.success && res.data.data) {
+        setOfferBanner(res.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching offer banner:", err);
     }
   };
 
@@ -221,22 +234,56 @@ const ShopByConcern = () => {
       </div>
 
       {/* ================= BANNER ================= */}
-      <div className="w-full md:h-80 rounded-[2rem] overflow-hidden mb-10 md:mb-16">
-        <div className="w-full h-full bg-[url('/banner-ls.jpg')] bg-cover bg-center">
-          <div className="p-8 md:p-20 text-white">
-            <h1 className="text-2xl font-bold">
-              Natural Ayurvedic Wellness
-            </h1>
-            <p className="text-sm md:text-base">
-              Pure herbal solutions for immunity, skin care, hair growth &
-              complete daily health.
-            </p>
+      {offerBanner && offerBanner.status ? (
+        <div 
+          className="w-full md:h-80 rounded-[2rem] overflow-hidden mb-10 md:mb-16 cursor-pointer"
+          onClick={() => offerBanner.productId ? navigate(`/product/${offerBanner.productId._id}`) : null}
+        >
+          {offerBanner.image ? (
+            <div 
+              className="w-full h-full bg-cover bg-center"
+              style={{ backgroundImage: `url(${getImageUrl(offerBanner.image)})` }}
+            >
+              <div className="p-8 md:p-20 text-white">
+                <h1 className="text-2xl font-bold">
+                  {offerBanner.title || 'Natural Ayurvedic Wellness'}
+                </h1>
+                <p className="text-sm md:text-base">
+                  {offerBanner.description || 'Pure herbal solutions for immunity, skin care, hair growth & complete daily health.'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-full bg-[#A88B56] flex items-center">
+              <div className="p-8 md:p-20 text-white">
+                <h1 className="text-2xl font-bold">
+                  {offerBanner.title || 'Natural Ayurvedic Wellness'}
+                </h1>
+                <p className="text-sm md:text-base">
+                  {offerBanner.description || 'Pure herbal solutions for immunity, skin care, hair growth & complete daily health.'}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="w-full md:h-80 rounded-[2rem] overflow-hidden mb-10 md:mb-16">
+          <div className="w-full h-full bg-[url('/banner-ls.jpg')] bg-cover bg-center">
+            <div className="p-8 md:p-20 text-white">
+              <h1 className="text-2xl font-bold">
+                Natural Ayurvedic Wellness
+              </h1>
+              <p className="text-sm md:text-base">
+                Pure herbal solutions for immunity, skin care, hair growth &
+                complete daily health.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ================= INGREDIENTS ================= */}
-      <div className="max-w-7xl mx-auto mt-10">
+      {/* <div className="max-w-7xl mx-auto mt-10">
         <SectionHeader title="Shop By Ingredients" />
 
         {!loading && ingredients.length > 0 ? (
@@ -308,7 +355,7 @@ const ShopByConcern = () => {
             ))}
           </Swiper>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

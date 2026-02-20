@@ -5,7 +5,7 @@ const isLocalhost =
   window.location.hostname === "127.0.0.1";
 
 const baseURL = isLocalhost
-  ? "http://localhost:5001"
+  ? "http://localhost:5001" 
   : "https://lebrostonebackend4.lifeinfotechinstitute.com";
 
 /** Base URL for images/uploads - use same logic as baseURL */

@@ -73,6 +73,7 @@ import Story from "./components/admin/pages/Story";
 import AdminConcern from "./components/admin/pages/AdminConcern";
 import AdminIngredient from "./components/admin/pages/AdminIngredient";
 import Offerbanner from "./components/admin/pages/Offerbanner";
+import FindOffer from "./components/admin/pages/FindOffer";
 // ✅ HELPER COMPONENT: URL se ID nikalne ke liye
 const ComboViewWrapper = () => {
   const { id } = useParams();
@@ -349,7 +350,7 @@ function App() {
                 <Route path="heroslider" element={<Sliders />} />
                 <Route path="story" element={<Story />} />
                 <Route path="concern" element={<AdminConcern />} />
-                <Route path="ingredient" element={<AdminIngredient />} />
+                {/* <Route path="ingredient" element={<AdminIngredient />} /> */}
                 
                 <Route path="offerbanner" element={<Offerbanner />} />
                 <Route path="findoffer" element={<FindOffer />} />

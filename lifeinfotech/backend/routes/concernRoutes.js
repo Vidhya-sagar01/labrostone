@@ -5,11 +5,18 @@ const Product = require('../models/Product');
 const { protect } = require('../middleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+
+// Ensure upload directory exists
+const concernUploadDir = path.join(__dirname, '../public/uploads/concerns');
+if (!fs.existsSync(concernUploadDir)) {
+  fs.mkdirSync(concernUploadDir, { recursive: true });
+}
 
 // Configure multer for concern images
 const concernStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'public/uploads/concerns/');
+    cb(null, concernUploadDir);
   },
   filename: (req, file, cb) => {
     cb(null, 'concern-' + Date.now() + path.extname(file.originalname));
@@ -92,6 +99,10 @@ router.post('/', protect, concernUpload.single('image'), async (req, res) => {
   try {
     const { title, products, status, order } = req.body;
     
+    if (!title) {
+      return res.status(400).json({ success: false, message: 'Title is required' });
+    }
+    
     const concern = new Concern({
       title,
       image: req.file ? `/uploads/concerns/${req.file.filename}` : '',
@@ -109,6 +120,7 @@ router.post('/', protect, concernUpload.single('image'), async (req, res) => {
       data: concern
     });
   } catch (err) {
+    console.error('Error creating concern:', err);
     res.status(400).json({ success: false, message: err.message });
   }
 });
@@ -124,7 +136,9 @@ router.put('/:id', protect, concernUpload.single('image'), async (req, res) => {
     }
     
     concern.title = title || concern.title;
-    concern.status = status === 'true' || status === true ? concern.status : (status === 'false' || status === false ? false : concern.status);
+    if (status !== undefined) {
+      concern.status = status === 'true' || status === true;
+    }
     concern.order = order || concern.order;
     
     if (req.file) {

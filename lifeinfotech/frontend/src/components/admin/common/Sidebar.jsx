@@ -292,10 +292,10 @@ const Sidebar = () => {
           <span className="text-sm font-medium">Shop by Concern</span>
         </Link>
 
-        <Link to="/admin/ingredient" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/ingredient')}`}>
+        {/* <Link to="/admin/ingredient" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/ingredient')}`}>
           <BookOpen size={18} className="text-indigo-300" />
           <span className="text-sm font-medium">Shop by Ingredient</span>
-        </Link>
+        </Link> */}
 
 
 
@@ -331,6 +331,14 @@ const Sidebar = () => {
         <Link to="/admin/heroslider" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/heroslider')}`}>
           <BanknoteArrowUpIcon size={18} className="text-fuchsia-300" />
           <span className="text-sm font-medium">Hero Slider</span>
+        </Link>
+        <Link to="/admin/offerbanner" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/offerbanner')}`}>
+          <BookOpen size={18} className="text-indigo-300" />
+          <span className="text-sm font-medium">Offer Banner</span>
+        </Link>
+        <Link to="/admin/findoffer" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/findoffer')}`}>
+          <BookOpen size={18} className="text-indigo-300" />
+          <span className="text-sm font-medium">Find Offer</span>
         </Link>
         <Link to="/admin/reviews" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/reviews')}`}>
           <MessageSquare size={18} className="text-emerald-300" />

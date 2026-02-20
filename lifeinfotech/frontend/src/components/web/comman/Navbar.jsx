@@ -50,9 +50,8 @@ const Navbar = () => {
 
       {/* Top Banner */}
       <div
-        className={`bg-[#00a758] text-white flex justify-center items-center text-xs transition-all duration-300 ${
-          isVisible ? "h-10 opacity-100" : "h-0 opacity-0"
-        }`}
+        className={`bg-[#00a758] text-white flex justify-center items-center text-xs transition-all duration-300 ${isVisible ? "h-10 opacity-100" : "h-0 opacity-0"
+          }`}
       >
         <button className="absolute left-4">
           <IoChevronBack />
@@ -68,7 +67,23 @@ const Navbar = () => {
       </div>
 
       {/* Main Header */}
-      <div className="px-4 py-3 flex items-center justify-between">
+      <div className="px-14 py-2 flex items-center justify-between">
+       
+        <a
+          href="/"
+          className="hidden md:flex flex-col text-[10px] items-start font-bold text-gray-800 leading-tight"
+        >
+          <p className="text-center w-full text-sm uppercase font-medium ml-3">
+            from the house of
+          </p>
+          <span className="h-10 w-auto ">
+            <img
+              className="h-full w-full object-contain "
+              src="/leftlogo.png"
+              alt="leftlogo"
+            />
+          </span>
+        </a>
 
         {/* Mobile Menu Button */}
         <button

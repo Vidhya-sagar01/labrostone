@@ -5,11 +5,18 @@ const Product = require('../models/Product');
 const { protect } = require('../middleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+
+// Ensure upload directory exists
+const ingredientUploadDir = path.join(__dirname, '../public/uploads/ingredients');
+if (!fs.existsSync(ingredientUploadDir)) {
+  fs.mkdirSync(ingredientUploadDir, { recursive: true });
+}
 
 // Configure multer for ingredient images
 const ingredientStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'public/uploads/ingredients/');
+    cb(null, ingredientUploadDir);
   },
   filename: (req, file, cb) => {
     cb(null, 'ingredient-' + Date.now() + path.extname(file.originalname));
@@ -93,7 +100,9 @@ router.put('/:id', protect, ingredientUpload.single('image'), async (req, res) =
     }
     
     ingredient.title = title || ingredient.title;
-    ingredient.status = status === 'true' || status === true ? ingredient.status : (status === 'false' || status === false ? false : ingredient.status);
+    if (status !== undefined) {
+      ingredient.status = status === 'true' || status === true;
+    }
     ingredient.order = order || ingredient.order;
     
     if (req.file) {

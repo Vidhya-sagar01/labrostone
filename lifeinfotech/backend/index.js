@@ -14,6 +14,9 @@ const app = express();
 const uploadDirs = [
   path.join(__dirname, "public/uploads/brands"),
   path.join(__dirname, "public/uploads/categories"),
+  path.join(__dirname, "public/uploads/concerns"),
+  path.join(__dirname, "public/uploads/ingredients"),
+  path.join(__dirname, "public/uploads/offercontent"),
 ];
 
 uploadDirs.forEach((dir) => {
@@ -72,7 +75,7 @@ app.use(express.urlencoded({ extended: true }));
 // app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use(
   "/uploads",
-  express.static(path.join(process.cwd(), "public", "uploads")),
+  express.static(path.join(__dirname, "public", "uploads")),
 );
 /* ===============================
    GOOGLE AUTH FIX (OPTIONAL)
@@ -131,6 +134,7 @@ app.use("/api/variants", require("./routes/variantRoute"));
 app.use("/api/features", require("./routes/featureRoutes"));
 app.use("/api/concerns", require("./routes/concernRoutes"));
 app.use("/api/ingredients", require("./routes/ingredientRoutes"));
+app.use("/api/offer-content", require("./routes/offerContentRoutes"));
 app.use("/api/subscription", require("./routes/subscriptionRoutes"));
 
 app.use("/api/pages", require("./routes/PageRoutes"));
