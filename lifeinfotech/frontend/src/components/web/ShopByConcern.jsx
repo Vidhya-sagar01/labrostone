@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination, Autoplay } from "swiper/modules";
+import { Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import { useNavigate } from "react-router-dom";
+import instance, { getImageUrl } from "./api/AxiosConfig";
 
-const concerns = [
+const defaultConcerns = [
   {
     title: "Acne",
     image:
@@ -38,7 +39,7 @@ const concerns = [
   },
 ];
 
-const ingredients = [
+const defaultIngredients = [
   {
     title: "Rice Water",
     image:
@@ -81,50 +82,143 @@ const SectionHeader = ({ title }) => (
 
 const ShopByConcern = () => {
   const navigate = useNavigate();
+  const [concerns, setConcerns] = useState([]);
+  const [ingredients, setIngredients] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchConcerns();
+    fetchIngredients();
+  }, []);
+
+  const fetchConcerns = async () => {
+    try {
+      const res = await instance.get("/api/concerns");
+      if (res.data.success && res.data.data.length > 0) {
+        setConcerns(res.data.data);
+      } else {
+        setConcerns(defaultConcerns);
+      }
+    } catch (err) {
+      console.error("Error fetching concerns:", err);
+      setConcerns(defaultConcerns);
+    }
+  };
+
+  const fetchIngredients = async () => {
+    try {
+      const res = await instance.get("/api/ingredients");
+      if (res.data.success && res.data.data.length > 0) {
+        setIngredients(res.data.data);
+      } else {
+        setIngredients(defaultIngredients);
+      }
+    } catch (err) {
+      console.error("Error fetching ingredients:", err);
+      setIngredients(defaultIngredients);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getConcernImage = (concern) => {
+    if (concern.image) {
+      return getImageUrl(concern.image);
+    }
+    // Match by title to default concerns for fallback
+    const matched = defaultConcerns.find(
+      (c) => c.title.toLowerCase() === concern.title.toLowerCase()
+    );
+    return matched?.image || defaultConcerns[0]?.image || "";
+  };
+
+  const getIngredientImage = (ingredient) => {
+    if (ingredient.image) {
+      return getImageUrl(ingredient.image);
+    }
+    // Match by title to default ingredients for fallback
+    const matched = defaultIngredients.find(
+      (i) => i.title.toLowerCase() === ingredient.title.toLowerCase()
+    );
+    return matched?.image || defaultIngredients[0]?.image || "";
+  };
 
   return (
     <div className="py-10 md:py-16 bg-white px-4 md:px-8 overflow-hidden">
-      
       {/* ================= SHOP BY CONCERN ================= */}
-      {/* ================= SHOP BY CONCERN ================= */}
-<div className="max-w-7xl mx-auto mb-10 md:mb-16">
-  <SectionHeader title="Shop By Concern" />
+      <div className="max-w-7xl mx-auto mb-10 md:mb-16">
+        <SectionHeader title="Shop By Concern" />
 
-  <Swiper
-    modules={[Autoplay]}
-    autoplay={{ delay: 3000, disableOnInteraction: false }}
-    loop={true}
-    spaceBetween={20}
-    slidesPerView={3} // Mobile: 3 cards
-    breakpoints={{
-      640: { slidesPerView: 2.5 },
-      768: { slidesPerView: 3.5 },
-      1024: { slidesPerView: 6 }, // Desktop: 6 cards (same as grid)
-    }}
-  >
-    {concerns.map((item, index) => (
-      <SwiperSlide key={index}>
-        <div
-          onClick={() => navigate(`/shop/concern/${item.title}`)}
-          className="flex flex-col items-center group cursor-pointer"
-        >
-          <div className="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 shadow-sm transition-transform duration-300 group-hover:scale-105">
-            <img
-              src={item.image}
-              alt={item.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
+        {!loading && concerns.length > 0 ? (
+          <Swiper
+            modules={[Autoplay]}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            loop={true}
+            spaceBetween={20}
+            slidesPerView={3}
+            breakpoints={{
+              640: { slidesPerView: 2.5 },
+              768: { slidesPerView: 3.5 },
+              1024: { slidesPerView: 6 },
+            }}
+          >
+            {concerns.map((item, index) => (
+              <SwiperSlide key={item._id || index}>
+                <div
+                  onClick={() => navigate(`/shop/concern/${item.title}`)}
+                  className="flex flex-col items-center group cursor-pointer"
+                >
+                  <div className="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 shadow-sm transition-transform duration-300 group-hover:scale-105">
+                    <img
+                      src={getConcernImage(item)}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-          <p className="mt-4 text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wide text-center">
-            {item.title}
-          </p>
-        </div>
-      </SwiperSlide>
-    ))}
-  </Swiper>
-</div>
+                  <p className="mt-4 text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wide text-center">
+                    {item.title}
+                  </p>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <Swiper
+            modules={[Autoplay]}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            loop={true}
+            spaceBetween={20}
+            slidesPerView={3}
+            breakpoints={{
+              640: { slidesPerView: 2.5 },
+              768: { slidesPerView: 3.5 },
+              1024: { slidesPerView: 6 },
+            }}
+          >
+            {defaultConcerns.map((item, index) => (
+              <SwiperSlide key={index}>
+                <div
+                  onClick={() => navigate(`/shop/concern/${item.title}`)}
+                  className="flex flex-col items-center group cursor-pointer"
+                >
+                  <div className="w-full aspect-square overflow-hidden rounded-2xl border border-gray-100 shadow-sm transition-transform duration-300 group-hover:scale-105">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
+                  <p className="mt-4 text-xs md:text-sm font-semibold text-gray-700 uppercase tracking-wide text-center">
+                    {item.title}
+                  </p>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
+      </div>
 
       {/* ================= BANNER ================= */}
       <div className="w-full md:h-80 rounded-[2rem] overflow-hidden mb-10 md:mb-16">
@@ -145,41 +239,76 @@ const ShopByConcern = () => {
       <div className="max-w-7xl mx-auto mt-10">
         <SectionHeader title="Shop By Ingredients" />
 
-        <Swiper
-          modules={[Autoplay]}
-          autoplay={{ delay: 3000, disableOnInteraction: false }}
-          loop={true}
-          spaceBetween={20}
-          slidesPerView={3}
-          breakpoints={{
-            640: { slidesPerView: 2.5 },
-            768: { slidesPerView: 3.5 },
-            1024: { slidesPerView: 5.2 },
-          }}
-        >
-          {ingredients.map((item, index) => (
-            <SwiperSlide key={index}>
-              <div
-                onClick={() => navigate(`/shop/ingredient/${item.title}`)}
-                className="relative aspect-square overflow-hidden rounded-3xl border shadow-md cursor-pointer"
-              >
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
+        {!loading && ingredients.length > 0 ? (
+          <Swiper
+            modules={[Autoplay]}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            loop={true}
+            spaceBetween={20}
+            slidesPerView={3}
+            breakpoints={{
+              640: { slidesPerView: 2.5 },
+              768: { slidesPerView: 3.5 },
+              1024: { slidesPerView: 5.2 },
+            }}
+          >
+            {ingredients.map((item, index) => (
+              <SwiperSlide key={item._id || index}>
+                <div
+                  onClick={() => navigate(`/shop/ingredient/${item.title}`)}
+                  className="relative aspect-square overflow-hidden rounded-3xl border shadow-md cursor-pointer"
+                >
+                  <img
+                    src={getIngredientImage(item)}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
 
-                <div className="absolute bottom-0 w-full bg-black/60 p-3">
-                  <p className="text-white text-sm font-bold uppercase text-center">
-                    {item.title}
-                  </p>
+                  <div className="absolute bottom-0 w-full bg-black/60 p-3">
+                    <p className="white text-sm font-bold uppercase text-center">
+                      {item.title}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <Swiper
+            modules={[Autoplay]}
+            autoplay={{ delay: 3000, disableOnInteraction: false }}
+            loop={true}
+            spaceBetween={20}
+            slidesPerView={3}
+            breakpoints={{
+              640: { slidesPerView: 2.5 },
+              768: { slidesPerView: 3.5 },
+              1024: { slidesPerView: 5.2 },
+            }}
+          >
+            {defaultIngredients.map((item, index) => (
+              <SwiperSlide key={index}>
+                <div
+                  onClick={() => navigate(`/shop/ingredient/${item.title}`)}
+                  className="relative aspect-square overflow-hidden rounded-3xl border shadow-md cursor-pointer"
+                >
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
 
+                  <div className="absolute bottom-0 w-full bg-black/60 p-3">
+                    <p className="white text-sm font-bold uppercase text-center">
+                      {item.title}
+                    </p>
+                  </div>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
+      </div>
     </div>
   );
 };

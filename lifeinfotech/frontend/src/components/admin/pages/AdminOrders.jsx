@@ -3,8 +3,9 @@ import instance from '../../web/api/AxiosConfig';
 import { useToast } from '../../../context/ToastContext';
 import { 
   Package, Search, Eye, Trash2, Loader2, 
-  MapPin, CheckCircle, Clock, Truck, X, User, Receipt
+  MapPin, CheckCircle, Clock, Truck, X, User, Receipt, Phone // Added Phone icon
 } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 
 const AdminOrders = () => {
     const { success, error } = useToast();
@@ -12,6 +13,10 @@ const AdminOrders = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedOrder, setSelectedOrder] = useState(null);
+
+    // --- NEW STATES FOR WHATSAPP ---
+    const [isWhatsappModalOpen, setIsWhatsappModalOpen] = useState(false);
+    const [whatsappMessage, setWhatsappMessage] = useState("");
 
     useEffect(() => {
         fetchAllOrders();
@@ -28,39 +33,43 @@ const AdminOrders = () => {
         }
     };
 
-    // --- 1. PAYMENT TOGGLE LOGIC ---
+    // --- WHATSAPP LOGIC ---
+    const openWhatsappEditor = (order) => {
+        const productDetails = order.products.map(p => `- ${p.name} (Qty: ${p.quantity})`).join('\n');
+        const message = `Hello ${order.user?.name || 'Customer'},\n\nRegarding your Order #${order._id.slice(-8).toUpperCase()}:\n${productDetails}\n\nTotal Amount: ₹${order.finalTotal}\nStatus: ${order.deliveryStatus}\n\nThank you!`;
+        
+        setWhatsappMessage(message);
+        setIsWhatsappModalOpen(true);
+    };
+
+    const sendWhatsapp = () => {
+        const encodedMessage = encodeURIComponent(whatsappMessage);
+        const phoneNumber = selectedOrder.user?.phoneNumber;
+        window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
+        setIsWhatsappModalOpen(false);
+    };
+
     const togglePaymentStatus = async (orderId, currentStatus) => {
         const newStatus = currentStatus === "Pending" ? "Received" : "Pending";
-        
         if (window.confirm(`Change payment status to "${newStatus}"?`)) {
             try {
-                // Yeh aapke paymentRoutes ke update-payment endpoint ko call karega
-                const res = await instance.put(`/api/payments/update-payment/${orderId}`, { 
-                    status: newStatus 
-                });
-                
+                const res = await instance.put(`/api/payments/update-payment/${orderId}`, { status: newStatus });
                 if (res.data.success) {
                     success("Payment status updated successfully!");
-                    fetchAllOrders(); // Data refresh
+                    fetchAllOrders();
                 }
-            } catch (err) {
-                error("Payment update failed.");
-            }
+            } catch (err) { error("Payment update failed."); }
         }
     };
 
     const updateStatus = async (orderId, newStatus) => {
         try {
-            const res = await instance.put(`/api/orders/update-status/${orderId}`, { 
-                status: newStatus 
-            });
+            const res = await instance.put(`/api/orders/update-status/${orderId}`, { status: newStatus });
             if (res.data.success) {
                 success("Order status updated!");
                 fetchAllOrders();
             }
-        } catch (err) {
-            error("Error updating status");
-        }
+        } catch (err) { error("Error updating status"); }
     };
 
     const deleteOrder = async (id) => {
@@ -69,9 +78,7 @@ const AdminOrders = () => {
                 await instance.delete(`/api/orders/delete/${id}`);
                 success("Order deleted successfully");
                 fetchAllOrders();
-            } catch (err) { 
-                error("Delete failed"); 
-            }
+            } catch (err) { error("Delete failed"); }
         }
     };
 
@@ -85,7 +92,7 @@ const AdminOrders = () => {
     return (
         <div className="p-6 bg-[#f8fafc] min-h-screen text-slate-800 font-sans">
             <div className="max-w-7xl mx-auto">
-                {/* Header - No Changes */}
+                {/* Header Section */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 text-black">
                     <div>
                         <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight">
@@ -104,7 +111,7 @@ const AdminOrders = () => {
                     </div>
                 </div>
 
-                {/* Table - Toggle added to Amount column area */}
+                {/* Table Section */}
                 <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -134,8 +141,6 @@ const AdminOrders = () => {
                                             </div>
                                             <p className="text-[10px] mt-1 font-bold text-slate-400">{order.products.length} Items</p>
                                         </td>
-
-                                        {/* AMOUNT COLUMN WITH TOGGLE BUTTON */}
                                         <td className="p-5">
                                             <p className="font-black text-slate-900 text-sm">₹{order.finalTotal}</p>
                                             <button 
@@ -149,7 +154,6 @@ const AdminOrders = () => {
                                                 {order.paymentStatus}
                                             </button>
                                         </td>
-
                                         <td className="p-5">
                                             <select 
                                                 value={order.deliveryStatus}
@@ -180,8 +184,6 @@ const AdminOrders = () => {
             {selectedOrder && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] shadow-2xl relative animate-in zoom-in-95 duration-200">
-                        
-                        {/* Modal Header */}
                         <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center z-10">
                             <div className="flex items-center gap-3">
                                 <div className="p-3 bg-blue-50 rounded-2xl">
@@ -198,7 +200,6 @@ const AdminOrders = () => {
                         </div>
 
                         <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Left Side: Address & User */}
                             <div className="space-y-6">
                                 <section>
                                     <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -220,10 +221,30 @@ const AdminOrders = () => {
                                                 <span className="text-slate-500 font-medium">Email:</span>
                                                 <span className="font-bold text-slate-900">{selectedOrder.user?.email || "N/A"}</span>
                                             </p>
-                                            <p className="text-sm flex items-center gap-2">
-                                                <span className="text-slate-500 font-medium">Phone:</span>
-                                                <span className="font-bold text-slate-900">{selectedOrder.user?.phoneNumber || "N/A"}</span>
-                                            </p>
+                                            
+                                            {/* PHONE & WHATSAPP SECTION */}
+                                            <div className="flex items-center gap-4 mt-2">
+                                                <p className="text-sm flex items-center gap-2">
+                                                    <span className="text-slate-500 font-medium">Phone:</span>
+                                                    <span className="font-bold text-slate-900">{selectedOrder.user?.phoneNumber || "N/A"}</span>
+                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <button 
+                                                        onClick={() => openWhatsappEditor(selectedOrder)}
+                                                        className="p-2 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
+                                                        title="Send WhatsApp"
+                                                    >
+                                                        <FaWhatsapp size={20} />
+                                                    </button>
+                                                    <a 
+                                                        href={`tel:${selectedOrder.user?.phoneNumber}`}
+                                                        className="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors"
+                                                        title="Call Now"
+                                                    >
+                                                        <Phone size={18} />
+                                                    </a>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </section>
@@ -245,7 +266,6 @@ const AdminOrders = () => {
                                 </section>
                             </div>
 
-                            {/* Right Side: Product List & Summary */}
                             <div className="space-y-6">
                                 <section>
                                     <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Order Items</h3>
@@ -284,8 +304,35 @@ const AdminOrders = () => {
                     </div>
                 </div>
             )}
+
+            {/* --- WHATSAPP MESSAGE EDITOR POPUP --- */}
+            {isWhatsappModalOpen && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-black text-slate-900 uppercase text-sm tracking-tight flex items-center gap-2">
+                                <FaWhatsapp className="text-green-500" size={20} /> Edit WhatsApp Message
+                            </h3>
+                            <button onClick={() => setIsWhatsappModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <textarea 
+                            className="w-full h-48 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-green-500 outline-none resize-none font-medium text-slate-700"
+                            value={whatsappMessage}
+                            onChange={(e) => setWhatsappMessage(e.target.value)}
+                        />
+                        <button 
+                            onClick={sendWhatsapp}
+                            className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white font-black py-3 rounded-2xl transition-all uppercase text-xs tracking-widest"
+                        >
+                            Send to WhatsApp
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-export default AdminOrders
+export default AdminOrders;

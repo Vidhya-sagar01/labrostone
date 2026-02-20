@@ -105,7 +105,12 @@ router.get("/banner", async (req, res) => {
     if (!settings) {
       settings = await Settings.create({ key: "banner_settings" });
     }
-    res.json({ success: true, url: settings.currentBannerUrl });
+    // Only return URL if it's valid (not the default placeholder)
+    const bannerUrl = settings.currentBannerUrl && 
+                     !settings.currentBannerUrl.includes('banar/banner1.jpg') 
+                     ? settings.currentBannerUrl 
+                     : null;
+    res.json({ success: true, url: bannerUrl });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -156,25 +161,39 @@ router.get("/by-category/:categoryId", async (req, res) => {
   }
 });
 
-// Get by Concern
+// Get by Concern - Fetch from Concern model which has product associations
 router.get("/by-concern/:concernName", async (req, res) => {
   try {
-    const products = await Product.find({
-      concern: new RegExp(req.params.concernName, "i"),
-    }).populate("category", "name");
-    res.json({ success: true, data: products });
+    // Find concern by name (case-insensitive)
+    const Concern = require('../models/Concern');
+    const concern = await Concern.findOne({
+      title: { $regex: new RegExp(`^${req.params.concernName}$`, 'i') }
+    }).populate('products', 'name images unitPrice mrp selling_price category variants');
+    
+    if (!concern) {
+      return res.json({ success: true, data: [] });
+    }
+    
+    res.json({ success: true, data: concern.products || [] });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// Get by Ingredient
+// Get by Ingredient - Fetch from Ingredient model which has product associations
 router.get("/by-ingredient/:ingredientName", async (req, res) => {
   try {
-    const products = await Product.find({
-      ingredients: { $in: [new RegExp(req.params.ingredientName, "i")] },
-    }).populate("category", "name");
-    res.json({ success: true, data: products });
+    // Find ingredient by name (case-insensitive)
+    const Ingredient = require('../models/Ingredient');
+    const ingredient = await Ingredient.findOne({
+      title: { $regex: new RegExp(`^${req.params.ingredientName}$`, 'i') }
+    }).populate('products', 'name images unitPrice mrp selling_price category variants');
+    
+    if (!ingredient) {
+      return res.json({ success: true, data: [] });
+    }
+    
+    res.json({ success: true, data: ingredient.products || [] });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

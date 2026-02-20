@@ -30,7 +30,9 @@ const AddProduct = () => {
     taxCalculation: 'Include with product', // Added
     shippingCost: 0,
     multiplyQty: false,          // Added
-    status: true
+    status: true,
+    is_new_arrival: false,
+    is_bestseller: false
   });
 
   const [thumbnail, setThumbnail] = useState(null); 
@@ -350,7 +352,7 @@ const AddProduct = () => {
   </div>
 
   {/* SHIPPING MULTIPLY TOGGLE */}
-  <div className="px-6 pb-8">
+  <div className="px-6 pb-4">
     <div className="flex items-center justify-between border rounded-lg p-4 bg-slate-50 max-w-md group hover:border-blue-200 transition-colors">
       <div className="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase italic">
         Shipping Cost Multiply With Quantity <Info size={14} className="text-slate-400" />
@@ -367,6 +369,46 @@ const AddProduct = () => {
     </div>
   </div>
 </div>
+
+        {/* PRODUCT TAGS TOGGLES */}
+        <div className="bg-white rounded shadow-sm border p-6">
+          <div className="flex items-center gap-2 font-bold uppercase text-xs mb-4 text-blue-900">
+            <Info size={18} className="text-blue-500" /> Product Tags
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* New Arrival Toggle */}
+            <div className="flex items-center justify-between border rounded-lg p-4 bg-green-50 max-w-md group hover:border-green-200 transition-colors">
+              <div className="flex items-center gap-2 text-xs font-bold text-green-700 uppercase italic">
+                Mark as New Arrival
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={formData.is_new_arrival} 
+                  onChange={e => setFormData({ ...formData, is_new_arrival: e.target.checked })} 
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+              </label>
+            </div>
+
+            {/* Bestseller Toggle */}
+            <div className="flex items-center justify-between border rounded-lg p-4 bg-amber-50 max-w-md group hover:border-amber-200 transition-colors">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-700 uppercase italic">
+                Mark as Bestseller
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={formData.is_bestseller} 
+                  onChange={e => setFormData({ ...formData, is_bestseller: e.target.checked })} 
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
 
         {/* IMAGES */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

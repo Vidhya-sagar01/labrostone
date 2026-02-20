@@ -85,7 +85,7 @@ router.put('/update-profile/:id', async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { name, email, phone, address },
+      { name, email, phoneNumber: phone, address },
       { new: true }
     ).select('-password');
 

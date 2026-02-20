@@ -8,7 +8,8 @@ import {
   LifeBuoy,
   Key,
   Package2,
-  BanknoteArrowUpIcon
+  BanknoteArrowUpIcon,
+  BookOpenCheck
 } from 'lucide-react';
 
 import { IMAGE_BASE_URL } from '../../web/api/AxiosConfig';
@@ -21,6 +22,7 @@ const Sidebar = () => {
     brand: false,
     category: false,
     products: false,
+    combo: false,
     promotions: true
   });
 
@@ -209,26 +211,7 @@ const Sidebar = () => {
                   Product List
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/admin/season"
-                  className={`block py-2 text-xs ${location.pathname === '/admin/season'
-                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                    : 'text-gray-400 hover:text-white'
-                    }`}
-                >
-                  Combo Packs
-                </Link>
-              </li>
-              <Link
-                to="/admin/comboslist"
-                className={`block py-2 text-xs ${location.pathname === '/admin/comboslist'
-                  ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
-                  : 'text-gray-400 hover:text-white'
-                  }`}
-              >
-                Combo List
-              </Link>
+
               <li>
                 <Link
                   to="/admin/variant"
@@ -255,6 +238,66 @@ const Sidebar = () => {
             </ul>
           )}
         </div>
+        {/* Combo Vault */}
+        <div>
+          <button
+            onClick={() => toggleMenu('combo')}   // ✅ FIXED
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all hover:bg-gray-800 ${isParentActive('combo')}`}
+          >
+            <div className="flex items-center gap-3">
+              <ShoppingBag size={18} className="text-green-300" />
+              <span className="text-sm font-medium">Combo Vault</span>
+            </div>
+
+            <ChevronDown
+              size={14}
+              className={`transition-transform duration-200 ${openMenus['combo'] ? 'rotate-180 text-white' : 'text-gray-400'
+                }`}
+            />
+          </button>
+
+          {openMenus['combo'] && (   // ✅ FIXED
+            <ul className="mt-1 ml-4 space-y-1 border-l border-gray-700 pl-4">
+
+              <li>
+                <Link
+                  to="/admin/addcombo"
+                  className={`block py-2 text-xs ${location.pathname === '/admin/addcombo'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
+                    }`}
+                >
+                  + New Combo
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/admin/comboslist"
+                  className={`block py-2 text-xs ${location.pathname === '/admin/comboslist'
+                    ? 'text-blue-300 font-bold border-l-2 border-blue-400 pl-2 -ml-1'
+                    : 'text-gray-400 hover:text-white'
+                    }`}
+                >
+                  Combo List
+                </Link>
+              </li>
+
+            </ul>
+          )}
+        </div>
+        {/* Shop by Concern */}
+        <Link to="/admin/concern" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/concern')}`}>
+          <BanknoteArrowUpIcon size={18} className="text-fuchsia-300" />
+          <span className="text-sm font-medium">Shop by Concern</span>
+        </Link>
+
+        <Link to="/admin/ingredient" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/ingredient')}`}>
+          <BookOpen size={18} className="text-indigo-300" />
+          <span className="text-sm font-medium">Shop by Ingredient</span>
+        </Link>
+
+
 
         {/* --- OPERATIONS SECTION --- */}
         <div className="pt-4 pb-1 px-3">
@@ -285,10 +328,17 @@ const Sidebar = () => {
           <Ticket size={18} className="text-violet-300" />
           <span className="text-sm font-medium">Coupons</span>
         </Link>
-
+        <Link to="/admin/heroslider" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/heroslider')}`}>
+          <BanknoteArrowUpIcon size={18} className="text-fuchsia-300" />
+          <span className="text-sm font-medium">Hero Slider</span>
+        </Link>
         <Link to="/admin/reviews" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/reviews')}`}>
           <MessageSquare size={18} className="text-emerald-300" />
           <span className="text-sm font-medium">Reviews</span>
+        </Link>
+        <Link to="/admin/story" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/story')}`}>
+          <BookOpenCheck size={18} className="text-emerald-300" />
+          <span className="text-sm font-medium">Our Story</span>
         </Link>
         <Link to="/admin/subscribe" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/subscribe')}`}>
           <FaRegEnvelope size={18} className="text-sky-300" />
@@ -343,10 +393,7 @@ const Sidebar = () => {
           <Package2 size={18} className="text-sky-300" />
           <span className="text-sm font-medium">Business Pages</span>
         </Link>
-        <Link to="/admin/heroslider" className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${getLinkStyle('/admin/heroslider')}`}>
-          <BanknoteArrowUpIcon size={18} className="text-fuchsia-300" />
-          <span className="text-sm font-medium">Hero Slider</span>
-        </Link>
+
 
 
 

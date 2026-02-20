@@ -9,9 +9,12 @@ const router = express.Router();
 /* ================= GET (List + Search + Pagination) ================= */
 router.get('/', async (req, res) => {
   try {
-    const { search = '', page = 1, limit = 5 } = req.query;
+    const { search = '', page = 1, limit = 10 } = req.query;
 
-    const query = { title: { $regex: search, $options: 'i' } };
+    const query = {};
+    if (search) {
+      query.title = { $regex: search, $options: 'i' };
+    }
 
     const sliders = await Slider.find(query)
       .skip((page - 1) * limit)
@@ -36,7 +39,7 @@ router.post(
   upload.single('image'),
   async (req, res) => {
     try {
-      const { title, status } = req.body;
+      const { title, status, productId } = req.body;
 
       if (!req.file) {
         return res.status(400).json({ success: false, message: 'Image is required' });
@@ -47,7 +50,8 @@ router.post(
       const slider = await Slider.create({
         title,
         image: imageUrl,
-        status
+        status: status === 'true' || status === true,
+        productID: productId || ''
       });
 
       res.status(201).json({ success: true, slider });
@@ -90,7 +94,8 @@ router.put(
       }
 
       slider.title = req.body.title || slider.title;
-      slider.status = req.body.status ?? slider.status;
+      slider.status = req.body.status === 'true' || req.body.status === true || req.body.status === 'false' ? (req.body.status === 'true' || req.body.status === true) : slider.status;
+      slider.productID = req.body.productId || slider.productID;
 
       await slider.save();
 

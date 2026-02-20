@@ -49,4 +49,49 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Update Blog by ID
+router.put('/update/:id', protect, upload.single('image'), async (req, res) => {
+    try {
+        const { title, shortDescription, longDescription } = req.body;
+        const updateData = {
+            title,
+            shortDescription,
+            longDescription
+        };
+        
+        if (req.file) {
+            updateData.image = `/uploads/blogs/${req.file.filename}`;
+        }
+        
+        const updatedBlog = await Blog.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            { new: true }
+        );
+        
+        if (!updatedBlog) {
+            return res.status(404).json({ success: false, message: "Blog not found" });
+        }
+        
+        res.json({ success: true, message: "Blog Updated! ✍️", data: updatedBlog });
+    } catch (err) { 
+        res.status(500).json({ success: false, message: err.message }); 
+    }
+});
+
+// Delete Blog by ID
+router.delete('/delete/:id', protect, async (req, res) => {
+    try {
+        const deletedBlog = await Blog.findByIdAndDelete(req.params.id);
+        
+        if (!deletedBlog) {
+            return res.status(404).json({ success: false, message: "Blog not found" });
+        }
+        
+        res.json({ success: true, message: "Blog Deleted! 🗑️" });
+    } catch (err) { 
+        res.status(500).json({ success: false, message: err.message }); 
+    }
+});
+
 module.exports = router;

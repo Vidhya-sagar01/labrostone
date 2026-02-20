@@ -1,13 +1,17 @@
 import axios from "axios";
 
-const baseURL =
+const isLocalhost =
   window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1"
-    ? "http://localhost:5001"
-    : "https://lebrostonebackend4.lifeinfotechinstitute.com";
+  window.location.hostname === "127.0.0.1";
 
-/** Base URL for images/uploads - always use backend URL */
-export const IMAGE_BASE_URL = "https://lebrostonebackend4.lifeinfotechinstitute.com";
+const baseURL = isLocalhost
+  ? "http://localhost:5001"
+  : "https://lebrostonebackend4.lifeinfotechinstitute.com";
+
+/** Base URL for images/uploads - use same logic as baseURL */
+export const IMAGE_BASE_URL = isLocalhost
+  ? "http://localhost:5001"
+  : "https://lebrostonebackend4.lifeinfotechinstitute.com";
 
 /**
  * Build full image URL from path (e.g. /uploads/... or uploads/...).

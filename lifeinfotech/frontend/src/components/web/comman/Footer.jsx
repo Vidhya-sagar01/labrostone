@@ -6,8 +6,9 @@ import {
   FaPinterestP,
   FaLinkedinIn,
   FaYoutube,
+  FaAmazon,
 } from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
+import { FaDiagramPredecessor, FaXTwitter } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import instance from "../api/AxiosConfig";
 
@@ -291,6 +292,34 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      {/* {also availabile on } */}
+      
+      <div className="max-w-7xl pb-10 mx-auto px-4 flex flex-col items-center">
+        <p className="text-mf font-medium text-gray-700 uppercase tracking-widest">
+          Also available on
+        </p>
+        <div className="flex gap-4 pt-4">
+          <div className="w-[40px] h-[40px]  rounded-sm overflow-hidden hover:scale-105 transition-transform duration-300 ">
+            <img className="h-full w-full object-contain hover:scale-110 transition-transform duration-300 " src="/amazon.png" alt="amazon" />
+          </div>
+          <div className="w-[40px] h-[40px ] rounded-sm overflow-hidden hover:scale-105 transition-transform duration-300 ">
+            <img className="h-full w-full object-contain hover:scale-110 transition-transform duration-300 " src="/flipkart.webp" alt="flipkart" />
+          </div>
+          <div className="w-[40px] h-[40px]  rounded-sm overflow-hidden hover:scale-105 transition-transform duration-300 ">
+            <img className="h-full w-full object-contain hover:scale-110 transition-transform duration-300 " src="/Blinkit-yellow-app-icon.svg" alt="blinkit" />
+          </div>
+          <div className="w-[40px] h-[40px]  rounded-sm overflow-hidden hover:scale-105 transition-transform duration-300 ">
+            <img className="h-full w-full object-contain hover:scale-110 transition-transform duration-300 " src="/Meesho_logo.png" alt="meeso" />
+          </div>
+          <div className="w-[40px] h-[40px]  rounded-sm overflow-hidden hover:scale-105 transition-transform duration-300 ">
+            <img className="h-full w-full object-contain hover:scale-110 transition-transform duration-300 " src="/jiomart.jpeg" alt="jiomart" />
+          </div>
+
+         
+        </div>
+      </div>
+
+
 
       {/* Footer Bottom */}
       <div className="max-w-7xl mx-auto px-4 border-t border-gray-200/50 pt-6 md:pt-8 flex flex-col items-center">

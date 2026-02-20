@@ -62,6 +62,9 @@ const ProfilePage = () => {
 
 
   useEffect(() => {
+    // Always fetch latest user data on mount
+    fetchUserData();
+    
     if (activeTab === "orders" && userData._id) {
       fetchUserOrders();
     }
@@ -657,19 +660,20 @@ const ProfilePage = () => {
                                 </div>
                                 {/* ... Action Buttons ... */}
                                 <div className="p-4 bg-white border-t flex flex-wrap gap-3">
-                                    <button
-                                        onClick={() => updateOrderStatus(order._id, "Delivered")}
-                                        disabled={order.deliveryStatus === "Delivered"}
-                                        className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${order.deliveryStatus === "Delivered" ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed" : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md"}`}
-                                    >
-                                        <CheckCircle2 size={14} />
-                                        {order.deliveryStatus === "Delivered" ? "Order Delivered ✓" : "Mark as Delivered"}
-                                    </button>
-                                    {order.deliveryStatus !== "Delivered" && (
-                                        <button onClick={() => alert("Reporting issue for order #" + order._id)} className="flex-1 md:flex-none px-6 py-2 rounded-xl text-[10px] font-black uppercase border border-red-200 text-red-500 hover:bg-red-50 transition-all">
-                                            <XCircle size={14} /> Report Issue
-                                        </button>
+                                    {order.deliveryStatus === "Delivered" ? (
+                                        <div className="flex-1 md:flex-none px-6 py-2 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                            <CheckCircle2 size={14} />
+                                            Order Delivered ✓
+                                        </div>
+                                    ) : (
+                                        <div className="flex-1 md:flex-none px-6 py-2 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 bg-orange-50 text-orange-600 border border-orange-200">
+                                            <Package size={14} />
+                                            {order.deliveryStatus || "Processing"} - Admin will update soon
+                                        </div>
                                     )}
+                                    <button onClick={() => alert("Reporting issue for order #" + order._id)} className="flex-1 md:flex-none px-6 py-2 rounded-xl text-[10px] font-black uppercase border border-red-200 text-red-500 hover:bg-red-50 transition-all">
+                                        <XCircle size={14} /> Report Issue
+                                    </button>
                                 </div>
                              </div>
                         ))}

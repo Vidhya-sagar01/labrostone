@@ -1,36 +1,53 @@
 import React from "react";
+import { useEffect } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import instance, { getImageUrl } from "./api/AxiosConfig";
 
 const OurStory = () => {
-  const stories = [
-    {
-      id: 1,
-      title: "Rooted in Ayurveda",
-      // Image: Herbs, mortar and pestle, or traditional ingredients
-      image:
-        "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: 2,
-      title: "Clean & Conscious Beauty",
-      // Image: Clear serum bottles, water, or minimalist setup
-      image:
-        "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: 3,
-      title: "Backed by Research",
-      // Image: Laboratory aesthetic, glass droppers, or scientific setup
-      image:
-        "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=600",
-    },
-    {
-      id: 4,
-      title: "Ethical & Sustainable",
-      // Image: Green leaves, recycled packaging, or nature
-      image:
-        "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=600",
-    },
-  ];
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchStories();
+  }, []);
+
+  const fetchStories = async () => {
+    try {
+      setLoading(true);
+      const response = await instance.get("/api/stories/active");
+      setStories(response.data?.data || []);
+    } catch (err) {
+      console.error("Error fetching stories:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStoryClick = (story) => {
+    if (story.productId) {
+      const productId = story.productId._id || story.productId;
+      navigate(`/product/${productId}`);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="py-10 md:py-16 bg-white overflow-hidden">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center mb-10">
+            <h2 className="text-lg md:text-2xl font-bold uppercase tracking-[0.2em] text-center">
+              Our Story
+            </h2>
+          </div>
+          <div className="flex justify-center items-center h-40">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-10 md:py-16 bg-white overflow-hidden">
@@ -48,15 +65,17 @@ const OurStory = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-10 px-2 md:px-0">
           {stories.map((item) => (
             <div
-              key={item.id}
+              key={item._id}
+              onClick={() => handleStoryClick(item)}
               className="flex flex-col items-center group cursor-pointer"
             >
               {/* IMAGE CONTAINER */}
               <div className="relative w-full aspect-square md:aspect-[4/5] overflow-hidden rounded-2xl md:rounded-3xl mb-3 md:mb-6 shadow-sm group-hover:shadow-xl transition-all duration-500">
                 <img
-                  src={item.image}
+                  src={item.image ? getImageUrl(item.image) : 'https://via.placeholder.com/400x500?text=Story'}
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110"
+                  onError={(e) => { e.target.src = 'https://via.placeholder.com/400x500?text=Story'; }}
                 />
                 {/* Subtle Overlay */}
                 <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500"></div>
@@ -73,6 +92,12 @@ const OurStory = () => {
             </div>
           ))}
         </div>
+        
+        {stories.length === 0 && (
+          <div className="text-center py-10 text-gray-400">
+            <p>No stories available</p>
+          </div>
+        )}
       </div>
     </div>
   );

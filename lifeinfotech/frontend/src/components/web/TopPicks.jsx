@@ -48,13 +48,11 @@ const TopPicks = () => {
           let productData = res.data.data || [];
           
           if (activeTab === "BESTSELLERS") {
-            // Take first 10 products for bestsellers
-            productData = productData.slice(0, 10);
+            // Filter products marked as bestseller
+            productData = productData.filter(p => p.is_bestseller === true).slice(0, 10);
           } else if (activeTab === "NEW ARRIVAL") {
-            // Sort by createdAt date (newest first) and take first 10
-            productData = productData
-              .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-              .slice(0, 10);
+            // Filter products marked as new arrival
+            productData = productData.filter(p => p.is_new_arrival === true).slice(0, 10);
           }
           
           setProducts(productData);

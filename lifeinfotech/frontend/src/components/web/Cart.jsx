@@ -120,6 +120,14 @@ const Cart = () => {
 
   const handlePlaceOrder = async () => {
     const userId = user?._id || user?.id;
+    
+    // Check if mobile number exists
+    if (!userData?.phoneNumber || userData.phoneNumber.trim() === "") {
+      error("Please add your mobile number in your profile before placing an order!");
+      navigate("/profile");
+      return;
+    }
+    
     if (!userData?.address?.city) {
       error("Please add an address first!");
       return;
@@ -388,10 +396,11 @@ const Cart = () => {
             <button
               disabled={
                 !userData?.address?.city ||
+                !userData?.phoneNumber ||
                 cartItems.length === 0 ||
                 orderLoading
               }
-              className={`w-full py-4 rounded-xl font-black uppercase text-white shadow-xl flex items-center justify-center gap-2 transition-all ${userData?.address?.city && cartItems.length > 0 ? "bg-[#fb641b] hover:bg-[#e65a17]" : "bg-gray-300 cursor-not-allowed"}`}
+              className={`w-full py-4 rounded-xl font-black uppercase text-white shadow-xl flex items-center justify-center gap-2 transition-all ${userData?.address?.city && userData?.phoneNumber && cartItems.length > 0 ? "bg-[#fb641b] hover:bg-[#e65a17]" : "bg-gray-300 cursor-not-allowed"}`}
               onClick={handlePlaceOrder}
             >
               {orderLoading ? (
@@ -401,7 +410,13 @@ const Cart = () => {
               )}
             </button>
 
-            {!userData?.address?.city && cartItems.length > 0 && (
+            {cartItems.length > 0 && !userData?.phoneNumber && (
+              <p className="text-red-500 text-[10px] text-center font-bold">
+                PLEASE ADD MOBILE NUMBER IN PROFILE TO PROCEED
+              </p>
+            )}
+
+            {cartItems.length > 0 && userData?.phoneNumber && !userData?.address?.city && (
               <p className="text-red-500 text-[10px] text-center font-bold">
                 PLEASE ADD ADDRESS TO PROCEED
               </p>

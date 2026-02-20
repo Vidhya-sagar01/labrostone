@@ -4,7 +4,8 @@ const sliderSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     image: { type: String, required: true }, 
-    status: { type: Boolean, default: true }
+    status: { type: Boolean, default: true },
+    productID: { type: String, required: true },
   },
   { timestamps: true }
 );

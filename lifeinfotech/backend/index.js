@@ -126,8 +126,11 @@ app.use("/api/combos", require("./routes/comboRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
 app.use("/api/reels", require("./routes/reelRoutes"));
 app.use("/api/blogs", require("./routes/blogRoutes"));
+app.use("/api/stories", require("./routes/storyRoutes"));
 app.use("/api/variants", require("./routes/variantRoute"));
 app.use("/api/features", require("./routes/featureRoutes"));
+app.use("/api/concerns", require("./routes/concernRoutes"));
+app.use("/api/ingredients", require("./routes/ingredientRoutes"));
 app.use("/api/subscription", require("./routes/subscriptionRoutes"));
 
 app.use("/api/pages", require("./routes/PageRoutes"));

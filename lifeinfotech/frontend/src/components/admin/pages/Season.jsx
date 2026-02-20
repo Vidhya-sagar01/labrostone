@@ -16,6 +16,7 @@ const Season = () => {
     comboStock: 0,
     status: true
   });
+const API_BASE ='https://lebrostonebackend4.lifeinfotechinstitute.com';
 
   const [comboProducts, setComboProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);

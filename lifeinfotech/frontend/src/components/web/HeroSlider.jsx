@@ -6,12 +6,14 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { FaShippingFast } from "react-icons/fa";
 import { IoBagCheckOutline } from "react-icons/io5";
 import { FaUserDoctor } from "react-icons/fa6";
+import { useNavigate } from "react-router-dom";
 
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
 const HeroSlider = () => {
+  const navigate = useNavigate();
   const [slides, setSlides] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -86,11 +88,16 @@ const HeroSlider = () => {
       >
         {slides.map((slide) => (
           <SwiperSlide key={slide._id}>
-            <img
-              src={getImageUrl(slide.image) || slide.image}
-              alt={slide.title || "Banner"}
-              className="w-full h-full object-cover"
-            />
+            <div 
+              onClick={() => slide.productID && navigate(`/product/${slide.productID}`)}
+              className={`w-full h-full ${slide.productID ? 'cursor-pointer' : ''}`}
+            >
+              <img
+                src={getImageUrl(slide.image) || slide.image}
+                alt={slide.title || "Banner"}
+                className="w-full h-full object-cover"
+              />
+            </div>
           </SwiperSlide>
         ))}
 

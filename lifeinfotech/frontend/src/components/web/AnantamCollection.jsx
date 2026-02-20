@@ -6,11 +6,7 @@ import { useNavigate } from "react-router-dom";
 const AnantamCollection = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const defaultBanner =
-    "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&q=80&w=1600";
-  const [bannerUrl, setBannerUrl] = useState(
-    localStorage.getItem("cached_anantam_banner") || defaultBanner,
-  );
+  const [bannerUrl, setBannerUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const getCleanUrl = (imagePath) => {
@@ -40,8 +36,8 @@ const AnantamCollection = () => {
       }
     }
 
-    // Priority 3: Placeholder
-    return "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=500";
+    // No placeholder - return empty string if no image
+    return "";
   };
 
   // --- 3. PRICE LOGIC (Strict Priority) ---
@@ -109,7 +105,6 @@ const AnantamCollection = () => {
         if (bannerRes.data.success && bannerRes.data.url) {
           const fixedBanner = getCleanUrl(bannerRes.data.url);
           setBannerUrl(fixedBanner);
-          localStorage.setItem("cached_anantam_banner", fixedBanner);
         }
 
         if (productRes.data.success) {
@@ -124,7 +119,7 @@ const AnantamCollection = () => {
     fetchAnantamData();
   }, []);
 
-  if (loading && bannerUrl === defaultBanner)
+  if (loading)
     return (
       <div className="flex flex-col items-center justify-center py-40 bg-white">
         <RefreshCw className="animate-spin text-orange-400 mb-4" size={40} />
@@ -137,7 +132,8 @@ const AnantamCollection = () => {
   return (
     // ✅ Added overflow-hidden to main wrapper to prevent horizontal scroll
     <div className="py-10 md:py-16 bg-white selection:bg-orange-100 w-full overflow-hidden">
-      {/* 1. BANNER SECTION */}
+      {/* 1. BANNER SECTION - Only show if banner exists */}
+      {bannerUrl && (
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
         <div className="relative w-full h-[300px] md:h-[550px] bg-[#1a0f09] flex items-center justify-center overflow-hidden mb-8 md:mb-16 rounded-[2rem] md:rounded-[4rem] shadow-2xl group">
           <div className="absolute inset-0">
@@ -145,9 +141,6 @@ const AnantamCollection = () => {
               src={bannerUrl}
               className="w-full h-full object-cover opacity-60 transition-transform duration-[3s] group-hover:scale-110"
               alt="Banner Background"
-              onError={(e) => {
-                e.target.src = defaultBanner;
-              }}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent"></div>
           </div>
@@ -174,6 +167,7 @@ const AnantamCollection = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* 2. PRODUCT GRID SECTION */}
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
@@ -207,13 +201,9 @@ const AnantamCollection = () => {
                 >
                   <div className="relative w-full aspect-square md:aspect-[3/4] mb-3 md:mb-6 overflow-hidden bg-[#f3f3f3] rounded-2xl md:rounded-[2.5rem] transition-all duration-500 hover:shadow-xl">
                     <img
-                      src={displayImage} // ✅ Uses correct image
+                      src={displayImage}
                       alt={product.name}
                       className="w-full h-full object-cover mix-blend-multiply p-4 transition-transform duration-700 group-hover:scale-110"
-                      onError={(e) => {
-                        e.target.src =
-                          "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&q=80&w=500";
-                      }}
                     />
 
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-500 flex items-center justify-center opacity-0 group-hover:opacity-100">
