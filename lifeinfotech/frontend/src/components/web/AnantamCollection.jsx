@@ -1,238 +1,183 @@
-import React, { useState, useEffect } from "react";
-import instance, { getImageUrl } from "./api/AxiosConfig";
-import { ShoppingCart, RefreshCw, Package } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { ShoppingCart } from 'lucide-react';
 
 const AnantamCollection = () => {
-  const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [bannerUrl, setBannerUrl] = useState(null);
+  const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
-  const getCleanUrl = (imagePath) => {
-    if (!imagePath || imagePath.length === 0) return "";
-    const path = Array.isArray(imagePath) ? imagePath[0] : imagePath;
-    if (typeof path === "string") {
-      if (path.startsWith("http")) return path;
-      return getImageUrl(path);
+  // Fetch active banners
+  const fetchBanners = async () => {
+    try {
+      const response = await axios.get('http://localhost:5001/api/anantam/banners');
+      setBanners(response.data.data);
+    } catch (error) {
+      console.error('Error fetching banners:', error);
     }
-    return path;
   };
 
-  // --- 2. IMAGE LOGIC (Smart Combo Fallback) ---
-  const getProductDisplayImage = (product) => {
-    // Priority 1: Product ki apni image
-    if (product.images && product.images.length > 0) {
-      return getCleanUrl(product.images);
+  // Fetch Anantam products
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get('http://localhost:5001/api/anantam/collection');
+      setProducts(response.data.data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
     }
-
-    // Priority 2: Agar Combo hai aur image nahi hai -> Included Product ki image
-    if (product.is_combo && product.included_products?.length > 0) {
-      const firstItem = product.included_products[0];
-
-      // Agar populated object hai
-      if (typeof firstItem === "object" && firstItem.images?.length > 0) {
-        return getCleanUrl(firstItem.images);
-      }
-    }
-
-    // No placeholder - return empty string if no image
-    return "";
-  };
-
-  // --- 3. PRICE LOGIC (Strict Priority) ---
-  const getProductPrice = (product) => {
-    // 1. Root Price (Database Main Price)
-    const rootSP = Number(product.unitPrice);
-    const rootMRP = Number(product.mrp);
-
-    // ✅ Priority 1: Agar Root Price Set Hai (e.g. 500) -> Use Standard Price
-    if (rootSP > 0) {
-      return {
-        sp: rootSP,
-        mrp: rootMRP > 0 ? rootMRP : rootSP,
-      };
-    }
-
-    // ✅ Priority 2: Agar Variants hain -> Use Variant Price
-    if (
-      product.variants &&
-      product.variants.length > 0 &&
-      product.variants.some((v) => v.selling_price > 0)
-    ) {
-      return {
-        sp: Number(product.variants[0].selling_price),
-        mrp: Number(product.variants[0].mrp),
-      };
-    }
-
-    // ✅ Priority 3: Agar Combo hai aur upar ke prices 0 hain -> Calculation
-    if (product.is_combo && product.included_products?.length > 0) {
-      let totalSP = 0;
-      let totalMRP = 0;
-
-      product.included_products.forEach((item) => {
-        if (typeof item === "object") {
-          // Ensure item is populated
-          const itemSP =
-            Number(item.selling_price) ||
-            Number(item.variants?.[0]?.selling_price) ||
-            0;
-          const itemMRP =
-            Number(item.mrp) || Number(item.variants?.[0]?.mrp) || 0;
-          totalSP += itemSP;
-          totalMRP += itemMRP || itemSP;
-        }
-      });
-
-      if (totalSP > 0) {
-        return { sp: totalSP, mrp: totalMRP };
-      }
-    }
-
-    // Fallback
-    return { sp: 0, mrp: 0 };
   };
 
   useEffect(() => {
-    const fetchAnantamData = async () => {
-      try {
-        const [bannerRes, productRes] = await Promise.all([
-          instance.get("/api/products/banner"),
-          instance.get("/api/products/anantam-collection"),
-        ]);
-
-        if (bannerRes.data.success && bannerRes.data.url) {
-          const fixedBanner = getCleanUrl(bannerRes.data.url);
-          setBannerUrl(fixedBanner);
-        }
-
-        if (productRes.data.success) {
-          setProducts(productRes.data.data);
-        }
-      } catch (err) {
-        console.error("Connection error.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAnantamData();
+    Promise.all([fetchBanners(), fetchProducts()]).finally(() => {
+      setLoading(false);
+    });
   }, []);
 
-  if (loading)
+  // Auto-rotate banners
+  useEffect(() => {
+    if (banners.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentBannerIndex((prev) => (prev + 1) % banners.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [banners.length]);
+
+  const currentBanner = banners[currentBannerIndex];
+
+  if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-40 bg-white">
-        <RefreshCw className="animate-spin text-orange-400 mb-4" size={40} />
-        <div className="italic font-black text-slate-300 animate-pulse uppercase tracking-widest text-center px-4 text-sm">
-          PREPARING THE ANANTAM EXPERIENCE...
-        </div>
+      <div className="flex justify-center items-center min-h-screen bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F97316]"></div>
       </div>
     );
+  }
 
   return (
-    // ✅ Added overflow-hidden to main wrapper to prevent horizontal scroll
-    <div className="py-10 md:py-16 bg-white selection:bg-orange-100 w-full overflow-hidden">
-      {/* 1. BANNER SECTION - Only show if banner exists */}
-      {bannerUrl && (
-      <div className="container mx-auto px-4 md:px-6 lg:px-8">
-        <div className="relative w-full h-[300px] md:h-[550px] bg-[#1a0f09] flex items-center justify-center overflow-hidden mb-8 md:mb-16 rounded-[2rem] md:rounded-[4rem] shadow-2xl group">
-          <div className="absolute inset-0">
-            <img
-              src={bannerUrl}
-              className="w-full h-full object-cover opacity-60 transition-transform duration-[3s] group-hover:scale-110"
-              alt="Banner Background"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent"></div>
-          </div>
-
-          <div className="container mx-auto px-6 md:px-20 relative z-10 flex flex-col justify-center h-full">
-            <div className="max-w-2xl space-y-4 md:space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-orange-500/20 backdrop-blur-md border border-orange-500/30">
-                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.4em] text-orange-200">
-                  The Anantam Series
+    <div className="min-h-screen bg-white font-sans">
+      {/* 1. PREMIUM BANNER SECTION */}
+      {banners.length > 0 && (
+        <div className="px-4 md:px-10 py-6">
+          <div className="relative h-[450px] md:h-[500px] w-full bg-[#0C0A09] rounded-[40px] md:rounded-[60px] overflow-hidden shadow-2xl flex items-center">
+            {/* Background Image (If available) or solid color */}
+            {currentBanner.imageUrl && (
+              <img 
+                src={currentBanner.imageUrl} 
+                className="absolute inset-0 w-full h-full object-cover opacity-40" 
+                alt="banner bg" 
+              />
+            )}
+            
+            <div className="relative z-10 px-8 md:px-20 max-w-3xl">
+              {/* Series Badge */}
+              <div className="inline-block px-4 py-1.5 rounded-full border border-[#78350F] bg-[#451A03]/30 mb-6">
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-[#D97706]">
+                  {currentBanner.seriesName}
                 </span>
               </div>
-              <h2 className="text-3xl md:text-6xl lg:text-8xl font-serif leading-none text-white italic">
-                Elevated <br />{" "}
-                <span className="text-orange-300">Self-Care.</span>
-              </h2>
-              <p className="text-xs md:text-lg text-white/70 font-light max-w-sm md:max-w-md leading-relaxed tracking-wide">
-                Indulge in our most premium collection, where ancient Ayurveda
-                meets modern luxury.
+              
+              {/* Heading: Using Serif for "Elevated" feel */}
+              <h1 className="text-5xl md:text-7xl font-serif text-white leading-[1.1] mb-6 tracking-tight">
+                {currentBanner.title.split(' ').map((word, i) => (
+                  <span key={i} className={i === 1 ? "text-[#FF9F66] italic" : ""}>
+                    {word}{' '}
+                  </span>
+                ))}
+              </h1>
+              
+              <p className="text-gray-400 text-base md:text-lg mb-10 max-w-md leading-relaxed">
+                {currentBanner.subtitle || currentBanner.description}
               </p>
-              <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 md:px-8 md:py-4 rounded-full font-bold uppercase text-[10px] md:text-xs tracking-widest transition-all hover:px-10 w-fit">
-                Explore Collection
+              
+              <button className="bg-[#F97316] hover:bg-[#EA580C] text-white font-black py-4 px-10 rounded-2xl text-xs uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-900/20">
+                {currentBanner.ctaText}
               </button>
             </div>
           </div>
         </div>
-      </div>
       )}
 
-      {/* 2. PRODUCT GRID SECTION */}
-      <div className="container mx-auto px-4 md:px-6 lg:px-8">
-        <div className="flex justify-center mb-10">
-          <div className="text-black py-3 px-12 md:px-24">
-            <h2 className="text-lg md:text-2xl font-bold uppercase tracking-[0.2em] text-center">
-              The Collection
-            </h2>
-          </div>
+      {/* 2. COLLECTION SECTION */}
+      <div className="py-20 max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-2xl md:text-3xl font-black text-[#1E293B] tracking-[0.1em] uppercase">
+            The Collection
+          </h2>
+          <div className="w-12 h-1 bg-[#F97316] mx-auto mt-4 rounded-full"></div>
         </div>
 
-        {products.length === 0 && !loading ? (
-          <div className="flex flex-col items-center justify-center py-32 bg-slate-50 rounded-[3rem]">
-            <Package size={48} className="text-slate-300 mb-4" />
-            <p className="text-slate-500 font-medium italic">
-              Our curators are adding new treasures...
-            </p>
+        {products.length === 0 ? (
+          <div className="text-center py-20 text-gray-400 font-bold uppercase tracking-widest">
+            Coming Soon...
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-10 px-2 md:px-0">
-            {products.map((product) => {
-              // ✅ Apply Logic Here
-              const displayImage = getProductDisplayImage(product);
-              const { sp, mrp } = getProductPrice(product);
-
-              return (
-                <div
-                  key={product._id}
-                  className="group flex flex-col cursor-pointer w-full"
-                  onClick={() => navigate(`/product/${product._id}`)}
-                >
-                  <div className="relative w-full aspect-square md:aspect-[3/4] mb-3 md:mb-6 overflow-hidden bg-[#f3f3f3] rounded-2xl md:rounded-[2.5rem] transition-all duration-500 hover:shadow-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-16">
+            {products.map((product) => (
+              <div 
+                key={product._id} 
+                className="group cursor-pointer"
+                onClick={() => {
+                  // Open product details page
+                  window.location.href = `/product/${product._id}`;
+                }}
+              >
+                {/* Product Image Card */}
+                <div className="relative aspect-[4/5] bg-[#F1F5F9] rounded-[40px] md:rounded-[50px] overflow-hidden mb-6 transition-transform duration-500 group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:shadow-gray-200">
+                  {product.thumbnail ? (
                     <img
-                      src={displayImage}
+                      src={`http://localhost:5001${product.thumbnail}`}
                       alt={product.name}
-                      className="w-full h-full object-cover mix-blend-multiply p-4 transition-transform duration-700 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-500 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <div className="bg-white text-black p-4 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all">
-                        <ShoppingCart size={20} />
-                      </div>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300 italic font-serif">
+                      {product.name}
+                    </div>
+                  )}
+                          
+                  {/* Hover Cart Overlay */}
+                  <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl transform scale-50 group-hover:scale-100 transition-transform duration-300">
+                      <ShoppingCart className="text-[#1E293B]" size={20} />
                     </div>
                   </div>
 
-                  <div className="text-center space-y-1 w-full">
-                    <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight truncate px-2">
-                      {product.name}
-                    </h3>
-                    <div className="flex justify-center items-center gap-3">
-                      {/* ✅ Uses Calculated Prices */}
-                      <span className="text-orange-600 font-black">₹{sp}</span>
-                      {mrp > sp && (
-                        <span className="text-slate-400 text-xs line-through">
-                          ₹{mrp}
-                        </span>
-                      )}
+                  {/* Tag Badge */}
+                  {product.productTag && product.productTag !== 'Simple' && (
+                    <div className="absolute top-6 left-6">
+                      <span className="px-4 py-1.5 bg-white/90 backdrop-blur-md rounded-full text-[9px] font-black uppercase tracking-widest text-[#1E293B] shadow-sm">
+                        {product.productTag}
+                      </span>
                     </div>
+                  )}
+                </div>
+
+                {/* Product Text Details */}
+                <div className="text-center px-4">
+                  <h3 className="text-sm font-black text-[#64748B] uppercase tracking-widest mb-2 group-hover:text-[#F97316] transition-colors">
+                    {product.name}
+                  </h3>
+                  
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-xl font-black text-[#F97316]">
+                      ₹{product.unitPrice}
+                    </span>
+                    {product.discountAmount > 0 && (
+                      <span className="text-sm text-gray-400 line-through font-bold">
+                        ₹{product.unitPrice + product.discountAmount}
+                      </span>
+                    )}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>
+
+      {/* Footer Decoration (Subtle light gray gradient at bottom) */}
+      <div className="h-40 bg-gradient-to-t from-[#F8FAFC] to-transparent"></div>
     </div>
   );
 };

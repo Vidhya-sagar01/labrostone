@@ -9,6 +9,9 @@ const OurStory = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Use local placeholder
+  const PLACEHOLDER = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjUwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM5Y2EzYWYiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+";
+
   useEffect(() => {
     fetchStories();
   }, []);
@@ -72,10 +75,9 @@ const OurStory = () => {
               {/* IMAGE CONTAINER */}
               <div className="relative w-full aspect-square md:aspect-[4/5] overflow-hidden rounded-2xl md:rounded-3xl mb-3 md:mb-6 shadow-sm group-hover:shadow-xl transition-all duration-500">
                 <img
-                  src={item.image ? getImageUrl(item.image) : 'https://via.placeholder.com/400x500?text=Story'}
+                  src={item.image ? getImageUrl(item.image) : PLACEHOLDER}
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110"
-                  onError={(e) => { e.target.src = 'https://via.placeholder.com/400x500?text=Story'; }}
                 />
                 {/* Subtle Overlay */}
                 <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500"></div>
@@ -92,7 +94,7 @@ const OurStory = () => {
             </div>
           ))}
         </div>
-        
+
         {stories.length === 0 && (
           <div className="text-center py-10 text-gray-400">
             <p>No stories available</p>

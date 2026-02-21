@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 const { protect } = require("../middleware/authMiddleware");
 const Product = require("../models/Product");
 const Settings = require("../models/Settings");
@@ -22,8 +23,16 @@ const storage = multer.diskStorage({
   },
 });
 
+// Ensure banner upload directory exists
+const bannerUploadDir = path.join(__dirname, '../public/uploads/banners');
+if (!fs.existsSync(bannerUploadDir)) {
+  fs.mkdirSync(bannerUploadDir, { recursive: true });
+}
+
 const bannerStorage = multer.diskStorage({
-  destination: "public/uploads/banners/",
+  destination: (req, file, cb) => {
+    cb(null, bannerUploadDir);
+  },
   filename: (req, file, cb) => {
     cb(null, "anantam-main-banner" + path.extname(file.originalname));
   },
@@ -36,7 +45,22 @@ const upload = multer({ storage }).fields([
 const bannerUpload = multer({ storage: bannerStorage });
 
 const BASE_URL =
-  process.env.BASE_URL || "https://lebrostone.lifeinfotechinstitute.com/";
+  process.env.BASE_URL || "https://lebrostonebackend4.lifeinfotechinstitute.com/";
+
+// Helper to transform URL based on request (localhost vs production)
+const transformUrl = (url, req) => {
+  if (!url) return url;
+  
+  // Check if request is from localhost via various headers
+  const origin = req.get('origin') || req.get('referer') || '';
+  const host = req.get('host') || '';
+  const isLocalhost = origin.includes('localhost') || host.includes('localhost') || origin.includes('127.0.0.1');
+  
+  if (isLocalhost && url.includes('lifeinfotechinstitute.com')) {
+    return url.replace('https://lebrostonebackend4.lifeinfotechinstitute.com', 'http://localhost:5001');
+  }
+  return url;
+};
 
 /* =========================
     HELPERS
@@ -105,11 +129,13 @@ router.get("/banner", async (req, res) => {
     if (!settings) {
       settings = await Settings.create({ key: "banner_settings" });
     }
-    // Only return URL if it's valid (not the default placeholder)
-    const bannerUrl = settings.currentBannerUrl && 
-                     !settings.currentBannerUrl.includes('banar/banner1.jpg') 
-                     ? settings.currentBannerUrl 
-                     : null;
+    // Only return URL if it's valid (not the default placeholder and has uploads path)
+    let bannerUrl = settings.currentBannerUrl || null;
+    if (bannerUrl && (bannerUrl.includes('banar/banner1.jpg') || !bannerUrl.includes('/uploads/'))) {
+      bannerUrl = null;
+    }
+    // Transform URL based on request origin (for local vs production)
+    bannerUrl = transformUrl(bannerUrl, req);
     res.json({ success: true, url: bannerUrl });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -417,22 +443,6 @@ router.put("/status/:id", protect, async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// Backend Route Fix
-router.put("/anantam/:id", protect, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { is_anantam } = req.body;
-    const updated = await Product.findByIdAndUpdate(
-      id,
-      { $set: { is_anantam: is_anantam } },
-      { new: true },
-    );
-    res.json({ success: true, data: updated });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
   }
 });
 
